@@ -1,7 +1,6 @@
 ﻿namespace System.Web.Mvc {
-    using System.Web.Resources;
-    using System.Web.Routing;
     using System.Web.Mvc.Resources;
+    using System.Web.Routing;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
@@ -47,13 +46,6 @@
             masterName,
             viewData,
             tempData) {
-        }
-
-        private static ControllerContext GetControllerContext(ControllerContext controllerContext) {
-            if (controllerContext == null) {
-                throw new ArgumentNullException("controllerContext");
-            }
-            return controllerContext;
         }
     }
 }

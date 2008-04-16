@@ -1,0 +1,360 @@
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <UsingTask TaskName="Copy" AssemblyName="Microsoft.Build.Tasks, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <UsingTask TaskName="Delete" AssemblyName="Microsoft.Build.Tasks, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <UsingTask TaskName="BuildVsi" AssemblyFile="$(MSBuildProjectDirectory)\BuildVsi.dll" />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <MvcBinariesPath>..\..\bin\Debug\</MvcBinariesPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <MvcBinariesPath>..\..\bin\Release\</MvcBinariesPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputPath>..\..\bin</OutputPath>
+    <ProjectGuid>{AA318123-8EB7-406D-A8F2-6924EE753012}</ProjectGuid>
+    <AppThemes>App_Themes\DefaultTheme</AppThemes>
+    <TemplatesPath>..\..\$(OutputPath)\CodePlexMvcTemplates</TemplatesPath>
+    <ControllerItemTemplateName>MvcControllerItemTemplate</ControllerItemTemplateName>
+    <ViewContentPageItemTemplateName>MvcViewContentPageItemTemplate</ViewContentPageItemTemplateName>
+    <ViewMasterPageItemTemplateName>MvcViewMasterPageItemTemplate</ViewMasterPageItemTemplateName>
+    <ViewPageItemTemplateName>MvcViewPageItemTemplate</ViewPageItemTemplateName>
+    <ViewUserControlItemTemplateName>MvcViewUserControlItemTemplate</ViewUserControlItemTemplateName>
+    <WebApplicationProjectTemplateName>MvcWebApplicationProjectTemplate</WebApplicationProjectTemplateName>
+    <TemplateVersion>CodePlex</TemplateVersion>
+    <VsiFile>$(OutputPath)\CodePlexMvcTemplates\CodePlexMVCTemplates.vsi</VsiFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\v1\System.Web.Mvc.csproj">
+      <Project>{3D3FFD8A-624D-4E9B-954B-E1C105507975}</Project>
+      <Name>System.Web.Mvc</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Controller template sources -->
+    <ControllerTemplateItemCS Include="Controllers\Controller.cs">
+      <InProject>false</InProject>
+    </ControllerTemplateItemCS>
+    <ControllerTemplateItemVB Include="Controllers\Controller.vb">
+      <InProject>false</InProject>
+    </ControllerTemplateItemVB>
+    <!-- View content page template sources -->
+    <ViewContentPageTemplateItemCS Include="Views\Home\ViewContentPage.aspx">
+      <InProject>false</InProject>
+    </ViewContentPageTemplateItemCS>
+    <ViewContentPageTemplateItemCS Include="Views\Home\ViewContentPage.aspx.cs">
+      <InProject>false</InProject>
+    </ViewContentPageTemplateItemCS>
+    <ViewContentPageTemplateItemCS Include="Views\Home\ViewContentPage.aspx.designer.cs">
+      <InProject>false</InProject>
+    </ViewContentPageTemplateItemCS>
+    <ViewContentPageTemplateItemVB Include="Views\Home\ViewContentPage.aspx">
+      <InProject>false</InProject>
+    </ViewContentPageTemplateItemVB>
+    <ViewContentPageTemplateItemVB Include="Views\Home\ViewContentPage.aspx.vb">
+      <InProject>false</InProject>
+    </ViewContentPageTemplateItemVB>
+    <ViewContentPageTemplateItemVB Include="Views\Home\ViewContentPage.aspx.designer.vb">
+      <InProject>false</InProject>
+    </ViewContentPageTemplateItemVB>
+    <!-- View master page template sources -->
+    <ViewMasterPageTemplateItemCS Include="Views\Shared\ViewMasterPage.Master">
+      <InProject>false</InProject>
+    </ViewMasterPageTemplateItemCS>
+    <ViewMasterPageTemplateItemCS Include="Views\Shared\ViewMasterPage.Master.cs">
+      <InProject>false</InProject>
+    </ViewMasterPageTemplateItemCS>
+    <ViewMasterPageTemplateItemCS Include="Views\Shared\ViewMasterPage.Master.designer.cs">
+      <InProject>false</InProject>
+    </ViewMasterPageTemplateItemCS>
+    <ViewMasterPageTemplateItemVB Include="Views\Shared\ViewMasterPage.Master">
+      <InProject>false</InProject>
+    </ViewMasterPageTemplateItemVB>
+    <ViewMasterPageTemplateItemVB Include="Views\Shared\ViewMasterPage.Master.vb">
+      <InProject>false</InProject>
+    </ViewMasterPageTemplateItemVB>
+    <ViewMasterPageTemplateItemVB Include="Views\Shared\ViewMasterPage.Master.designer.vb">
+      <InProject>false</InProject>
+    </ViewMasterPageTemplateItemVB>
+    <!-- View page template sources -->
+    <ViewPageTemplateItemCS Include="Views\Home\ViewPage.aspx">
+      <InProject>false</InProject>
+    </ViewPageTemplateItemCS>
+    <ViewPageTemplateItemCS Include="Views\Home\ViewPage.aspx.cs">
+      <InProject>false</InProject>
+    </ViewPageTemplateItemCS>
+    <ViewPageTemplateItemCS Include="Views\Home\ViewPage.aspx.designer.cs">
+      <InProject>false</InProject>
+    </ViewPageTemplateItemCS>
+    <ViewPageTemplateItemVB Include="Views\Home\ViewPage.aspx">
+      <InProject>false</InProject>
+    </ViewPageTemplateItemVB>
+    <ViewPageTemplateItemVB Include="Views\Home\ViewPage.aspx.vb">
+      <InProject>false</InProject>
+    </ViewPageTemplateItemVB>
+    <ViewPageTemplateItemVB Include="Views\Home\ViewPage.aspx.designer.vb">
+      <InProject>false</InProject>
+    </ViewPageTemplateItemVB>
+    <!-- View user control template sources -->
+    <ViewUserControlTemplateItemCS Include="Views\Home\ViewUserControl.ascx">
+      <InProject>false</InProject>
+    </ViewUserControlTemplateItemCS>
+    <ViewUserControlTemplateItemCS Include="Views\Home\ViewUserControl.ascx.cs">
+      <InProject>false</InProject>
+    </ViewUserControlTemplateItemCS>
+    <ViewUserControlTemplateItemCS Include="Views\Home\ViewUserControl.ascx.designer.cs">
+      <InProject>false</InProject>
+    </ViewUserControlTemplateItemCS>
+    <ViewUserControlTemplateItemVB Include="Views\Home\ViewUserControl.ascx">
+      <InProject>false</InProject>
+    </ViewUserControlTemplateItemVB>
+    <ViewUserControlTemplateItemVB Include="Views\Home\ViewUserControl.ascx.vb">
+      <InProject>false</InProject>
+    </ViewUserControlTemplateItemVB>
+    <ViewUserControlTemplateItemVB Include="Views\Home\ViewUserControl.ascx.designer.vb">
+      <InProject>false</InProject>
+    </ViewUserControlTemplateItemVB>
+    <!-- Web application project template sources -->
+    <WebApplicationProjectTemplateItemCS Include="MvcApplication.csproj">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Default.aspx">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Default.aspx.cs">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Global.asax">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Global.asax.cs">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Web.config">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Content\Site.css">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Controllers\HomeController.cs">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Properties\AssemblyInfo.cs">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Views\Web.config">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Views\Home\Index.aspx">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Views\Home\Index.aspx.cs">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Views\Home\Index.aspx.designer.cs">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Views\Home\About.aspx">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Views\Home\About.aspx.cs">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Views\Home\About.aspx.designer.cs">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Views\Shared\Site.Master">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Views\Shared\Site.Master.cs">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemCS Include="Views\Shared\Site.Master.designer.cs">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemCS>
+    <WebApplicationProjectTemplateItemVB Include="MvcApplication.vbproj">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Default.aspx">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Default.aspx.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Global.asax">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Global.asax.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Web.config">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Content\Site.css">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Controllers\HomeController.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="My Project\AssemblyInfo.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="My Project\Application.Designer.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="My Project\Application.myapp">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="My Project\Resources.Designer.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="My Project\Resources.resx">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="My Project\Settings.settings">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="My Project\Settings.Designer.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Views\Web.config">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Views\Home\Index.aspx">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Views\Home\Index.aspx.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Views\Home\Index.aspx.designer.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Views\Home\About.aspx">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Views\Home\About.aspx.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Views\Home\About.aspx.designer.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Views\Shared\Site.Master">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Views\Shared\Site.Master.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <WebApplicationProjectTemplateItemVB Include="Views\Shared\Site.Master.designer.vb">
+      <InProject>false</InProject>
+    </WebApplicationProjectTemplateItemVB>
+    <MvcBinaries Include="bin\**\*">
+      <InProject>false</InProject>
+    </MvcBinaries>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="CodePlexMvcTemplatesVSI.csproj" />
+    <Content Include="CodePlexMvcTemplatesVSI.xml" />
+    <Content Include="SolutionItems\AuthoringTests.txt" />
+    <Content Include="SolutionItems\Content\Site.css" />
+    <Content Include="SolutionItems\Controllers\Controller.cs" />
+    <Content Include="SolutionItems\Controllers\Controller.vb" />
+    <Content Include="SolutionItems\Controllers\HomeController.cs" />
+    <Content Include="SolutionItems\Controllers\HomeController.vb" />
+    <Content Include="SolutionItems\Controllers\HomeControllerTest.cs" />
+    <Content Include="SolutionItems\Controllers\HomeControllerTest.vb" />
+    <Content Include="SolutionItems\Default.aspx" />
+    <Content Include="SolutionItems\Default.aspx.vb" />
+    <Content Include="SolutionItems\Default.aspx.cs" />
+    <Content Include="SolutionItems\Global.asax" />
+    <Content Include="SolutionItems\Global.asax.cs" />
+    <Content Include="SolutionItems\Global.asax.vb" />
+    <Content Include="SolutionItems\MvcApplication.csproj" />
+    <Content Include="SolutionItems\MvcApplication.vbproj" />
+    <Content Include="SolutionItems\My Project\Application.Designer.vb" />
+    <Content Include="SolutionItems\My Project\Application.myapp" />
+    <Content Include="SolutionItems\My Project\AssemblyInfo.vb" />
+    <Content Include="SolutionItems\My Project\Resources.Designer.vb" />
+    <Content Include="SolutionItems\My Project\Resources.resx">
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="SolutionItems\My Project\Settings.Designer.vb" />
+    <Content Include="SolutionItems\My Project\Settings.settings" />
+    <Content Include="SolutionItems\Properties\AssemblyInfo.cs" />
+    <Content Include="SolutionItems\Views\Home\About.aspx" />
+    <Content Include="SolutionItems\Views\Home\About.aspx.cs" />
+    <Content Include="SolutionItems\Views\Home\About.aspx.designer.cs" />
+    <Content Include="SolutionItems\Views\Home\About.aspx.vb" />
+    <Content Include="SolutionItems\Views\Home\About.aspx.designer.vb" />
+    <Content Include="SolutionItems\Views\Home\Index.aspx" />
+    <Content Include="SolutionItems\Views\Home\Index.aspx.cs" />
+    <Content Include="SolutionItems\Views\Home\Index.aspx.designer.cs" />
+    <Content Include="SolutionItems\Views\Home\Index.aspx.vb" />
+    <Content Include="SolutionItems\Views\Home\Index.aspx.designer.vb" />
+    <Content Include="SolutionItems\Views\Home\ViewContentPage.aspx" />
+    <Content Include="SolutionItems\Views\Home\ViewContentPage.aspx.cs" />
+    <Content Include="SolutionItems\Views\Home\ViewContentPage.aspx.designer.cs" />
+    <Content Include="SolutionItems\Views\Home\ViewContentPage.aspx.vb" />
+    <Content Include="SolutionItems\Views\Home\ViewContentPage.aspx.designer.vb" />
+    <Content Include="SolutionItems\Views\Home\ViewPage.aspx" />
+    <Content Include="SolutionItems\Views\Home\ViewPage.aspx.cs" />
+    <Content Include="SolutionItems\Views\Home\ViewPage.aspx.designer.cs" />
+    <Content Include="SolutionItems\Views\Home\ViewPage.aspx.vb" />
+    <Content Include="SolutionItems\Views\Home\ViewPage.aspx.designer.vb" />
+    <Content Include="SolutionItems\Views\Home\ViewUserControl.ascx" />
+    <Content Include="SolutionItems\Views\Home\ViewUserControl.ascx.cs" />
+    <Content Include="SolutionItems\Views\Home\ViewUserControl.ascx.designer.cs" />
+    <Content Include="SolutionItems\Views\Home\ViewUserControl.ascx.vb" />
+    <Content Include="SolutionItems\Views\Home\ViewUserControl.ascx.designer.vb" />
+    <Content Include="SolutionItems\Views\Shared\Site.Master" />
+    <Content Include="SolutionItems\Views\Shared\Site.Master.cs" />
+    <Content Include="SolutionItems\Views\Shared\Site.Master.designer.cs" />
+    <Content Include="SolutionItems\Views\Shared\Site.Master.vb" />
+    <Content Include="SolutionItems\Views\Shared\Site.Master.designer.vb" />
+    <Content Include="SolutionItems\Views\Shared\ViewMasterPage.Master" />
+    <Content Include="SolutionItems\Views\Shared\ViewMasterPage.Master.cs" />
+    <Content Include="SolutionItems\Views\Shared\ViewMasterPage.Master.designer.cs" />
+    <Content Include="SolutionItems\Views\Shared\ViewMasterPage.Master.vb" />
+    <Content Include="SolutionItems\Views\Shared\ViewMasterPage.Master.designer.vb" />
+    <Content Include="SolutionItems\Views\Web.config" />
+    <Content Include="SolutionItems\Web.config" />
+    <Content Include="VSTemplates\MvcControllerItemTemplate.cs.vstemplate" />
+    <Content Include="VSTemplates\MvcControllerItemTemplate.vb.vstemplate" />
+    <Content Include="VSTemplates\MVCTemplates.vscontent" />
+    <Content Include="VSTemplates\MvcViewContentPageItemTemplate.cs.vstemplate" />
+    <Content Include="VSTemplates\MvcViewContentPageItemTemplate.vb.vstemplate" />
+    <Content Include="VSTemplates\MvcViewMasterPageItemTemplate.cs.vstemplate" />
+    <Content Include="VSTemplates\MvcViewMasterPageItemTemplate.vb.vstemplate" />
+    <Content Include="VSTemplates\MvcViewPageItemTemplate.cs.vstemplate" />
+    <Content Include="VSTemplates\MvcViewPageItemTemplate.vb.vstemplate" />
+    <Content Include="VSTemplates\MvcViewUserControlItemTemplate.cs.vstemplate" />
+    <Content Include="VSTemplates\MvcViewUserControlItemTemplate.vb.vstemplate" />
+    <Content Include="VSTemplates\MvcWebApplicationProjectTemplate.cs.vstemplate" />
+    <Content Include="VSTemplates\MvcWebApplicationProjectTemplate.vb.vstemplate" />
+  </ItemGroup>
+  <!-- Targets -->
+  <!--
+  To work correctly with the DevDiv build process, the targets must be named "BuildGenerated", "BuildCompiled", and "BuildLinked"
+  -->
+  <Target Name="BuildGenerated">
+    <ItemGroup>
+      <MvcBinaries Include="$(MvcBinariesPath)\**\*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(MvcBinaries)" DestinationFiles="@(MvcBinaries->'bin\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+  <Target Name="BuildCompiled">
+    <RemoveDir Directories="$(OutputPath)\CodePlexMvcTemplates" />
+    <MakeDir Directories="$(OutputPath)\CodePlexMvcTemplates" />
+    <Copy SourceFiles="..\..\ReferenceAssemblies\Microsoft.VisualStudio.Web.Extensions.dll" DestinationFolder="$(OutputPath)" />
+    <Copy SourceFiles="$(MvcBinariesPath)\System.Web.Abstractions.dll" DestinationFolder="bin" />
+    <Copy SourceFiles="$(MvcBinariesPath)\System.Web.Mvc.dll" DestinationFolder="bin" />
+    <Copy SourceFiles="$(MvcBinariesPath)\System.Web.Routing.dll" DestinationFolder="bin" />
+  </Target>
+  <Target Name="BuildTemplates" Inputs="@(Content)" Outputs="$(VsiFile)">
+    <BuildVsi ContentProject="$(MSBuildProjectDirectory)\CodePlexMvcTemplatesVSI.xml" ContentRootDirectory="$(MSBuildProjectDirectory)" DestinationDirectory="$(OutputPath)\CodePlexMvcTemplates" />
+  </Target>
+  <Target Name="BuildLinked">
+  </Target>
+  <Target Name="Clean">
+    <RemoveDir Directories="$(OutputPath)\CodePlexMvcTemplates" />
+  </Target>
+  <Target Name="Build" DependsOnTargets="BuildGenerated;BuildCompiled;BuildTemplates;BuildLinked" />
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
+</Project>

@@ -6,7 +6,7 @@
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public abstract class ActionFilterAttribute : Attribute {
+    public abstract class ActionFilterAttribute : Attribute, IActionFilter {
 
         private int _order = -1;
 
@@ -26,12 +26,17 @@
         // The OnXxx() methods are virtual rather than abstract so that a developer need override
         // only the ones that interest him.
 
-        public virtual void OnActionExecuted(FilterExecutedContext filterContext) {
+        public virtual void OnActionExecuting(ActionExecutingContext filterContext) {
         }
 
-        public virtual void OnActionExecuting(FilterExecutingContext filterContext) {
+        public virtual void OnActionExecuted(ActionExecutedContext filterContext) {
         }
 
+        public virtual void OnResultExecuting(ResultExecutingContext filterContext) {
+        }
+
+        public virtual void OnResultExecuted(ResultExecutedContext filterContext) {
+        }
     }
 
 }

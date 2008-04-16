@@ -1,0 +1,74 @@
+<VSTemplate Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+  <TemplateData>
+    <Name>ASP.NET MVC Web Application</Name>
+    <Description>A project for creating an application using the ASP.NET MVC framework (CodePlex) (.NET Framework 3.5)</Description>
+    <Icon Package="{349c5850-65df-11da-9384-00065b846f21}" ID="9001" />
+    <ProjectType>CSharp</ProjectType>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp> 
+    <SortOrder>1000</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>MvcApplication</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <RequiredFrameworkVersion>3.5</RequiredFrameworkVersion>
+  </TemplateData>
+  <TemplateContent>
+    <CustomParameters>
+      <CustomParameter Name="$language$" Value="C#" />
+      <CustomParameter Name="$languageext$" Value="cs" />
+      <CustomParameter Name="$autoeventwireup$" Value="true" />
+      <CustomParameter Name="$globalclassname$" Value="GlobalApplication" />
+      <CustomParameter Name="$sitemasterclassname$" Value="Views.Shared.Site" />
+      <CustomParameter Name="$indexviewclassname$" Value="Views.Home.Index" />
+      <CustomParameter Name="$aboutviewclassname$" Value="Views.Home.About" />
+      <CustomParameter Name="$indexerleft$" Value="[" />
+      <CustomParameter Name="$indexerright$" Value="]" />
+      <CustomParameter Name="$MVCReferences$" Value="System.Web.Abstractions.dll;System.Web.Mvc.dll;System.Web.Routing.dll"/>
+    </CustomParameters>
+    <Project File="MvcApplication.csproj" ReplaceParameters="true">
+      <Folder Name="App_Data" TargetFolderName="App_Data" />
+      <Folder Name="Controllers" TargetFolderName="Controllers">
+        <ProjectItem ReplaceParameters="true" TargetFileName="HomeController.cs">HomeController.cs</ProjectItem>
+      </Folder>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Default.aspx">Default.aspx</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Default.aspx.cs">Default.aspx.cs</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Global.asax">Global.asax</ProjectItem>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Global.asax.cs">Global.asax.cs</ProjectItem>
+      <Folder Name="Models" TargetFolderName="Models" />
+      <Folder Name="Properties" TargetFolderName="Properties">
+        <ProjectItem ReplaceParameters="true" TargetFileName="AssemblyInfo.cs">AssemblyInfo.cs</ProjectItem>
+      </Folder>
+      <Folder Name="Views" TargetFolderName="Views">
+        <ProjectItem ReplaceParameters="true" TargetFileName="Web.config">Web.config</ProjectItem>
+        <Folder Name="Home" TargetFolderName="Home">
+          <ProjectItem ReplaceParameters="true" TargetFileName="About.aspx">About.aspx</ProjectItem>
+          <ProjectItem ReplaceParameters="true" TargetFileName="About.aspx.cs">About.aspx.cs</ProjectItem>
+          <ProjectItem ReplaceParameters="true" TargetFileName="About.aspx.designer.cs">About.aspx.designer.cs</ProjectItem>
+          <ProjectItem ReplaceParameters="true" TargetFileName="Index.aspx">Index.aspx</ProjectItem>
+          <ProjectItem ReplaceParameters="true" TargetFileName="Index.aspx.cs">Index.aspx.cs</ProjectItem>
+          <ProjectItem ReplaceParameters="true" TargetFileName="Index.aspx.designer.cs">Index.aspx.designer.cs</ProjectItem>
+        </Folder>
+        <Folder Name="Shared" TargetFolderName="Shared">
+          <ProjectItem ReplaceParameters="true" TargetFileName="Site.Master">Site.Master</ProjectItem>
+          <ProjectItem ReplaceParameters="true" TargetFileName="Site.Master.cs">Site.Master.cs</ProjectItem>
+          <ProjectItem ReplaceParameters="true" TargetFileName="Site.Master.designer.cs">Site.Master.designer.cs</ProjectItem>
+        </Folder>
+      </Folder>
+      <Folder Name="Content" TargetFolderName="Content">
+        <ProjectItem ReplaceParameters="true" TargetFileName="Site.css">Site.css</ProjectItem>
+      </Folder>
+      <Folder Name="bin" TargetFolderName="bin">
+        <ProjectItem>System.Web.Abstractions.dll</ProjectItem>
+        <ProjectItem>System.Web.Mvc.dll</ProjectItem>
+        <ProjectItem>System.Web.Routing.dll</ProjectItem>
+      </Folder>
+      <Folder Name="Reference_Dependencies" TargetFolderName="Reference_Dependencies">
+        <ProjectItem>System.Web.Abstractions.dll</ProjectItem>
+        <ProjectItem>System.Web.Mvc.dll</ProjectItem>
+        <ProjectItem>System.Web.Routing.dll</ProjectItem>
+      </Folder>
+      <ProjectItem ReplaceParameters="true" TargetFileName="Web.config">Web.config</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>

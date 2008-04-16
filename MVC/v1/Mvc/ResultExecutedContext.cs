@@ -4,10 +4,16 @@
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public class FilterExecutedContext : FilterContext {
+    public class ResultExecutedContext : ControllerContext {
 
-        public FilterExecutedContext(FilterContext filterContext, Exception exception)
-            : base(filterContext, GetFilterContext(filterContext).ActionMethod) {
+        public ResultExecutedContext(ControllerContext controllerContext, ActionResult result, Exception exception)
+            : base(controllerContext) {
+
+            if (result == null) {
+                throw new ArgumentNullException("result");
+            }
+
+            Result = result;
             Exception = exception;
         }
 
@@ -19,6 +25,11 @@
         public bool ExceptionHandled {
             get;
             set;
+        }
+
+        public ActionResult Result {
+            get;
+            private set;
         }
 
     }

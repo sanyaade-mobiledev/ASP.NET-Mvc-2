@@ -1,0 +1,106 @@
+﻿<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30410</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{8AC2A2E4-2F11-4D40-A887-62E2583A65E6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>System.Web.Mvc.Test</RootNamespace>
+    <AssemblyName>System.Web.Mvc.Test</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <SignAssembly>false</SignAssembly>
+    <DelaySign>true</DelaySign>
+    <AssemblyOriginatorKeyFile>..\..\src\FinalPublicKey.snk</AssemblyOriginatorKeyFile>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Moq, Version=2.0.2991.26580, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Moq.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\ReferenceAssemblies\System.Web.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Routing, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\ReferenceAssemblies\System.Web.Routing.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Mvc\Test\ActionRedirectResultTest.cs" />
+    <Compile Include="Mvc\Test\ControllerActionInvokerTest.cs" />
+    <Compile Include="Mvc\Test\ActionFilterAttributeTest.cs" />
+    <Compile Include="Mvc\Test\ActionExecutingContextTest.cs" />
+    <Compile Include="Mvc\Test\ActionExecutedContextTest.cs" />
+    <Compile Include="Mvc\Test\ControllerBuilderTest.cs" />
+    <Compile Include="Mvc\Test\ControllerContextTest.cs" />
+    <Compile Include="Mvc\Test\ControllerTest.cs" />
+    <Compile Include="Mvc\Test\MockVirtualPathProvider.cs" />
+    <Compile Include="Mvc\Test\MockBuildManager.cs" />
+    <Compile Include="Mvc\Test\DefaultControllerFactoryTest.cs" />
+    <Compile Include="Mvc\Test\HtmlHelperTest.cs" />
+    <Compile Include="Mvc\Test\HttpRedirectResultTest.cs" />
+    <Compile Include="Mvc\Test\MvcHandlerTest.cs" />
+    <Compile Include="Mvc\Test\MvcRouteHandlerTest.cs" />
+    <Compile Include="Mvc\Test\MvcTestHelper.cs" />
+    <Compile Include="Mvc\Test\RenderViewResultTest.cs" />
+    <Compile Include="Mvc\Test\ResultExecutedContextTest.cs" />
+    <Compile Include="Mvc\Test\ResultExecutingContextTest.cs" />
+    <Compile Include="Mvc\Test\RouteCollectionExtensionsTest.cs" />
+    <Compile Include="Mvc\Test\UrlHelperTest.cs" />
+    <Compile Include="Mvc\Test\ViewContextTest.cs" />
+    <Compile Include="Mvc\Test\ViewDataTest.cs" />
+    <Compile Include="Mvc\Test\ViewLocatorTest.cs" />
+    <Compile Include="Mvc\Test\ViewMasterPageTest.cs" />
+    <Compile Include="Mvc\Test\ViewPageTest.cs" />
+    <Compile Include="Mvc\Test\ViewUserControlTest.cs" />
+    <Compile Include="Mvc\Test\WebFormViewEngineTest.cs" />
+    <Compile Include="Mvc\Test\WebFormViewLocatorTest.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\v1\System.Web.Mvc.csproj">
+      <Project>{3D3FFD8A-624D-4E9B-954B-E1C105507975}</Project>
+      <Name>System.Web.Mvc</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UnitTestUtil\UnitTestUtil.csproj">
+      <Project>{57FFC134-7F9D-4B97-8692-8D2C16714663}</Project>
+      <Name>UnitTestUtil</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

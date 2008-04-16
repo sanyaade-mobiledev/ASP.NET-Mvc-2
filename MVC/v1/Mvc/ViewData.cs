@@ -1,5 +1,6 @@
 ﻿namespace System.Web.Mvc {
     using System.Collections;
+    using System.Diagnostics.CodeAnalysis;
     using System.Web.UI;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
@@ -11,19 +12,26 @@
             _data = data;
         }
 
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes",
+            Justification = "There is no more specific exception that we can catch.")]
         public object this[string dataItem] {
             get {
                 IDictionary dictionary = _data as IDictionary;
                 if (dictionary != null) {
-                    return dictionary[dataItem];
+                    return (dictionary.Contains(dataItem)) ? dictionary[dataItem] : null;
                 }
                 else {
-                    return DataBinder.Eval(_data, dataItem);
+                    try {
+                        return DataBinder.Eval(_data, dataItem);
+                    }
+                    catch {
+                        return null;
+                    }
                 }
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes",
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes",
             Justification = "There is no more specific exception that we can catch.")]
         public bool ContainsDataItem(string dataItem) {
             IDictionary dictionary = _data as IDictionary;

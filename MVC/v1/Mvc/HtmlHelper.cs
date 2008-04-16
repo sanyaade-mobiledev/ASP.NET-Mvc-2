@@ -116,6 +116,10 @@
             return HttpUtility.HtmlEncode(html);
         }
 
+        public string Encode(object value) {
+            return (value != null) ? Encode(value.ToString()) : null;
+        }
+
         private string GenerateLink(string linkText, string routeName, string actionName, string controllerName, RouteValueDictionary valuesDictionary) {
             string url = UrlHelper.GenerateUrl(routeName, actionName, controllerName, valuesDictionary, RouteCollection, ViewContext);
             return String.Format(CultureInfo.InvariantCulture, _anchorTag, HttpUtility.HtmlAttributeEncode(url), HttpUtility.HtmlEncode(linkText));

@@ -1,0 +1,31 @@
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+  <TemplateData>
+    <DefaultName>ViewContentPage.aspx</DefaultName>
+    <Name>MVC View Content Page</Name>
+    <Description>MVC Application View Content Page (CodePlex) (.NET Framework 3.5)</Description>
+    <Icon Package="{39c9c826-8ef8-4079-8c95-428f5b1c323f}" ID="4533"/>
+    <ProjectType>CSharp</ProjectType>
+    <ProjectSubType>Web</ProjectSubType>
+    <TemplateGroupID>Web</TemplateGroupID>
+    <SortOrder>10</SortOrder>
+    <SupportsMasterPage>true</SupportsMasterPage>
+    <NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp>
+    <RequiredFrameworkVersion>3.5</RequiredFrameworkVersion>
+    <ShowByDefault>false</ShowByDefault>
+  </TemplateData>
+  <TemplateContent>
+    <CustomParameters>
+      <CustomParameter Name="$SelectMaster$" Value="true" />
+      <CustomParameter Name="$language$" Value="C#" />
+      <CustomParameter Name="$languageext$" Value="cs" />
+      <CustomParameter Name="$autoeventwireup$" Value="true" />
+    </CustomParameters>
+    <ProjectItem SubType="" TargetFileName="$fileinputname$.aspx" ReplaceParameters="true">Views\Home\ViewContentPage.aspx</ProjectItem>
+    <ProjectItem SubType="ASPXCodeBehind" TargetFileName="$fileinputname$.aspx.cs" ReplaceParameters="true">Views\Home\ViewContentPage.aspx.cs</ProjectItem>
+    <ProjectItem SubType="" TargetFileName="$fileinputname$.aspx.designer.cs" ReplaceParameters="true">Views\Home\ViewContentPage.aspx.designer.cs</ProjectItem>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Microsoft.VisualStudio.Web.Application, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</Assembly>
+    <FullClassName>Microsoft.VisualStudio.Web.Application.WATemplateWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

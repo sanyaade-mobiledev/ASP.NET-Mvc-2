@@ -117,17 +117,32 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ActionFilter_DuplicateOrder" xml:space="preserve">
-    <value>Two filter attributes on '{0}' have the same filter order {1}. If a filter explicitly specifies an order of 0 or greater, no other filter may specify that same order.</value>
-  </data>
   <data name="ActionFilter_OrderOutOfRange" xml:space="preserve">
     <value>Order must be greater than or equal to -1.</value>
+  </data>
+  <data name="ActionRedirectResult_NoRouteMatched" xml:space="preserve">
+    <value>No route in the route table matches the supplied values.</value>
   </data>
   <data name="Common_NullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
-  <data name="Common_PageCannotBeNull" xml:space="preserve">
-    <value>Page cannot be null. Please ensure that this operation is being performed in the context of an ASP.NET request.</value>
+  <data name="Common_PropertyCannotBeNullOrEmpty" xml:space="preserve">
+    <value>The property '{0}' cannot be null or empty.</value>
+  </data>
+  <data name="ControllerActionInvoker_FiltersOnMethodHaveDuplicateOrder" xml:space="preserve">
+    <value>The action method '{0}' on controller '{1}' has two filter attributes with filter order {2}. If a filter specifies an order of 0 or greater, no other filter on that action method may specify that same order.</value>
+  </data>
+  <data name="ControllerActionInvoker_FiltersOnTypeHaveDuplicateOrder" xml:space="preserve">
+    <value>Two filter attributes on controller '{0}' have filter order {1}. If a filter specifies an order of 0 or greater, no other filter on that type may specify that same order.</value>
+  </data>
+  <data name="ControllerActionInvoker_MethodReturnedWrongType" xml:space="preserve">
+    <value>The action method '{0}' on controller '{1}' returned a value of type '{2}'. Action methods must return an ActionResult.</value>
+  </data>
+  <data name="ControllerActionInvoker_MethodSignatureHasInvalidReturnType" xml:space="preserve">
+    <value>The action method '{0}' on controller '{1}' has return type '{2}'. Action methods must return an ActionResult.</value>
+  </data>
+  <data name="ControllerActionInvoker_ParameterDictionaryIsInvalid" xml:space="preserve">
+    <value>The parameters specified in the dictionary do not match those of the method '{0}'.</value>
   </data>
   <data name="ControllerBuilder_ErrorCreatingControllerFactory" xml:space="preserve">
     <value>There was an error creating the IControllerFactory '{0}'. Check that it has a public parameterless constructor.</value>
@@ -154,7 +169,7 @@
     <value>Cannot set value for parameter '{0}' in action '{1}'. Parameters passed by reference are not supported in action methods.</value>
   </data>
   <data name="Controller_UnknownAction" xml:space="preserve">
-    <value>A public action method named '{0}' could not be found on the controller.</value>
+    <value>A public action method '{0}' could not be found on controller '{1}'.</value>
   </data>
   <data name="DefaultControllerFactory_DuplicateControllers" xml:space="preserve">
     <value>Duplicate controller types found for '{0}'. To disambiguate the controller set the controller's namespace in the route.</value>
@@ -169,10 +184,7 @@
     <value>The controller for path '{0}' could not be found or it does not implement the IController interface.</value>
   </data>
   <data name="Helper_DictionaryAlreadyContainsKey" xml:space="preserve">
-    <value>The provided object or RouteValueDictionary already contains a definition for '{0}'.</value>
-  </data>
-  <data name="MvcHandler_NoRequestContext" xml:space="preserve">
-    <value>The MvcHandler requires that a valid RequestContext be set.</value>
+    <value>The provided object or dictionary already contains a definition for '{0}'.</value>
   </data>
   <data name="ViewLocator_LocationsRequired" xml:space="preserve">
     <value>The parameter must be set to an array of location format strings, such as "~/Views/{1}/{0}.aspx".</value>

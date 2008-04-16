@@ -1,0 +1,26 @@
+<VSTemplate Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+  <TemplateData>
+    <DefaultName>ViewUserControl.ascx</DefaultName>
+    <Name>MVC View User Control</Name>
+    <Description>MVC Application View User Control (CodePlex) (.NET Framework 3.5)</Description>
+    <Icon Package="{39c9c826-8ef8-4079-8c95-428f5b1c323f}" ID="4544"/>
+    <ProjectType>VisualBasic</ProjectType>
+    <ProjectSubType>Web</ProjectSubType>
+    <TemplateGroupID>Web</TemplateGroupID>
+    <SortOrder>10</SortOrder>
+    <NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp> 
+    <RequiredFrameworkVersion>3.5</RequiredFrameworkVersion> 
+    <ShowByDefault>false</ShowByDefault>
+  </TemplateData>
+  <TemplateContent>
+    <CustomParameters>
+      <CustomParameter Name="$language$" Value="VB" />
+      <CustomParameter Name="$languageext$" Value="vb" />
+      <CustomParameter Name="$autoeventwireup$" Value="false" />
+    </CustomParameters>
+    <References />
+    <ProjectItem SubType="" TargetFileName="$fileinputname$.ascx" ReplaceParameters="true">Views\Home\ViewUserControl.ascx</ProjectItem>
+    <ProjectItem SubType="ASPXCodeBehind" TargetFileName="$fileinputname$.ascx.vb" ReplaceParameters="true">Views\Home\ViewUserControl.ascx.vb</ProjectItem>
+    <ProjectItem SubType="" TargetFileName="$fileinputname$.ascx.designer.vb" ReplaceParameters="true">Views\Home\ViewUserControl.ascx.designer.vb</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

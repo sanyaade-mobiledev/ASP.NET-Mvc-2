@@ -3,9 +3,8 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Web.Hosting;
-    using System.Web.Resources;
-    using System.Web.Routing;
     using System.Web.Mvc.Resources;
+    using System.Web.Routing;
 
     public class ViewLocator : IViewLocator {
         private VirtualPathProvider _vpp;

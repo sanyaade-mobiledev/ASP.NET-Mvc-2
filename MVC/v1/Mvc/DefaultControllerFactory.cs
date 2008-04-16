@@ -94,6 +94,7 @@
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         protected internal virtual Type GetControllerType(string controllerName) {
             if (String.IsNullOrEmpty(controllerName)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "controllerName");
