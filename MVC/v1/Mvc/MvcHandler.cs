@@ -41,7 +41,7 @@
         }
 
         protected virtual void ProcessRequest(HttpContext httpContext) {
-            HttpContextBase iHttpContext = new HttpContextWrapper2(httpContext);
+            HttpContextBase iHttpContext = new HttpContextWrapper(httpContext);
             ProcessRequest(iHttpContext);
         }
 

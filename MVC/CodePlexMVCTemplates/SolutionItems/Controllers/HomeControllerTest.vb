@@ -26,10 +26,10 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
         Dim controller As HomeController = New HomeController()
 
         ' Execute
-        Dim result As RenderViewResult = controller.Index()
+        Dim result As ViewResult = controller.Index()
 
         ' Verify
-        Dim viewData As IDictionary(Of String, Object) = result.ViewData
+        Dim viewData As ViewDataDictionary = result.ViewData
         Assert.AreEqual("Home Page", viewData("Title"))
         Assert.AreEqual("Welcome to ASP.NET MVC!", viewData("Message"))
     End Sub
@@ -39,10 +39,10 @@ Imports Microsoft.VisualStudio.TestTools.UnitTesting
         Dim controller As HomeController = New HomeController()
 
         ' Execute
-        Dim result As RenderViewResult = controller.About()
+        Dim result As ViewResult = controller.About()
 
         ' Verify
-        Dim viewData As IDictionary(Of String, Object) = result.ViewData
+        Dim viewData As ViewDataDictionary = result.ViewData
         Assert.AreEqual("About Page", viewData("Title"))
     End Sub
 End Class

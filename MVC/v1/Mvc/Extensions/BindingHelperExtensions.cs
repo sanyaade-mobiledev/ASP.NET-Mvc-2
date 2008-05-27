@@ -5,6 +5,7 @@
     using System.Reflection;
     using System.Web;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class BindingHelperExtensions {
         /// <summary>
         /// Reads in values from a NameValueCollection (like Request.Form, Cookies, Session, or QueryString) and sets the properties

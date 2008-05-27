@@ -2,6 +2,7 @@
     using System.Collections.Generic;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class TextInputBuilder {
         public static string TextArea(string htmlName, object value, int rows, int cols, RouteValueDictionary htmlAttributes) {
 
@@ -23,17 +24,8 @@
 
         public static string TextArea(string htmlName, RouteValueDictionary htmlAttributes) {
             htmlAttributes = htmlAttributes ?? new RouteValueDictionary();
-            string textAreaTag = TagBuilder.CreateTag(HtmlTagType.TextArea, htmlName, htmlAttributes);
+            string textAreaTag = TagBuilder2.CreateTag(HtmlTagType.TextArea, htmlName, htmlAttributes);
             return textAreaTag;
-        }
-
-        public static string Hidden(string htmlName, object value) {
-            value = value ?? string.Empty;
-            RouteValueDictionary settings = new RouteValueDictionary();
-            settings.Add("value", HttpUtility.HtmlEncode(value.ToString()));
-            string textTag = TagBuilder.CreateInputTag(HtmlInputType.Hidden, htmlName, settings);
-
-            return textTag;
         }
 
         public static string TextBox(string htmlName, object value, int size, int maxLength, RouteValueDictionary htmlAttributes) {
@@ -53,21 +45,7 @@
 
         public static string TextBox(string htmlName, RouteValueDictionary htmlAttributes) {
             htmlAttributes = htmlAttributes ?? new RouteValueDictionary();
-            string textTag = TagBuilder.CreateInputTag(HtmlInputType.Text, htmlName, htmlAttributes);
-            return textTag;
-        }
-
-        public static string Password(string htmlName, int size, object value, RouteValueDictionary htmlAttributes) {
-            value = value ?? string.Empty;
-            htmlAttributes = htmlAttributes ?? new RouteValueDictionary();
-
-            htmlAttributes.Add("value", HttpUtility.HtmlEncode(value.ToString()));
-
-            size = size == 0 ? 20 : size;
-
-            htmlAttributes.Add("size", size);
-
-            string textTag = TagBuilder.CreateInputTag(HtmlInputType.Password, htmlName, htmlAttributes);
+            string textTag = TagBuilder2.CreateInputTag(HtmlInputType.Text, htmlName, htmlAttributes);
             return textTag;
         }
     }

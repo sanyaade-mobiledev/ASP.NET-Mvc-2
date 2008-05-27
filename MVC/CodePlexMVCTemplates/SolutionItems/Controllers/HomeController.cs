@@ -13,14 +13,14 @@ namespace $safeprojectname$.Controllers
             ViewData["Title"] = "Home Page";
             ViewData["Message"] = "Welcome to ASP.NET MVC!";
 
-            return RenderView();
+            return View();
         }
 
         public ActionResult About()
         {
             ViewData["Title"] = "About Page";
 
-            return RenderView();
+            return View();
         }
     }
 }

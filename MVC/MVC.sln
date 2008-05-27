@@ -5,6 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.Web.Mvc", "v1\System
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ReferenceAssemblies", "ReferenceAssemblies", "{749C28D8-5653-4DCA-9C11-ADE63BA1F766}"
 	ProjectSection(SolutionItems) = preProject
+		..\ReferenceAssemblies\Moq.dll = ..\ReferenceAssemblies\Moq.dll
 		..\ReferenceAssemblies\System.Web.Abstractions.dll = ..\ReferenceAssemblies\System.Web.Abstractions.dll
 		..\ReferenceAssemblies\System.Web.Routing.dll = ..\ReferenceAssemblies\System.Web.Routing.dll
 	EndProjectSection

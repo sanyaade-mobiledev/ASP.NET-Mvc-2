@@ -43,7 +43,9 @@
                     parameterName, actionName, value, destinationType));
             }
             try {
-                return canConvertFrom ? converter.ConvertFrom(value) : converter.ConvertTo(value, destinationType);
+                return canConvertFrom ?
+                    converter.ConvertFrom(null /* context */, CultureInfo.InvariantCulture, value) :
+                    converter.ConvertTo(null /* context */, CultureInfo.InvariantCulture, value, destinationType);
             }
             catch (Exception ex) {
                 throw new InvalidOperationException(String.Format(
@@ -60,7 +62,7 @@
 
             // The key should always be present, even if the parameter value is null.
             if (!wasFound ||
-                (!(value == null && TypeAllowsNullValue(parameterInfo.ParameterType)) &&
+                (!(value == null && TypeHelpers.TypeAllowsNullValue(parameterInfo.ParameterType)) &&
                 !parameterInfo.ParameterType.IsInstanceOfType(value))) {
                 throw new InvalidOperationException(String.Format(
                     CultureInfo.CurrentUICulture,
@@ -105,11 +107,6 @@
                     throw new InvalidOperationException(String.Format(
                         CultureInfo.CurrentUICulture, MvcResources.Controller_ActionCannotBeGeneric,
                         foundMatch.Name));
-                }
-                if (!typeof(ActionResult).IsAssignableFrom(foundMatch.ReturnType)) {
-                    throw new InvalidOperationException(String.Format(
-                        CultureInfo.CurrentUICulture, MvcResources.ControllerActionInvoker_MethodSignatureHasInvalidReturnType,
-                        foundMatch.Name, foundMatch.DeclaringType, foundMatch.ReturnType));
                 }
             }
 
@@ -222,7 +219,7 @@
             string parameterName = parameterInfo.Name;
             string actionName = parameterInfo.Member.Name;
 
-            bool valueRequired = !TypeAllowsNullValue(parameterType);
+            bool valueRequired = !TypeHelpers.TypeAllowsNullValue(parameterType);
 
             // Try to get a value for the parameter. We use this order of precedence:
             // 1. Explicitly-provided extra parameters in the call to InvokeAction()
@@ -279,7 +276,7 @@
                 IList<IActionFilter> filters = GetAllActionFilters(methodInfo);
 
                 ActionExecutedContext postContext = InvokeActionMethodWithFilters(methodInfo, parameters, filters);
-                InvokeActionResultWithFilters(postContext.Result ?? new EmptyResult(), filters);
+                InvokeActionResultWithFilters(postContext.Result, filters);
 
                 // notify controller of completion
                 return true;
@@ -311,14 +308,12 @@
                                         select ExtractParameterFromDictionary(parameterInfo, parameters)).ToArray();
             object returnValue = methodInfo.Invoke(controller, parametersArray);
 
-            // We need to check that the return value really was an ActionResult, as an implementor may have overridden
-            // FindActionMethod() but forgotten to override this method.
-            ActionResult actionResult = returnValue as ActionResult;
-            if (returnValue != null && actionResult == null) {
-                throw new InvalidOperationException(String.Format(
-                    CultureInfo.CurrentUICulture, MvcResources.ControllerActionInvoker_MethodReturnedWrongType,
-                    methodInfo.Name, controller.GetType(), returnValue.GetType()));
+            if (returnValue == null) {
+                return new EmptyResult();
             }
+
+            ActionResult actionResult = (returnValue as ActionResult) ??
+                new ContentResult { Content = Convert.ToString(returnValue, CultureInfo.InvariantCulture) };
             return actionResult;
         }
 
@@ -430,14 +425,5 @@
                 (next, filter) => () => InvokeActionResultFilter(filter, preContext, next));
             return thunk();
         }
-
-        private static bool TypeAllowsNullValue(Type type) {
-            // Only classes and Nullable<> types allow null values
-            return (type.IsClass ||
-                (type.IsGenericType &&
-                !type.IsGenericTypeDefinition &&
-                type.GetGenericTypeDefinition() == typeof(Nullable<>)));
-        }
-
     }
 }

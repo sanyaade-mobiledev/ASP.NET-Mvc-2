@@ -5,6 +5,7 @@
     using System.Web.Compilation;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class UserControlExtensions {
         /// <summary>
         /// Renders the specified ViewUserControl to a string
@@ -75,14 +76,6 @@
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Type ViewUserControl is required for this method")]
-        public static string RenderUserControl<TControl>(ViewContext context, object controlData, object propertySettings) where TControl : ViewUserControl, new() {
-
-            //instantiates the control
-            TControl instance = new TControl();
-            return DoRendering(instance, context, controlData, propertySettings);
-        }
-
         /// <summary>
         /// Renders the specified ViewUserControl to a string
         /// </summary>
@@ -119,30 +112,23 @@
             return DoRendering(instance, helper.ViewContext, controlData, propertySettings);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Type ViewUserControl is required for this method")]
-        public static string RenderUserControl<TControl>(this HtmlHelper helper, object controlData, object propertySettings) where TControl : ViewUserControl, new() {
-
-            //instantiates the control
-            TControl instance = new TControl();
-            return DoRendering(instance, helper.ViewContext, controlData, propertySettings);
-        }
-
         private static string DoRendering(ViewUserControl instance, ViewContext context, object controlData, object propertySettings) {
             ViewPage dummyPage = new ViewPage();
+            dummyPage.ViewContext = context;
             dummyPage.Controls.Add(instance);
 
             //pass it the default context from the helper
             dummyPage.Url = new UrlHelper(context);
-            dummyPage.Html = new HtmlHelper(context);
+            dummyPage.Html = new HtmlHelper(context, dummyPage);
 
             //set the properties
             SetUserControlProperties(instance, propertySettings);
 
-            if (controlData == null) {
-                instance.SetViewData(context.ViewData);
+            if (controlData != null) {
+                instance.ViewData.Model = controlData;
             }
             else {
-                instance.SetViewData(controlData);
+                instance.ViewData = context.ViewData;
             }
 
             //Render it

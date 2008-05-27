@@ -75,7 +75,7 @@
                     // the PreInit phase until we set the new value.
                     viewPage.MasterLocation = masterLocation;
                 }
-                viewPage.SetViewData(viewContext.ViewData);
+                viewPage.ViewData = viewContext.ViewData;
                 viewPage.RenderView(viewContext);
             }
             else {
@@ -85,7 +85,7 @@
                         throw new InvalidOperationException(MvcResources.WebFormViewEngine_UserControlCannotHaveMaster);
                     }
 
-                    viewUserControl.SetViewData(viewContext.ViewData);
+                    viewUserControl.ViewData = viewContext.ViewData;
                     viewUserControl.RenderView(viewContext);
                 }
                 else {

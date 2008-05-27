@@ -2,6 +2,7 @@
     using System;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ButtonBuilder {
         /// <summary>
         /// Creates a form Submit Button
@@ -13,7 +14,7 @@
         public static string SubmitButton(string htmlName, string buttonText, RouteValueDictionary htmlAttributes) {
             htmlAttributes = htmlAttributes ?? new RouteValueDictionary();
             htmlAttributes.Add("value", buttonText);
-            return TagBuilder.CreateInputTag(HtmlInputType.Submit, htmlName, htmlAttributes);
+            return TagBuilder2.CreateInputTag(HtmlInputType.Submit, htmlName, htmlAttributes);
         }
 
         /// <summary>
@@ -27,7 +28,7 @@
         public static string SubmitImage(string htmlName, string sourceUrl, RouteValueDictionary htmlAttributes) {
             htmlAttributes = htmlAttributes ?? new RouteValueDictionary();
             htmlAttributes.Add("src", sourceUrl);
-            string result = TagBuilder.CreateInputTag(HtmlInputType.Image, htmlName, htmlAttributes);
+            string result = TagBuilder2.CreateInputTag(HtmlInputType.Image, htmlName, htmlAttributes);
             return result;
         }
 
@@ -47,7 +48,7 @@
 
             htmlAttributes.Add("value", buttonText);
 
-            string result = TagBuilder.CreateTag(HtmlTagType.Button, htmlName, htmlAttributes);
+            string result = TagBuilder2.CreateTag(HtmlTagType.Button, htmlName, htmlAttributes);
             return result;
         }
     }

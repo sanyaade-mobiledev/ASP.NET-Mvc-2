@@ -4,6 +4,7 @@
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Security.Principal;
+    using System.Text;
     using System.Web;
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
@@ -13,7 +14,7 @@
     public abstract class Controller : IActionFilter, IController, IDisposable {
 
         private RouteCollection _routeCollection;
-        private IDictionary<string, object> _viewData;
+        private ViewDataDictionary _viewData;
         private IViewEngine _viewEngine;
 
         public ControllerActionInvoker ActionInvoker {
@@ -68,6 +69,12 @@
             }
         }
 
+        public HttpSessionStateBase Session {
+            get {
+                return HttpContext == null ? null : HttpContext.Session;
+            }
+        }
+
         [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
             Justification = "This property is settable so that unit tests can provide mock implementations.")]
         public TempDataDictionary TempData {
@@ -81,10 +88,10 @@
             }
         }
 
-        public IDictionary<string, object> ViewData {
+        public ViewDataDictionary ViewData {
             get {
                 if (_viewData == null) {
-                    _viewData = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                    _viewData = new ViewDataDictionary();
                 }
                 return _viewData;
             }
@@ -105,12 +112,32 @@
             }
         }
 
-        private static ArgumentException CreateDuplicateEntriesException(string key, string parameterName) {
-            return new ArgumentException(
-                String.Format(CultureInfo.CurrentUICulture, MvcResources.Helper_DictionaryAlreadyContainsKey, key), parameterName);
+        [SuppressMessage("Microsoft.Naming", "CA1719:ParameterNamesShouldNotMatchMemberNames", MessageId = "0#",
+            Justification = "'Content' refers to ContentResult type; 'content' refers to ContentResult.Content property.")]
+        protected internal ContentResult Content(string content) {
+            return Content(content, null /* contentType */);
         }
 
-        // These methods exist to help steer people toward implementing the Dispose pattern correctly.
+        [SuppressMessage("Microsoft.Naming", "CA1719:ParameterNamesShouldNotMatchMemberNames", MessageId = "0#",
+            Justification = "'Content' refers to ContentResult type; 'content' refers to ContentResult.Content property.")]
+        protected internal ContentResult Content(string content, string contentType) {
+            return Content(content, contentType, null /* contentEncoding */);
+        }
+
+        [SuppressMessage("Microsoft.Naming", "CA1719:ParameterNamesShouldNotMatchMemberNames", MessageId = "0#",
+            Justification = "'Content' refers to ContentResult type; 'content' refers to ContentResult.Content property.")]
+        protected internal virtual ContentResult Content(string content, string contentType, Encoding contentEncoding) {
+            return new ContentResult {
+                Content = content,
+                ContentType = contentType,
+                ContentEncoding = contentEncoding
+            };
+        }
+
+        // The default ControllerActionInvoker will never match methods defined on the Controller
+        // class, so the Dispose() method is not web-callable.  However, in general, since
+        // implicitly-implemented interface methods are public, they are web-callable unless
+        // decorated with [NonAction].
         [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         public void Dispose() {
             Dispose(true /* disposing */);
@@ -140,6 +167,22 @@
                 MvcResources.Controller_UnknownAction, actionName, GetType().FullName));
         }
 
+        protected internal JsonResult Json(object data) {
+            return Json(data, null /* contentType */);
+        }
+
+        protected internal JsonResult Json(object data, string contentType) {
+            return Json(data, contentType, null /* contentEncoding */);
+        }
+
+        protected internal virtual JsonResult Json(object data, string contentType, Encoding contentEncoding) {
+            return new JsonResult {
+                Data = data,
+                ContentType = contentType,
+                ContentEncoding = contentEncoding
+            };
+        }
+
         protected virtual void OnActionExecuting(ActionExecutingContext filterContext) {
         }
 
@@ -156,149 +199,98 @@
             Justification = "Instance method for consistency with other helpers.")]
         [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "0#",
             Justification = "Response.Redirect() takes its URI as a string parameter.")]
-        protected internal HttpRedirectResult Redirect(string url) {
+        protected internal virtual RedirectResult Redirect(string url) {
             if (String.IsNullOrEmpty(url)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "url");
             }
-            return new HttpRedirectResult(url);
+            return new RedirectResult(url);
         }
 
-        protected internal ActionRedirectResult RedirectToAction(object values) {
-            return new ActionRedirectResult(new RouteValueDictionary(values)) {
-                Routes = RouteCollection
-            };
+        protected internal RedirectToRouteResult RedirectToAction(string actionName) {
+            return RedirectToAction(actionName, (RouteValueDictionary)null);
         }
 
-        protected internal ActionRedirectResult RedirectToAction(RouteValueDictionary values) {
+        protected internal RedirectToRouteResult RedirectToAction(string actionName, object values) {
+            return RedirectToAction(actionName, new RouteValueDictionary(values));
+        }
+
+        protected internal RedirectToRouteResult RedirectToAction(string actionName, RouteValueDictionary values) {
+            return RedirectToAction(actionName, null /* controllerName */, values);
+        }
+
+        protected internal RedirectToRouteResult RedirectToAction(string actionName, string controllerName) {
+            return RedirectToAction(actionName, controllerName, (RouteValueDictionary)null);
+        }
+
+        protected internal RedirectToRouteResult RedirectToAction(string actionName, string controllerName, object values) {
+            return RedirectToAction(actionName, controllerName, new RouteValueDictionary(values));
+        }
+
+        protected internal virtual RedirectToRouteResult RedirectToAction(string actionName, string controllerName, RouteValueDictionary values) {
+            if (String.IsNullOrEmpty(actionName)) {
+                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
+            }
+
             RouteValueDictionary newDict = (values != null) ? new RouteValueDictionary(values) : new RouteValueDictionary();
-            return new ActionRedirectResult(newDict) {
-                Routes = RouteCollection
-            };
+            newDict["action"] = actionName;
+            if (!String.IsNullOrEmpty(controllerName)) {
+                newDict["controller"] = controllerName;
+            }
+            return new RedirectToRouteResult(newDict);
         }
 
-        protected internal ActionRedirectResult RedirectToAction(string actionName) {
-            if (String.IsNullOrEmpty(actionName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
-            }
-            return new ActionRedirectResult(new RouteValueDictionary() { { "action", actionName } }) {
-                Routes = RouteCollection
-            };
+        protected internal RedirectToRouteResult RedirectToRoute(object values) {
+            return RedirectToRoute(new RouteValueDictionary(values));
         }
 
-        protected internal ActionRedirectResult RedirectToAction(string actionName, object values) {
-            if (String.IsNullOrEmpty(actionName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
-            }
-            RouteValueDictionary newDict = new RouteValueDictionary(values);
-            if (!TryAddValue(newDict, "action", actionName)) {
-                throw CreateDuplicateEntriesException("action", "actionName");
-            }
-            return new ActionRedirectResult(newDict) {
-                Routes = RouteCollection
-            };
+        protected internal RedirectToRouteResult RedirectToRoute(RouteValueDictionary values) {
+            return RedirectToRoute(null /* routeName */, values);
         }
 
-        protected internal ActionRedirectResult RedirectToAction(string actionName, RouteValueDictionary values) {
-            if (String.IsNullOrEmpty(actionName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
-            }
+        protected internal RedirectToRouteResult RedirectToRoute(string routeName) {
+            return RedirectToRoute(routeName, (RouteValueDictionary)null);
+        }
+
+        protected internal RedirectToRouteResult RedirectToRoute(string routeName, object values) {
+            return RedirectToRoute(routeName, new RouteValueDictionary(values));
+        }
+
+        protected internal virtual RedirectToRouteResult RedirectToRoute(string routeName, RouteValueDictionary values) {
             RouteValueDictionary newDict = (values != null) ? new RouteValueDictionary(values) : new RouteValueDictionary();
-            if (!TryAddValue(newDict, "action", actionName)) {
-                throw CreateDuplicateEntriesException("action", "actionName");
-            }
-            return new ActionRedirectResult(newDict) {
-                Routes = RouteCollection
-            };
+            return new RedirectToRouteResult(routeName, newDict);
         }
 
-        protected internal ActionRedirectResult RedirectToAction(string actionName, string controllerName) {
-            if (String.IsNullOrEmpty(actionName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
-            }
-            if (String.IsNullOrEmpty(controllerName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "controllerName");
-            }
-            return new ActionRedirectResult(new RouteValueDictionary() { { "action", actionName }, { "controller", controllerName } }) {
-                Routes = RouteCollection
-            };
+        protected internal ViewResult View() {
+            return View(null /* viewName */, null /* masterName */, null /* model */);
         }
 
-        protected internal ActionRedirectResult RedirectToAction(string actionName, string controllerName, object values) {
-            if (String.IsNullOrEmpty(actionName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
-            }
-            if (String.IsNullOrEmpty(controllerName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "controllerName");
-            }
-            RouteValueDictionary newDict = new RouteValueDictionary(values);
-            if (!TryAddValue(newDict, "action", actionName)) {
-                throw CreateDuplicateEntriesException("action", "actionName");
-            }
-            if (!TryAddValue(newDict, "controller", controllerName)) {
-                throw CreateDuplicateEntriesException("controller", "controllerName");
-            }
-            return new ActionRedirectResult(newDict) {
-                Routes = RouteCollection
-            };
+        protected internal ViewResult View(object model) {
+            return View(null /* viewName */, null /* masterName */, model);
         }
 
-        protected internal ActionRedirectResult RedirectToAction(string actionName, string controllerName, RouteValueDictionary values) {
-            if (String.IsNullOrEmpty(actionName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
+        protected internal ViewResult View(string viewName) {
+            return View(viewName, null /* masterName */, null /* model */);
+        }
+
+        protected internal ViewResult View(string viewName, string masterName) {
+            return View(viewName, masterName, null /* model */);
+        }
+
+        protected internal ViewResult View(string viewName, object model) {
+            return View(viewName, null /* masterName */, model);
+        }
+
+        protected internal virtual ViewResult View(string viewName, string masterName, object model) {
+            if (model != null) {
+                ViewData.Model = model;
             }
-            if (String.IsNullOrEmpty(controllerName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "controllerName");
-            }
-            RouteValueDictionary newDict = (values != null) ? new RouteValueDictionary(values) : new RouteValueDictionary();
-            if (!TryAddValue(newDict, "action", actionName)) {
-                throw CreateDuplicateEntriesException("action", "actionName");
-            }
-            if (!TryAddValue(newDict, "controller", controllerName)) {
-                throw CreateDuplicateEntriesException("controller", "controllerName");
-            }
-            return new ActionRedirectResult(newDict) {
-                Routes = RouteCollection
-            };
-        }
-
-        protected internal RenderViewResult RenderView() {
-            return RenderView(null /* viewName */, null /* masterName */, null /* viewData */);
-        }
-
-        protected internal RenderViewResult RenderView(object viewData) {
-            return RenderView(null /* viewName */, null /* masterName */, viewData);
-        }
-
-        protected internal RenderViewResult RenderView(string viewName) {
-            return RenderView(viewName, null /* masterName */, null /* viewData */);
-        }
-
-        protected internal RenderViewResult RenderView(string viewName, string masterName) {
-            return RenderView(viewName, masterName, null /* viewData */);
-        }
-
-        protected internal RenderViewResult RenderView(string viewName, object viewData) {
-            return RenderView(viewName, null /* masterName */, viewData);
-        }
-
-        protected internal RenderViewResult RenderView(string viewName, string masterName, object viewData) {
-            return new RenderViewResult() {
+            return new ViewResult() {
                 ViewName = viewName,
                 MasterName = masterName,
-                ViewData = viewData ?? ViewData,
+                ViewData = ViewData,
                 ViewEngine = ViewEngine,
                 TempData = TempData
             };
-        }
-
-        private static bool TryAddValue(IDictionary<string, object> dict, string key, object value) {
-            if (dict.ContainsKey(key)) {
-                return false;
-            }
-            else {
-                dict[key] = value;
-                return true;
-            }
         }
 
         #region IActionFilter Members
@@ -324,7 +316,5 @@
             Execute(controllerContext);
         }
         #endregion
-
     }
-    
 }

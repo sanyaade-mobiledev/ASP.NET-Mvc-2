@@ -50,6 +50,68 @@
         }
 
         [TestMethod]
+        public void ConvertParameterTypeUsesInvariantCultureForCanConvertFrom() {
+            // DevDiv Bugs 197107: ControllerActionInvoker should use the invariant
+            // culture to do parameter conversion
+
+            // Setup
+            var controller = new ParameterTestingController();
+            ControllerContext context = GetControllerContext(controller);
+            Dictionary<string, object> dict = new Dictionary<string, object>() {
+                { "id", "2/1/2001" } // February 1, 2001
+            };
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
+            MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesDateTime");
+            ParameterInfo[] pis = mi.GetParameters();
+
+            // Execute
+            CultureInfo savedCulture = Thread.CurrentThread.CurrentCulture;
+            object oValue;
+            try {
+                // In the en-GB culture, '2/1/2001' is shorthand for January 2, 2001
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("en-GB");
+                oValue = helper.PublicGetParameterValue(pis[0], dict);
+            }
+            finally {
+                Thread.CurrentThread.CurrentCulture = savedCulture;
+            }
+
+            // Verify
+            Assert.AreEqual(new DateTime(2001, 2, 1), oValue);
+        }
+
+        [TestMethod]
+        public void ConvertParameterTypeUsesInvariantCultureForCanConvertTo() {
+            // DevDiv Bugs 197107: ControllerActionInvoker should use the invariant
+            // culture to do parameter conversion
+
+            // Setup
+            var controller = new ParameterTestingController();
+            ControllerContext context = GetControllerContext(controller);
+            Dictionary<string, object> dict = new Dictionary<string, object>() {
+                { "id", new DateTime(2001, 2, 1) } // February 1, 2001
+            };
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
+            MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesString");
+            ParameterInfo[] pis = mi.GetParameters();
+
+            // Execute
+            CultureInfo savedCulture = Thread.CurrentThread.CurrentCulture;
+            object oValue;
+            try {
+                // In the en-GB culture, February 2, 2001 is written shorthand as '01/02/2001'.
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("en-GB");
+                oValue = helper.PublicGetParameterValue(pis[0], dict);
+            }
+            finally {
+                Thread.CurrentThread.CurrentCulture = savedCulture;
+            }
+
+            // Verify
+            Assert.AreEqual("2001-02-01", oValue);
+        }
+
+        [TestMethod]
         public void FindActionMethodDoesNotMatchConstructor() {
             // FindActionMethod() shouldn't match special-named methods like type constructors.
 
@@ -350,25 +412,6 @@
         }
 
         [TestMethod]
-        public void FindActionMethodWithWrongReturnTypeThrows() {
-            // FindActionMethod() should throw if it matches a method that doesn't return ActionResult.
-
-            // Setup
-            var controller = new FindMethodController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo expected = typeof(FindMethodController).GetMethod("WrongReturnType");
-
-            // Execute & verify
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    helper.PublicFindActionMethod("WrongReturnType", null /* values */);
-                },
-                "The action method 'WrongReturnType' on controller 'System.Web.Mvc.Test.ControllerActionInvokerTest+FindMethodController' "
-                    + "has return type 'System.Void'. Action methods must return an ActionResult.");
-        }
-
-        [TestMethod]
         public void GetActionFiltersForMemberSortsUnorderedBeforeOrdered() {
             // Setup
             var controller = new ActionFilterOrderingController();
@@ -638,7 +681,7 @@
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "id", new DateTime(2001, 1, 1) }
+                { "id", new DateTime(2001, 2, 1) } // February 1, 2001
             };
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesString");
@@ -648,7 +691,7 @@
             object oValue = helper.PublicGetParameterValue(pis[0], dict);
 
             // Verify
-            Assert.AreEqual("1/1/2001", oValue);
+            Assert.AreEqual("2001-02-01", oValue);
         }
 
         [TestMethod]
@@ -657,7 +700,7 @@
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "id", "1/1/2001" }
+                { "id", "2001-02-01" } // February 1, 2001
             };
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesDateTime");
@@ -667,7 +710,7 @@
             object oValue = helper.PublicGetParameterValue(pis[0], dict);
 
             // Verify
-            Assert.AreEqual(new DateTime(2001, 1, 1), oValue);
+            Assert.AreEqual(new DateTime(2001, 2, 1), oValue);
         }
 
         [TestMethod]
@@ -1436,17 +1479,17 @@
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(BasicMethodInvokeController).GetMethod("ReturnsRenderView");
-            object viewData = new object();
+            object viewItem = new object();
             IDictionary<string, object> parameters = new Dictionary<string, object>() {
-                { "viewData", viewData }
+                { "viewItem", viewItem }
             };
 
             // Execute
-            RenderViewResult result = helper.PublicInvokeActionMethod(mi, parameters) as RenderViewResult;
+            ViewResult result = helper.PublicInvokeActionMethod(mi, parameters) as ViewResult;
 
             // Verify (arg got passed to method + back correctly)
             Assert.AreEqual("ReturnsRenderView", result.ViewName);
-            Assert.AreSame(viewData, result.ViewData);
+            Assert.AreSame(viewItem, result.ViewData.Model);
         }
 
         [TestMethod]
@@ -1527,7 +1570,7 @@
 
         [TestMethod]
         public void InvokeActionMethodWithNullReturnValue() {
-            // InvokeActionMethod() should allow null return values.
+            // InvokeActionMethod() should convert null return values to EmptyResult.
 
             // Setup
             var controller = new BasicMethodInvokeController();
@@ -1539,7 +1582,27 @@
             ActionResult result = helper.PublicInvokeActionMethod(mi, new Dictionary<string, object>());
 
             // Verify
-            Assert.IsNull(result);
+            Assert.IsInstanceOfType(result, typeof(EmptyResult));
+        }
+
+        [TestMethod]
+        public void InvokeActionMethodWithObjectReturnType() {
+            // InvokeActionMethod() should call Convert.ToString() on non-ActionResult return values.
+
+            // Setup
+            var controller = new BasicMethodInvokeController();
+            ControllerContext context = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
+            MethodInfo mi = typeof(BasicMethodInvokeController).GetMethod("ReturnsInteger");
+
+            // Execute
+            ContentResult result = helper.PublicInvokeActionMethod(mi, new Dictionary<string, object>()) as ContentResult;
+
+            // Verify
+            Assert.IsNotNull(result, "Non-ActionResult return values should be converted to ContentResult.");
+            Assert.AreEqual("42", result.Content);
+            Assert.IsNull(result.ContentEncoding);
+            Assert.IsNull(result.ContentType);
         }
 
         [TestMethod]
@@ -1638,20 +1701,20 @@
         }
 
         [TestMethod]
-        public void InvokeActionMethodWithWrongReturnTypeThrows() {
+        public void InvokeActionMethodWithVoidReturnType() {
+            // InvokeActionMethod() should return an EmptyResult for void action methods.
+
             // Setup
             var controller = new BasicMethodInvokeController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(BasicMethodInvokeController).GetMethod("ReturnsNonActionResult");
+            MethodInfo mi = typeof(BasicMethodInvokeController).GetMethod("VoidMethod");
 
-            // Execute & verify
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    helper.PublicInvokeActionMethod(mi, new Dictionary<string, object>());
-                },
-                "The action method 'ReturnsNonActionResult' on controller 'System.Web.Mvc.Test.ControllerActionInvokerTest+BasicMethodInvokeController' "
-                    + "returned a value of type 'System.Object'. Action methods must return an ActionResult.");
+            // Execute
+            ActionResult result = helper.PublicInvokeActionMethod(mi, new Dictionary<string, object>());
+
+            // Verify
+            Assert.IsInstanceOfType(result, typeof(EmptyResult));
         }
 
         [TestMethod]
@@ -2248,14 +2311,16 @@
 
         // This controller serves only to test vanilla method invocation - nothing exciting here
         private class BasicMethodInvokeController : Controller {
-            public ActionResult ReturnsRenderView(object viewData) {
-                return RenderView("ReturnsRenderView", viewData);
+            public ActionResult ReturnsRenderView(object viewItem) {
+                return View("ReturnsRenderView", viewItem);
             }
-            public ActionResult ReturnsNull() {
+            public void VoidMethod() {
+            }
+            public object ReturnsNull() {
                 return null;
             }
-            public object ReturnsNonActionResult() {
-                return new object();
+            public int ReturnsInteger() {
+                return 42;
             }
         }
 

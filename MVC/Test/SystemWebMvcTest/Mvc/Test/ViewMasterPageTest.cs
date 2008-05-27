@@ -13,7 +13,7 @@
             ViewMasterPage vmp = new ViewMasterPage();
             ViewPage vp = new ViewPage();
             vmp.Page = vp;
-            vp.SetViewData(new { a = "123", b = "456" });
+            vp.ViewData = new ViewDataDictionary { { "a", "123" }, { "b", "456" } };
 
             // Verify
             Assert.AreEqual("123", vmp.ViewData["a"]);
@@ -21,16 +21,16 @@
         }
 
         [TestMethod]
-        public void GetViewDataFromViewPageTViewData() {
+        public void GetViewItemFromViewPageTViewData() {
             // Setup
             MockViewMasterPageDummyViewData vmp = new MockViewMasterPageDummyViewData();
             MockViewPageDummyViewData vp = new MockViewPageDummyViewData();
             vmp.Page = vp;
-            vp.SetViewData(new DummyViewData { MyInt = 123, MyString = "abc" });
+            vp.ViewData.Model = new DummyViewData { MyInt = 123, MyString = "abc" };
 
             // Verify
-            Assert.AreEqual(123, vmp.ViewData.MyInt);
-            Assert.AreEqual("abc", vmp.ViewData.MyString);
+            Assert.AreEqual(123, vmp.ViewData.Model.MyInt);
+            Assert.AreEqual("abc", vmp.ViewData.Model.MyString);
         }
 
         [TestMethod]
@@ -64,23 +64,23 @@
                 delegate {
                     object foo = vmp.ViewData["foo"];
                 },
-                "A ViewMasterPage can only be used with content pages that derive from ViewPage or ViewPage<TViewData>.");
+                "A ViewMasterPage can only be used with content pages that derive from ViewPage or ViewPage<TViewItem>.");
         }
 
         [TestMethod]
-        public void GetViewDataFromWrongGenericViewPageType() {
+        public void GetViewItemFromWrongGenericViewPageType() {
             // Setup
             MockViewMasterPageDummyViewData vmp = new MockViewMasterPageDummyViewData();
             MockViewPageBogusViewData vp = new MockViewPageBogusViewData();
             vmp.Page = vp;
-            vp.SetViewData(123);
+            vp.ViewData.Model = new ListItem();
 
             // Verify
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    int foo = vmp.ViewData.MyInt;
+                    object foo = vmp.ViewData.Model;
                 },
-                "A ViewMasterPage<TViewData> can only be used with content pages that derive from ViewPage<TViewData>.");
+                "The model item passed into the dictionary is of type 'System.Web.Mvc.ListItem' but this dictionary requires a model item of type 'System.Web.Mvc.Test.ViewMasterPageTest+DummyViewData'.");
         }
 
         [TestMethod]
@@ -91,9 +91,9 @@
             // Verify
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    int foo = vmp.ViewData.MyInt;
+                    object foo = vmp.ViewData;
                 },
-                "A ViewMasterPage<TViewData> can only be used with content pages that derive from ViewPage<TViewData>.");
+                "A ViewMasterPage can only be used with content pages that derive from ViewPage or ViewPage<TViewItem>.");
         }
 
         [TestMethod]
@@ -105,9 +105,9 @@
             // Verify
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    int foo = vmp.ViewData.MyInt;
+                    object foo = vmp.ViewData;
                 },
-                "A ViewMasterPage<TViewData> can only be used with content pages that derive from ViewPage<TViewData>.");
+                "A ViewMasterPage can only be used with content pages that derive from ViewPage or ViewPage<TViewItem>.");
         }
 
         [TestMethod]
@@ -122,10 +122,10 @@
                 new Mock<IController>().Object,
                 "view",
                 null,
-                null,
+                new ViewDataDictionary(),
                 new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
 
-            HtmlHelper htmlHelper = new HtmlHelper(vc);
+            HtmlHelper htmlHelper = new HtmlHelper(vc, vp);
             vp.Html = htmlHelper;
 
             // Verify
@@ -144,7 +144,7 @@
                 new Mock<IController>().Object,
                 "view",
                 null,
-                null,
+                new ViewDataDictionary(),
                 new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
             UrlHelper urlHelper = new UrlHelper(vc);
             vp.Url = urlHelper;
@@ -154,9 +154,6 @@
         }
 
         // Master page types
-        private sealed class MockViewMasterPageBogusViewData : ViewMasterPage<int> {
-        }
-
         private sealed class MockViewMasterPageDummyViewData : ViewMasterPage<DummyViewData> {
         }
 
@@ -167,7 +164,7 @@
         }
 
         // Page types
-        private sealed class MockViewPageBogusViewData : ViewPage<int> {
+        private sealed class MockViewPageBogusViewData : ViewPage<ListItem> {
         }
 
         private sealed class MockViewPageDummyViewData : ViewPage<DummyViewData> {

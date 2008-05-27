@@ -193,7 +193,7 @@
 
         private static ViewContext GetViewContext(bool useMaster) {
             Mock<HttpContextBase> contextMock = new Mock<HttpContextBase>();
-            return new ViewContext(contextMock.Object, new RouteData(), new Mock<IController>().Object, "view", useMaster ? "master" : String.Empty, "viewData", null);
+            return new ViewContext(contextMock.Object, new RouteData(), new Mock<IController>().Object, "view", useMaster ? "master" : String.Empty, new ViewDataDictionary(), null);
         }
 
         public sealed class DummyViewPage : ViewPage {

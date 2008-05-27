@@ -2,6 +2,7 @@
     using System.Collections.Generic;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class RadioListExtensions {
         /// <summary>
         /// Creates an HTML Radio button list based on the passed-in datasource.

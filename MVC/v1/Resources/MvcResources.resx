@@ -135,12 +135,6 @@
   <data name="ControllerActionInvoker_FiltersOnTypeHaveDuplicateOrder" xml:space="preserve">
     <value>Two filter attributes on controller '{0}' have filter order {1}. If a filter specifies an order of 0 or greater, no other filter on that type may specify that same order.</value>
   </data>
-  <data name="ControllerActionInvoker_MethodReturnedWrongType" xml:space="preserve">
-    <value>The action method '{0}' on controller '{1}' returned a value of type '{2}'. Action methods must return an ActionResult.</value>
-  </data>
-  <data name="ControllerActionInvoker_MethodSignatureHasInvalidReturnType" xml:space="preserve">
-    <value>The action method '{0}' on controller '{1}' has return type '{2}'. Action methods must return an ActionResult.</value>
-  </data>
   <data name="ControllerActionInvoker_ParameterDictionaryIsInvalid" xml:space="preserve">
     <value>The parameters specified in the dictionary do not match those of the method '{0}'.</value>
   </data>
@@ -186,6 +180,18 @@
   <data name="Helper_DictionaryAlreadyContainsKey" xml:space="preserve">
     <value>The provided object or dictionary already contains a definition for '{0}'.</value>
   </data>
+  <data name="HtmlHelper_MissingSelectData" xml:space="preserve">
+    <value>There is no ViewData item with the key '{0}' of type '{1}'.</value>
+  </data>
+  <data name="HtmlHelper_WrongSelectDataType" xml:space="preserve">
+    <value>The ViewData item with the key '{0}' is of type '{1}' but needs to be of type '{2}'.</value>
+  </data>
+  <data name="ViewDataDictionary_NullTModel" xml:space="preserve">
+    <value>The model item passed into the dictionary is null but this dictionary requires a model item of non-nullable type '{0}'.</value>
+  </data>
+  <data name="ViewDataDictionary_WrongTModelType" xml:space="preserve">
+    <value>The model item passed into the dictionary is of type '{0}' but this dictionary requires a model item of type '{1}'.</value>
+  </data>
   <data name="ViewLocator_LocationsRequired" xml:space="preserve">
     <value>The parameter must be set to an array of location format strings, such as "~/Views/{1}/{0}.aspx".</value>
   </data>
@@ -196,22 +202,28 @@
     <value>The view '{0}' could not be located at these paths: {1}</value>
   </data>
   <data name="ViewMasterPage_RequiresViewPage" xml:space="preserve">
-    <value>A ViewMasterPage can only be used with content pages that derive from ViewPage or ViewPage&lt;TViewData&gt;.</value>
+    <value>A ViewMasterPage can only be used with content pages that derive from ViewPage or ViewPage&lt;TViewItem&gt;.</value>
   </data>
-  <data name="ViewMasterPage_RequiresViewPageTViewData" xml:space="preserve">
-    <value>A ViewMasterPage&lt;TViewData&gt; can only be used with content pages that derive from ViewPage&lt;TViewData&gt;.</value>
+  <data name="ViewMasterPage_RequiresViewPageTViewItem" xml:space="preserve">
+    <value>A ViewMasterPage&lt;TViewItem&gt; can only be used with content pages that have a view item that can be cast to TViewItem.</value>
   </data>
   <data name="ViewPageTViewData_WrongViewDataType" xml:space="preserve">
     <value>The view data passed into the page is of type '{0}' but this page requires view data of type '{1}'.</value>
+  </data>
+  <data name="ViewUserControlTViewItem_NullViewItemObject" xml:space="preserve">
+    <value>The view item passed into the ViewUserControl is null but this control requires a view item of non-nullable type '{0}'.</value>
+  </data>
+  <data name="ViewUserControlTViewItem_WrongViewItemType" xml:space="preserve">
+    <value>The view item passed into the ViewUserControl is of type '{0}' but this control requires a view item of type '{1}'.</value>
   </data>
   <data name="ViewUserControl_RequiresViewDataProvider" xml:space="preserve">
     <value>The ViewUserControl '{0}' cannot find an IViewDataContainer. The ViewUserControl must be inside a ViewPage, ViewMasterPage, or another ViewUserControl.</value>
   </data>
   <data name="ViewUserControl_RequiresViewPage" xml:space="preserve">
-    <value>A ViewUserControl can only be used inside pages that derive from ViewPage or ViewPage&lt;TViewData&gt;.</value>
+    <value>A ViewUserControl can only be used inside pages that derive from ViewPage or ViewPage&lt;TViewItem&gt;.</value>
   </data>
-  <data name="ViewUserControl_WrongTViewDataType" xml:space="preserve">
-    <value>The view data for ViewUserControl '{0}' could not be found or is not of the type '{1}'.</value>
+  <data name="ViewUserControl_WrongTViewItemType" xml:space="preserve">
+    <value>The view item for ViewUserControl '{0}' could not be found or is not of the type '{1}'.</value>
   </data>
   <data name="WebFormViewEngine_MasterNotFound" xml:space="preserve">
     <value>The master '{0}' could not be found.</value>

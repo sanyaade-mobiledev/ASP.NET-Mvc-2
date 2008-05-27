@@ -3,9 +3,9 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Linq;
     using System.Reflection;
     using System.Security.Principal;
+    using System.Text;
     using System.Web.Routing;
     using System.Web.TestUtil;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,6 +13,50 @@
 
     [TestClass]
     public class ControllerTest {
+
+        [TestMethod]
+        public void ContentWithContentString() {
+            // Setup
+            Controller controller = new EmptyController();
+            string content = "Some content";
+
+            // Execute
+            ContentResult result = controller.Content(content);
+
+            // Verify
+            Assert.AreEqual(content, result.Content);
+        }
+
+        public void ContentWithContentStringAndContentType() {
+            // Setup
+            Controller controller = new EmptyController();
+            string content = "Some content";
+            string contentType = "Some content type";
+
+            // Execute
+            ContentResult result = controller.Content(content, contentType);
+
+            // Verify
+            Assert.AreEqual(content, result.Content);
+            Assert.AreEqual(contentType, result.ContentType);
+        }
+
+        public void ContentWithContentStringAndContentTypeAndEncoding() {
+            // Setup
+            Controller controller = new EmptyController();
+            string content = "Some content";
+            string contentType = "Some content type";
+            Encoding contentEncoding = Encoding.UTF8;
+
+            // Execute
+            ContentResult result = controller.Content(content, contentType, contentEncoding);
+
+            // Verify
+            Assert.AreEqual(content, result.Content);
+            Assert.AreEqual(contentType, result.ContentType);
+            Assert.AreSame(contentEncoding, result.ContentEncoding);
+        }
+
         [TestMethod]
         public void ContextProperty() {
             var controller = new EmptyController();
@@ -63,6 +107,18 @@
             contextMock.Expect(o => o.Server).Returns(mockServer.Object);
             c.ControllerContext = new ControllerContext(contextMock.Object, new RouteData(), c);
             Assert.AreEqual<HttpServerUtilityBase>(mockServer.Object, c.Server, "Property should equal the value on the Context.");
+        }
+
+        [TestMethod]
+        public void SessionProperty() {
+            var c = new EmptyController();
+            Assert.IsNull(c.Session, "Property should be null before Context is set");
+
+            Mock<HttpContextBase> contextMock = new Mock<HttpContextBase>();
+            Mock<HttpSessionStateBase> sessionMock = new Mock<HttpSessionStateBase>();
+            contextMock.Expect(o => o.Session).Returns(sessionMock.Object);
+            c.ControllerContext = new ControllerContext(contextMock.Object, new RouteData(), c);
+            Assert.AreSame(sessionMock.Object, c.Session, "Property should equal the value on the Context.");
         }
 
         [TestMethod]
@@ -203,16 +259,76 @@
         }
 
         [TestMethod]
-        public void RedirectToActionThrowsOnNullOrEmptyStringParameters() {
-            // Use reflection to get all RedirectToAction overloads, then hammer away at the string parameters.
-            MemberInfo[] memberInfos = typeof(Controller).GetMember("RedirectToAction", BindingFlags.Instance | BindingFlags.NonPublic);
-            foreach (MethodInfo mi in memberInfos) {
-                foreach (ParameterInfo parameterInfo in mi.GetParameters()) {
-                    if (parameterInfo.ParameterType == typeof(string)) {
-                        EnsureMethodThrowsOnNullOrEmptyStringParameter(mi, parameterInfo.Name);
-                    }
-                }
-            }
+        public void RedirectToActionClonesRouteValueDictionary() {
+            // The RedirectToAction() method should clone the provided dictionary, then operate on the clone.
+            // The original dictionary should remain unmodified throughout the helper's execution.
+
+            // Setup
+            Controller controller = GetEmptyController();
+            RouteValueDictionary values = new RouteValueDictionary(new { Action = "SomeAction", Controller = "SomeController" });
+
+            // Execute
+            controller.RedirectToAction("SomeOtherAction", "SomeOtherController", values);
+
+            // Verify
+            Assert.AreEqual(2, values.Count);
+            Assert.AreEqual("SomeAction", values["action"]);
+            Assert.AreEqual("SomeController", values["controller"]);
+        }
+
+        [TestMethod]
+        public void RedirectToActionPreservesControllerDictionaryKeyIfNotSpecified() {
+            // Setup
+            Controller controller = GetEmptyController();
+            object values = new { Controller = "SomeController" };
+
+            // Execute
+            RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", values);
+            RouteValueDictionary newValues = result.Values;
+
+            // Verify
+            Assert.AreEqual("SomeController", newValues["controller"]);
+        }
+
+        [TestMethod]
+        public void RedirectToActionOverwritesActionDictionaryKey() {
+            // Setup
+            Controller controller = GetEmptyController();
+            object values = new { Action = "SomeAction" };
+
+            // Execute
+            RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", values);
+            RouteValueDictionary newValues = result.Values;
+
+            // Verify
+            Assert.AreEqual("SomeOtherAction", newValues["action"]);
+        }
+
+        [TestMethod]
+        public void RedirectToActionOverwritesControllerDictionaryKeyIfSpecified() {
+            // Setup
+            Controller controller = GetEmptyController();
+            object values = new { Action = "SomeAction", Controller = "SomeController" };
+
+            // Execute
+            RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", "SomeOtherController", values);
+            RouteValueDictionary newValues = result.Values;
+
+            // Verify
+            Assert.AreEqual("SomeOtherController", newValues["controller"]);
+        }
+
+        [TestMethod]
+        public void RedirectToActionWithActionName() {
+            // Setup
+            Controller controller = GetEmptyController();
+
+            // Execute
+            RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction");
+
+            // Verify
+            Assert.AreEqual("", result.RouteName);
+            Assert.AreEqual("SomeOtherAction", result.Values["action"]);
         }
 
         [TestMethod]
@@ -221,187 +337,98 @@
             Controller controller = GetEmptyController();
 
             // Execute
-            ActionRedirectResult result = controller.RedirectToAction("MyAction", "MyController");
+            RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", "SomeOtherController");
 
             // Verify
-            Assert.AreEqual(2, result.Values.Count);
-            Assert.AreEqual("MyAction", result.Values["Action"]);
-            Assert.AreEqual("MyController", result.Values["Controller"]);
+            Assert.AreEqual("", result.RouteName);
+            Assert.AreEqual("SomeOtherAction", result.Values["action"]);
+            Assert.AreEqual("SomeOtherController", result.Values["controller"]);
         }
 
         [TestMethod]
-        public void RedirectToActionWithActionNameAndObjectDictionary() {
+        public void RedirectToActionWithActionNameAndControllerNameAndValuesDictionary() {
             // Setup
             Controller controller = GetEmptyController();
-            var values = new { Foo = "MyFoo" };
+            RouteValueDictionary values = new RouteValueDictionary(new { Foo = "SomeFoo" });
 
             // Execute
-            ActionRedirectResult result = controller.RedirectToAction("MyAction", values);
+            RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", "SomeOtherController", values);
 
             // Verify
-            Assert.AreEqual(2, result.Values.Count);
-            Assert.AreEqual("MyFoo", result.Values["Foo"]);
-            Assert.AreEqual("MyAction", result.Values["Action"]);
+            Assert.AreEqual("", result.RouteName);
+            Assert.AreEqual("SomeOtherAction", result.Values["action"]);
+            Assert.AreEqual("SomeOtherController", result.Values["controller"]);
+            Assert.AreEqual("SomeFoo", result.Values["foo"]);
         }
 
         [TestMethod]
-        public void RedirectToActionWithActionNameAndObjectDictionaryThrowsOnDuplicateAction() {
+        public void RedirectToActionWithActionNameAndControllerNameAndValuesObject() {
             // Setup
             Controller controller = GetEmptyController();
-            var values = new { Action = "SomeAction" };
-
-            // Execute & verify
-            ExceptionHelper.ExpectArgumentException(
-                delegate {
-                    ActionRedirectResult result = controller.RedirectToAction("MyAction", values);
-                },
-                "The provided object or dictionary already contains a definition for 'action'.\r\nParameter name: actionName");
-        }
-
-        [TestMethod]
-        public void RedirectToActionWithActionNameAndNullRouteValueDictionary() {
-            // Setup
-            Controller controller = GetEmptyController();
+            object values = new { Foo = "SomeFoo" };
 
             // Execute
-            ActionRedirectResult result = controller.RedirectToAction("MyAction", (RouteValueDictionary)null);
+            RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", "SomeOtherController", values);
 
             // Verify
-            Assert.AreEqual(1, result.Values.Count);
-            Assert.AreEqual("MyAction", result.Values["Action"]);
+            Assert.AreEqual("", result.RouteName);
+            Assert.AreEqual("SomeOtherAction", result.Values["action"]);
+            Assert.AreEqual("SomeOtherController", result.Values["controller"]);
+            Assert.AreEqual("SomeFoo", result.Values["foo"]);
         }
 
         [TestMethod]
-        public void RedirectToActionWithActionNameAndRouteValueDictionary() {
+        public void RedirectToActionWithActionNameAndValuesDictionary() {
             // Setup
             Controller controller = GetEmptyController();
-            RouteValueDictionary values = new RouteValueDictionary() { { "Foo", "MyFoo" } };
+            RouteValueDictionary values = new RouteValueDictionary(new { Foo = "SomeFoo" });
 
             // Execute
-            ActionRedirectResult result = controller.RedirectToAction("MyAction", values);
+            RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", values);
 
             // Verify
-            Assert.AreEqual(2, result.Values.Count);
-            Assert.AreEqual("MyFoo", result.Values["Foo"]);
-            Assert.AreEqual("MyAction", result.Values["Action"]);
-            Assert.AreNotSame(values, result.Values);
+            Assert.AreEqual("", result.RouteName);
+            Assert.AreEqual("SomeOtherAction", result.Values["action"]);
+            Assert.AreEqual("SomeFoo", result.Values["foo"]);
         }
 
         [TestMethod]
-        public void RedirectToActionWithActionNameAndRouteValueDictionaryThrowsOnDuplicateAction() {
+        public void RedirectToActionWithActionNameAndValuesObject() {
             // Setup
             Controller controller = GetEmptyController();
-            RouteValueDictionary values = new RouteValueDictionary() { { "Action", "SomeAction" } };
-
-            // Execute & verify
-            ExceptionHelper.ExpectArgumentException(
-                delegate {
-                    ActionRedirectResult result = controller.RedirectToAction("MyAction", values);
-                },
-                "The provided object or dictionary already contains a definition for 'action'.\r\nParameter name: actionName");
-        }
-
-        [TestMethod]
-        public void RedirectToActionWithActionNameControllerNameAndNullRouteValueDictionary() {
-            // Setup
-            Controller controller = GetEmptyController();
+            object values = new { Foo = "SomeFoo" };
 
             // Execute
-            ActionRedirectResult result = controller.RedirectToAction("MyAction", "MyController", (RouteValueDictionary)null);
+            RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", values);
 
             // Verify
-            Assert.AreEqual(2, result.Values.Count);
-            Assert.AreEqual("MyAction", result.Values["Action"]);
-            Assert.AreEqual("MyController", result.Values["Controller"]);
+            Assert.AreEqual("", result.RouteName);
+            Assert.AreEqual("SomeOtherAction", result.Values["action"]);
+            Assert.AreEqual("SomeFoo", result.Values["foo"]);
         }
 
         [TestMethod]
-        public void RedirectToActionWithActionNameControllerNameAndObjectDictionary() {
+        public void RedirectToActionWithEmptyActionNameThrows() {
             // Setup
             Controller controller = GetEmptyController();
-            var values = new { Foo = "MyFoo" };
-
-            // Execute
-            ActionRedirectResult result = controller.RedirectToAction("MyAction", "MyController", values);
-
-            // Verify
-            Assert.AreEqual(3, result.Values.Count);
-            Assert.AreEqual("MyFoo", result.Values["Foo"]);
-            Assert.AreEqual("MyAction", result.Values["Action"]);
-            Assert.AreEqual("MyController", result.Values["Controller"]);
+            
+            // Execute & verify
+            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
+                delegate {
+                    controller.RedirectToAction(String.Empty);
+                }, "actionName");
         }
 
         [TestMethod]
-        public void RedirectToActionWithActionNameControllerNameAndObjectDictionaryThrowsOnDuplicateAction() {
+        public void RedirectToActionWithNullActionNameThrows() {
             // Setup
             Controller controller = GetEmptyController();
-            var values = new { Action = "SomeAction" };
 
             // Execute & verify
-            ExceptionHelper.ExpectArgumentException(
+            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
-                    ActionRedirectResult result = controller.RedirectToAction("MyAction", "MyController", values);
-                },
-                "The provided object or dictionary already contains a definition for 'action'.\r\nParameter name: actionName");
-        }
-
-        [TestMethod]
-        public void RedirectToActionWithActionNameControllerNameAndObjectDictionaryThrowsOnDuplicateController() {
-            // Setup
-            Controller controller = GetEmptyController();
-            var values = new { Controller = "SomeController" };
-
-            // Execute & verify
-            ExceptionHelper.ExpectArgumentException(
-                delegate {
-                    ActionRedirectResult result = controller.RedirectToAction("MyAction", "MyController", values);
-                },
-                "The provided object or dictionary already contains a definition for 'controller'.\r\nParameter name: controllerName");
-        }
-
-        [TestMethod]
-        public void RedirectToActionWithActionNameControllerNameAndRouteValueDictionary() {
-            // Setup
-            Controller controller = GetEmptyController();
-            RouteValueDictionary values = new RouteValueDictionary() { { "Foo", "MyFoo" } };
-
-            // Execute
-            ActionRedirectResult result = controller.RedirectToAction("MyAction", "MyController", values);
-
-            // Verify
-            Assert.AreEqual(3, result.Values.Count);
-            Assert.AreEqual("MyFoo", result.Values["Foo"]);
-            Assert.AreEqual("MyAction", result.Values["Action"]);
-            Assert.AreEqual("MyController", result.Values["Controller"]);
-            Assert.AreNotSame(values, result.Values);
-        }
-
-        [TestMethod]
-        public void RedirectToActionWithActionNameControllerNameAndRouteValueDictionaryThrowsOnDuplicateAction() {
-            // Setup
-            Controller controller = GetEmptyController();
-            RouteValueDictionary values = new RouteValueDictionary() { { "Action", "SomeAction" } };
-
-            // Execute & verify
-            ExceptionHelper.ExpectArgumentException(
-                delegate {
-                    ActionRedirectResult result = controller.RedirectToAction("MyAction", "MyController", values);
-                },
-                "The provided object or dictionary already contains a definition for 'action'.\r\nParameter name: actionName");
-        }
-
-        [TestMethod]
-        public void RedirectToActionWithActionNameControllerNameAndRouteValueDictionaryThrowsOnDuplicateController() {
-            // Setup
-            Controller controller = GetEmptyController();
-            RouteValueDictionary values = new RouteValueDictionary() { { "Controller", "SomeController" } };
-
-            // Execute & verify
-            ExceptionHelper.ExpectArgumentException(
-                delegate {
-                    ActionRedirectResult result = controller.RedirectToAction("MyAction", "MyController", values);
-                },
-                "The provided object or dictionary already contains a definition for 'controller'.\r\nParameter name: controllerName");
+                    controller.RedirectToAction(null /* actionName */);
+                }, "actionName");
         }
 
         [TestMethod]
@@ -410,20 +437,34 @@
             Controller controller = GetEmptyController();
 
             // Execute
-            ActionRedirectResult result = controller.RedirectToAction((RouteValueDictionary)null);
+            RedirectToRouteResult result=controller.RedirectToAction("SomeOtherAction", (RouteValueDictionary)null);
+            RouteValueDictionary newValues = result.Values;
+
+            // Verify
+            Assert.AreEqual(1, newValues.Count);
+            Assert.AreEqual("SomeOtherAction", newValues["action"]);
+        }
+
+        [TestMethod]
+        public void RedirectToRouteWithNullRouteValueDictionary() {
+            // Setup
+            Controller controller = GetEmptyController();
+
+            // Execute
+            RedirectToRouteResult result = controller.RedirectToRoute((RouteValueDictionary)null);
 
             // Verify
             Assert.AreEqual(0, result.Values.Count);
         }
 
         [TestMethod]
-        public void RedirectToActionWithObjectDictionary() {
+        public void RedirectToRouteWithObjectDictionary() {
             // Setup
             Controller controller = GetEmptyController();
             var values = new { Foo = "MyFoo" };
 
             // Execute
-            ActionRedirectResult result = controller.RedirectToAction(values);
+            RedirectToRouteResult result = controller.RedirectToRoute(values);
 
             // Verify
             Assert.AreEqual(1, result.Values.Count);
@@ -431,13 +472,13 @@
         }
 
         [TestMethod]
-        public void RedirectToActionWithRouteValueDictionary() {
+        public void RedirectToRouteWithRouteValueDictionary() {
             // Setup
             Controller controller = GetEmptyController();
             RouteValueDictionary values = new RouteValueDictionary() { { "Foo", "MyFoo" } };
 
             // Execute
-            ActionRedirectResult result = controller.RedirectToAction(values);
+            RedirectToRouteResult result = controller.RedirectToRoute(values);
 
             // Verify
             Assert.AreEqual(1, result.Values.Count);
@@ -445,62 +486,76 @@
             Assert.AreNotSame(values, result.Values);
         }
 
-        private void RedirectToActionHelper(Controller controller, string action, string appPath, bool useMvcExtensions, string expectedRedirect) {
-            Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
-            Mock<HttpResponseBase> mockResponse = new Mock<HttpResponseBase>();
-            Mock<HttpRequestBase> mockRequest = new Mock<HttpRequestBase>();
-            mockRequest.Expect(o => o.ApplicationPath).Returns(appPath);
-            mockResponse.Expect(o => o.Redirect(expectedRedirect));
-            RouteCollection rc = new RouteCollection();
-            rc.Add(new Route(useMvcExtensions ? "{controller}.mvc/{action}/{id}" : "{controller}/{action}/{id}", null) { Defaults = new RouteValueDictionary(new { action = "Index", id = (string)null }) });
-            controller.RouteCollection = rc;
-            mockContext.Expect(o => o.Response).Returns(mockResponse.Object);
-            mockContext.Expect(o => o.Request).Returns(mockRequest.Object);
-            mockContext.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
-            RouteData routeData = new RouteData();
-            routeData.Values.Add("controller", controller.GetType().Name.Substring(0, controller.GetType().Name.Length - 10));
-            routeData.Values.Add("action", action);
-            routeData.Values.Add("id", null);
-            controller.Execute(new ControllerContext(mockContext.Object, routeData, controller));
-            mockResponse.Verify();
+        [TestMethod]
+        public void RedirectToRouteWithName() {
+            // Setup
+            Controller controller = GetEmptyController();
+
+            // Execute
+            RedirectToRouteResult result = controller.RedirectToRoute("foo");
+
+            // Verify
+            Assert.AreEqual(0, result.Values.Count);
+            Assert.AreEqual("foo", result.RouteName);
         }
 
         [TestMethod]
-        public void RedirectToActionWithStandardControllerName() {
-            RedirectController controller = new RedirectController();
-            RedirectToActionHelper(controller, "GotoShowPerson", "appPath/", true, "appPath/Redirect.mvc/ShowPerson");
+        public void RedirectToRouteWithNameAndNullRouteValueDictionary() {
+            // Setup
+            Controller controller = GetEmptyController();
+
+            // Execute
+            RedirectToRouteResult result = controller.RedirectToRoute("foo", (RouteValueDictionary)null);
+
+            // Verify
+            Assert.AreEqual(0, result.Values.Count);
+            Assert.AreEqual("foo", result.RouteName);
         }
 
         [TestMethod]
-        public void RedirectToActionUsingMvcExtension() {
-            SampleController controller = new SampleController();
-            RedirectToActionHelper(controller, "GotoShowPerson", "appPath/", false, "appPath/Sample/ShowPerson");
+        public void RedirectToRouteWithNullNameAndNullRouteValueDictionary() {
+            // Setup
+            Controller controller = GetEmptyController();
+
+            // Execute
+            RedirectToRouteResult result = controller.RedirectToRoute(null, (RouteValueDictionary)null);
+
+            // Verify
+            Assert.AreEqual(0, result.Values.Count);
+            Assert.AreEqual(String.Empty, result.RouteName);
         }
 
         [TestMethod]
-        public void RedirectToActionWithoutMvcExtension() {
-            SampleController controller = new SampleController();
-            RedirectToActionHelper(controller, "GotoShowPerson", "appPath/", true, "appPath/Sample.mvc/ShowPerson");
+        public void RedirectToRouteWithNameAndObjectDictionary() {
+            // Setup
+            Controller controller = GetEmptyController();
+            var values = new { Foo = "MyFoo" };
+
+            // Execute
+            RedirectToRouteResult result = controller.RedirectToRoute("foo", values);
+
+            // Verify
+            Assert.AreEqual(1, result.Values.Count);
+            Assert.AreEqual("MyFoo", result.Values["Foo"]);
+            Assert.AreEqual("foo", result.RouteName);
         }
 
         [TestMethod]
-        public void RedirectToActionWithAppPathEndingWithBackSlash() {
-            RedirectController controller = new RedirectController();
-            RedirectToActionHelper(controller, "GotoShowPerson", "appPath/", false, "appPath/Redirect/ShowPerson");
-        }
+        public void RedirectToRouteWithNameAndRouteValueDictionary() {
+            // Setup
+            Controller controller = GetEmptyController();
+            RouteValueDictionary values = new RouteValueDictionary() { { "Foo", "MyFoo" } };
 
-        [TestMethod]
-        public void RedirectToActionWithDifferentController() {
-            SampleController controller = new SampleController();
-            RedirectToActionHelper(controller, "GotoShowPersonWithController", "appPath/", false, "appPath/Cart/ShowPerson");
-        }
+            // Execute
+            RedirectToRouteResult result = controller.RedirectToRoute("foo", values);
 
-        [TestMethod]
-        public void RedirectToActionWithDifferentControllerAndId() {
-            SampleController controller = new SampleController();
-            RedirectToActionHelper(controller, "GotoShowPersonWithValues", "appPath/", false, "appPath/Cart/ShowPerson/123");
+            // Verify
+            Assert.AreEqual(1, result.Values.Count);
+            Assert.AreEqual("MyFoo", result.Values["Foo"]);
+            Assert.AreNotSame(values, result.Values);
+            Assert.AreEqual("foo", result.RouteName);
         }
-
+        
         [TestMethod]
         public void RedirectReturnsCorrectActionResult() {
             // Setup
@@ -545,7 +600,7 @@
             Controller controller = GetEmptyController();
 
             // Execute
-            RenderViewResult result = controller.RenderView();
+            ViewResult result = controller.View();
 
             // Verify
             Assert.IsNull(result.ViewName);
@@ -559,15 +614,14 @@
         public void RenderView1_obj_SetsProperties() {
             // Setup
             Controller controller = GetEmptyController();
-            object o = new object();
+            object viewItem = new object();
 
             // Execute
-            RenderViewResult result = controller.RenderView(o);
+            ViewResult result = controller.View(viewItem);
 
             // Verify
             Assert.IsNull(result.ViewName);
             Assert.IsNull(result.MasterName);
-            Assert.AreSame(o, result.ViewData);
             Assert.AreSame(controller.ViewEngine, result.ViewEngine);
             Assert.AreSame(controller.TempData, result.TempData);
         }
@@ -578,7 +632,7 @@
             Controller controller = GetEmptyController();
 
             // Execute
-            RenderViewResult result = controller.RenderView("Foo");
+            ViewResult result = controller.View("Foo");
 
             // Verify
             Assert.AreEqual("Foo", result.ViewName);
@@ -592,15 +646,15 @@
         public void RenderView2_str_obj_SetsProperties() {
             // Setup
             Controller controller = GetEmptyController();
-            object o = new object();
+            object viewItem = new object();
 
             // Execute
-            RenderViewResult result = controller.RenderView("Foo", o);
+            ViewResult result = controller.View("Foo", viewItem);
 
             // Verify
             Assert.AreEqual("Foo", result.ViewName);
             Assert.IsNull(result.MasterName);
-            Assert.AreSame(o, result.ViewData);
+            Assert.AreSame(viewItem, result.ViewData.Model);
             Assert.AreSame(controller.ViewEngine, result.ViewEngine);
             Assert.AreSame(controller.TempData, result.TempData);
         }
@@ -611,7 +665,7 @@
             Controller controller = GetEmptyController();
 
             // Execute
-            RenderViewResult result = controller.RenderView("Foo", "Bar");
+            ViewResult result = controller.View("Foo", "Bar");
 
             // Verify
             Assert.AreEqual("Foo", result.ViewName);
@@ -625,15 +679,15 @@
         public void RenderView3_str_str_obj_SetsProperties() {
             // Setup
             Controller controller = GetEmptyController();
-            object o = new object();
+            object viewItem = new object();
 
             // Execute
-            RenderViewResult result = controller.RenderView("Foo", "Bar", o);
+            ViewResult result = controller.View("Foo", "Bar", viewItem);
 
             // Verify
             Assert.AreEqual("Foo", result.ViewName);
             Assert.AreEqual("Bar", result.MasterName);
-            Assert.AreSame(o, result.ViewData);
+            Assert.AreSame(viewItem, result.ViewData.Model);
             Assert.AreSame(controller.ViewEngine, result.ViewEngine);
             Assert.AreSame(controller.TempData, result.TempData);
         }
@@ -712,13 +766,6 @@
             return new ControllerContext(mockContext.Object, rd, new Mock<IController>().Object);
         }
 
-        private HttpContextBase GetMockHttpContextWithSession() {
-            Hashtable sessionData = new Hashtable(StringComparer.OrdinalIgnoreCase);
-            Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
-            mockContext.Expect(o => o.Session).Returns(GetEmptySession());
-            return mockContext.Object;
-        }
-
         private static Controller GetEmptyController() {
             ControllerContext context = GetControllerContext("Foo");
             var controller = new EmptyController() {
@@ -732,46 +779,6 @@
         private static HttpSessionStateBase GetEmptySession() {
             HttpSessionStateMock mockSession = new HttpSessionStateMock();
             return mockSession;
-        }
-
-        private static void EnsureMethodThrowsOnNullOrEmptyStringParameter(MethodInfo methodInfo, string parameterName) {
-            // Setup
-            Dictionary<Type, object> defaults = new Dictionary<Type, object>() {
-                { typeof(string), "Default string" },
-                { typeof(object), new object() },
-                { typeof(RouteValueDictionary), new RouteValueDictionary() }
-            };
-
-            // Locate the parameter of interest
-            ParameterInfo[] parameterInfos = methodInfo.GetParameters();
-            ParameterInfo targetParameter;
-            try {
-                targetParameter = parameterInfos.Single(pi => pi.Name == parameterName);
-            }
-            catch (InvalidOperationException ex) {
-                throw new Exception(String.Format("The method '{0}' doesn't contain a parameter named '{1}'.", methodInfo, parameterName), ex);
-            }
-
-            // Invoke the method
-            Controller controller = GetEmptyController();
-            object[] parameters = parameterInfos.Select(pi => (pi == targetParameter) ? null : defaults[pi.ParameterType]).ToArray();
-            try {
-                methodInfo.Invoke(controller, parameters);
-            }
-            catch (TargetInvocationException ex) {
-                Assert.IsInstanceOfType(ex.InnerException, typeof(ArgumentException),
-                    String.Format("The method '{0}' didn't throw an ArgumentException when given a null parameter '{1}'.", methodInfo, parameterName));
-                Assert.AreEqual("Value cannot be null or empty.\r\nParameter name: " + parameterName, ex.InnerException.Message);
-            }
-            parameters = parameterInfos.Select(pi => (pi == targetParameter) ? String.Empty : defaults[pi.ParameterType]).ToArray();
-            try {
-                methodInfo.Invoke(controller, parameters);
-            }
-            catch (TargetInvocationException ex) {
-                Assert.IsInstanceOfType(ex.InnerException, typeof(ArgumentException),
-                    String.Format("The method '{0}' didn't throw an ArgumentException when given an empty parameter '{1}'.", methodInfo, parameterName));
-                Assert.AreEqual("Value cannot be null or empty.\r\nParameter name: " + parameterName, ex.InnerException.Message);
-            }
         }
 
         private sealed class HttpSessionStateMock : HttpSessionStateBase {
@@ -791,166 +798,6 @@
                     Assert.AreEqual<string>(TempDataDictionary.TempDataSessionStateKey, name);
                     _sessionData[name] = value;
                 }
-            }
-        }
-
-        public class RedirectController : Controller {
-            public ActionResult GotoShowPerson() {
-                return RedirectToAction("ShowPerson");
-            }
-        }
-
-        public class RenderViewController : Controller {
-            public ViewContext ResultViewContext { get; set; }
-
-            public RenderViewController() {
-                ViewEngine = new MyViewEngine(this);
-            }
-
-            [NonAction]
-            public void RenderViewPublic(string viewName) {
-                RenderView(viewName);
-            }
-
-            [NonAction]
-            public void RenderViewPublic(string viewName, object data) {
-                RenderView(viewName, data);
-            }
-
-            [NonAction]
-            public void RenderViewPublic(string viewName, string layoutName) {
-                RenderView(viewName, layoutName);
-            }
-
-            [NonAction]
-            public void RenderViewPublic(string viewName, string layoutName, object data) {
-                RenderView(viewName, layoutName, data);
-            }
-
-            private sealed class MyViewEngine : IViewEngine {
-                private RenderViewController _rvc;
-
-                public MyViewEngine(RenderViewController rvc) {
-                    _rvc = rvc;
-                }
-
-                #region IViewEngine Members
-                public void RenderView(ViewContext viewContext) {
-                    _rvc.ResultViewContext = viewContext;
-                }
-                #endregion
-            }
-        }
-
-        [CLSCompliant(false)]
-        public class SampleController : Controller {
-            private IDictionary<string, object> _results = new Dictionary<string, object>();
-
-            public SampleController() {
-                Mock<HttpContextBase> mockHttpContext = new Mock<HttpContextBase>();
-                ControllerContext = new ControllerContext(mockHttpContext.Object, new RouteData(), this);
-            }
-
-            public IViewEngine ViewEngineToUse {
-                get;
-                set;
-            }
-
-            public IDictionary<string, object> Results {
-                get {
-                    return _results;
-                }
-            }
-
-            public bool DiceyActionThrows {
-                get;
-                set;
-            }
-
-            public bool OnErrorHandled {
-                get;
-                set;
-            }
-
-            public bool DiscontinueAction {
-                get;
-                set;
-            }
-
-            public void ValidAction() {
-                Results["ValidActionCalled"] = true;
-            }
-            [NonAction]
-            public void validAction() {
-                // Conflicting method name with NonActionAttribute
-            }
-            public void ConflictingAction() {
-                Results["ConflictingActionCalled"] = true;
-            }
-            public void conflictingAction() {
-                Results["conflictingActionCalled"] = true;
-            }
-
-            public void DiceyAction() {
-                Results["DiceyActionCalled"] = true;
-                Results["DiceyActionCalledAfterOnActionExecuting"] = TryGetValue(Results, "OnActionExecutingCalled", false);
-                if (DiceyActionThrows) {
-                    throw new Exception();
-                }
-            }
-            private void PrivateAction() {
-                Results["PrivateActionCalled"] = true;
-            }
-            internal void InternalAction() {
-                Results["InternalActionCalled"] = true;
-            }
-            protected void ProtectedAction() {
-                Results["ProtectedActionCalled"] = true;
-            }
-
-            public void ShowStuff() {
-                Results["ShowStuffActionCalled"] = true;
-                ViewData["data"] = "somedata";
-                ViewEngine = ViewEngineToUse;
-                RenderView("ShowStuffView");
-            }
-
-            public void ShowPerson() {
-                Results["ShowPersonActionCalled"] = true;
-                Person person = new Person() { Name = "Bart", Age = 9 };
-                ViewEngine = ViewEngineToUse;
-                RenderView("ShowPersonView", person);
-            }
-
-            public ActionResult GotoShowPerson() {
-                return RedirectToAction("ShowPerson");
-            }
-
-            public ActionResult GotoShowPersonWithController() {
-                return RedirectToAction("ShowPerson", new { controller = "Cart" });
-            }
-
-            public ActionResult GotoShowPersonWithValues() {
-                return RedirectToAction(new RouteValueDictionary(new { Action = "ShowPerson", Controller = "Cart", Id = "123" }));
-            }
-
-            [NonAction]
-            public void SomeNonActionMethod() {
-                Results["SomeNonActionMethodCalled"] = true;
-            }
-            protected override void HandleUnknownAction(string actionName) {
-                Results["HandleUnknownActionCalled"] = true;
-                Results["UnknownActionName"] = actionName;
-            }
-
-            //protected override void RenderView(string viewName, string layoutName, object viewData) {
-            //    Results["ViewNameInRenderView"] = viewName;
-            //    Results["ViewDataInRenderView"] = viewData;
-            //    base.RenderView(viewName, layoutName, viewData);
-            //}
-
-            private object TryGetValue(IDictionary<string, object> dict, string key, object defaultValue) {
-                return dict.ContainsKey(key) ? dict[key] : defaultValue;
             }
         }
 

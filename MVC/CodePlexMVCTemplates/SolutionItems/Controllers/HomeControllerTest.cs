@@ -20,10 +20,10 @@ namespace $safeprojectname$.Controllers
             HomeController controller = new HomeController();
 
             // Execute
-            RenderViewResult result = controller.Index() as RenderViewResult;
+            ViewResult result = controller.Index() as ViewResult;
 
             // Verify
-            IDictionary<string, object> viewData = result.ViewData as IDictionary<string, object>;
+            ViewDataDictionary viewData = result.ViewData as ViewDataDictionary;
             Assert.AreEqual("Home Page", viewData["Title"]);
             Assert.AreEqual("Welcome to ASP.NET MVC!", viewData["Message"]);
         }
@@ -35,10 +35,10 @@ namespace $safeprojectname$.Controllers
             HomeController controller = new HomeController();
 
             // Execute
-            RenderViewResult result = controller.About() as RenderViewResult;
+            ViewResult result = controller.About() as ViewResult;
 
             // Verify
-            IDictionary<string, object> viewData = result.ViewData as IDictionary<string, object>;
+            ViewDataDictionary viewData = result.ViewData as ViewDataDictionary;
             Assert.AreEqual("About Page", viewData["Title"]);
         }
     }

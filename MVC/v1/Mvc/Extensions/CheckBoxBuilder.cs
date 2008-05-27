@@ -6,6 +6,7 @@
     using System.Web;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class CheckBoxBuilder {
         public static string CheckBox(string htmlName, string text, string value, bool isChecked, RouteValueDictionary htmlAttributes) {
             htmlAttributes = htmlAttributes ?? new RouteValueDictionary();
@@ -26,7 +27,7 @@
 
         public static string CheckBox(string htmlName, RouteValueDictionary htmlAttributes) {
             htmlAttributes = htmlAttributes ?? new RouteValueDictionary();
-            string checkTag = TagBuilder.CreateInputTag(HtmlInputType.CheckBox, htmlName, htmlAttributes);
+            string checkTag = TagBuilder2.CreateInputTag(HtmlInputType.CheckBox, htmlName, htmlAttributes);
             return checkTag;
         }
     }

@@ -1,20 +1,15 @@
 ﻿namespace System.Web.Mvc {
+    using System;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Web;
     using System.Web.UI;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ViewPage : Page, IViewDataContainer {
-        private string _masterLocation;
-        private object _viewData;
 
-        public string MasterLocation {
-            get {
-                return _masterLocation ?? String.Empty;
-            }
-            set {
-                _masterLocation = value;
-            }
-        }
+        private string _masterLocation;
+        private ViewDataDictionary _viewData;
 
         public AjaxHelper Ajax {
             get;
@@ -24,6 +19,15 @@
         public HtmlHelper Html {
             get;
             set;
+        }
+
+        public string MasterLocation {
+            get {
+                return _masterLocation ?? String.Empty;
+            }
+            set {
+                _masterLocation = value;
+            }
         }
 
         public TempDataDictionary TempData {
@@ -39,12 +43,20 @@
 
         public ViewContext ViewContext {
             get;
-            private set;
+            set;
         }
 
-        public ViewData ViewData {
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
+            Justification = "This is the mechanism by which the ViewPage gets its ViewDataDictionary object.")]
+        public ViewDataDictionary ViewData {
             get {
-                return new ViewData(_viewData);
+                if (_viewData == null) {
+                    SetViewData(new ViewDataDictionary());
+                }
+                return _viewData;
+            }
+            set {
+                SetViewData(value);
             }
         }
 
@@ -53,22 +65,13 @@
             private set;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2109:ReviewVisibleEventHandlers")]
+        [SuppressMessage("Microsoft.Security", "CA2109:ReviewVisibleEventHandlers")]
         protected override void OnPreInit(EventArgs e) {
             base.OnPreInit(e);
 
             if (!String.IsNullOrEmpty(MasterLocation)) {
                 MasterPageFile = MasterLocation;
             }
-        }
-
-        public virtual void RenderView(ViewContext viewContext) {
-            ViewContext = viewContext;
-            Ajax = new AjaxHelper(viewContext);
-            Html = new HtmlHelper(viewContext);
-            Url = new UrlHelper(viewContext);
-
-            ProcessRequest(HttpContext.Current);
         }
 
         protected override void Render(HtmlTextWriter writer) {
@@ -81,18 +84,17 @@
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate",
-            Justification = "There is already a ViewData property and it has a slightly different meaning.")]
-        protected internal virtual void SetViewData(object viewData) {
-            _viewData = viewData;
+        public virtual void RenderView(ViewContext viewContext) {
+            ViewContext = viewContext;
+            Ajax = new AjaxHelper(viewContext);
+            Html = new HtmlHelper(viewContext, this);
+            Url = new UrlHelper(viewContext);
+
+            ProcessRequest(HttpContext.Current);
         }
 
-        #region IViewDataContainer Members
-        object IViewDataContainer.ViewData {
-            get {
-                return _viewData;
-            }
+        protected virtual void SetViewData(ViewDataDictionary viewData) {
+            _viewData = viewData;
         }
-        #endregion
     }
 }

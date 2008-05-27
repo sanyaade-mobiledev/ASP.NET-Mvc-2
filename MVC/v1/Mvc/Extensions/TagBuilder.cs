@@ -5,7 +5,7 @@
     using System.Text;
     using System.Web.Routing;
 
-    internal static class TagBuilder {
+    internal static class TagBuilder2 {
         private const string INPUT_TAG_FORMAT = "<input type=\"{0}\" {2} />";
         private const string TAG_FORMAT = "<{0} {1} >{2}</{0}>";
         private const string NON_OPEN_TAG_FORMAT = "<{0} {1} {2}/>";

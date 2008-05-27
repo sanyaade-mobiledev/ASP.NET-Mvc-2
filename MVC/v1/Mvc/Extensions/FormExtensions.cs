@@ -4,6 +4,7 @@
     using System.Linq.Expressions;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class FormExtensions {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
         public static IDisposable Form<T>(this HtmlHelper helper, Expression<Action<T>> postAction) where T : Controller {

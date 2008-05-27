@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30410</ProductVersion>
+    <ProductVersion>9.0.30428</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{3D3FFD8A-624D-4E9B-954B-E1C105507975}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -40,12 +40,15 @@
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Web.Abstractions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="System.Web.Abstractions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\ReferenceAssemblies\System.Web.Abstractions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Web.Routing, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="System.Web.Extensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web.Routing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\ReferenceAssemblies\System.Web.Routing.dll</HintPath>
       <Private>True</Private>
@@ -55,7 +58,6 @@
   <ItemGroup>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Mvc\ActionFilterAttribute.cs" />
-    <Compile Include="Mvc\ActionRedirectResult.cs" />
     <Compile Include="Mvc\ActionResult.cs" />
     <Compile Include="Mvc\AjaxHelper.cs" />
     <Compile Include="Mvc\BuildManagerWrapper.cs" />
@@ -65,6 +67,14 @@
     <Compile Include="Mvc\ControllerContext.cs" />
     <Compile Include="Mvc\ControllerTypeCache.cs" />
     <Compile Include="Mvc\ActionExecutedContext.cs" />
+    <Compile Include="Mvc\ContentResult.cs" />
+    <Compile Include="Mvc\JsonResult.cs" />
+    <Compile Include="Mvc\NameValueCollectionExtensions.cs" />
+    <Compile Include="Mvc\HtmlHelper.Hidden.cs" />
+    <Compile Include="Mvc\HtmlHelper.Password.cs" />
+    <Compile Include="Mvc\HtmlHelper.TextBox.cs" />
+    <Compile Include="Mvc\ViewDataDictionary`1.cs" />
+    <Compile Include="Mvc\HtmlHelper.Select.cs" />
     <Compile Include="Mvc\EmptyResult.cs" />
     <Compile Include="Mvc\Extensions\BindingHelperExtensions.cs" />
     <Compile Include="Mvc\Extensions\ButtonBuilder.cs" />
@@ -88,16 +98,16 @@
     <Compile Include="Mvc\Extensions\PopulateTypeException.cs" />
     <Compile Include="Mvc\Extensions\RadioBuilder.cs" />
     <Compile Include="Mvc\Extensions\RadioExtensions.cs" />
-    <Compile Include="Mvc\Extensions\SelectBuilder.cs" />
-    <Compile Include="Mvc\Extensions\SelectExtensions.cs" />
     <Compile Include="Mvc\Extensions\SimpleForm.cs" />
     <Compile Include="Mvc\Extensions\TagBuilder.cs" />
     <Compile Include="Mvc\Extensions\TextInputBuilder.cs" />
     <Compile Include="Mvc\Extensions\TextInputExtensions.cs" />
     <Compile Include="Mvc\Extensions\UserControlExtensions.cs" />
     <Compile Include="Mvc\Extensions\ViewExtensions.cs" />
-    <Compile Include="Mvc\HttpRedirectResult.cs" />
-    <Compile Include="Mvc\RenderViewResult.cs" />
+    <Compile Include="Mvc\ListItem.cs" />
+    <Compile Include="Mvc\MultiSelectList.cs" />
+    <Compile Include="Mvc\RedirectResult.cs" />
+    <Compile Include="Mvc\RedirectToRouteResult.cs" />
     <Compile Include="Mvc\ResultExecutingContext.cs" />
     <Compile Include="Mvc\ResultExecutedContext.cs" />
     <Compile Include="Mvc\ActionExecutingContext.cs" />
@@ -114,10 +124,13 @@
     <Compile Include="Mvc\MvcRouteHandler.cs" />
     <Compile Include="Mvc\NonActionAttribute.cs" />
     <Compile Include="Mvc\RouteCollectionExtensions.cs" />
+    <Compile Include="Mvc\SelectList.cs" />
+    <Compile Include="Mvc\TagBuilder.cs" />
     <Compile Include="Mvc\TempDataDictionary.cs" />
+    <Compile Include="Mvc\TypeHelpers.cs" />
     <Compile Include="Mvc\UrlHelper.cs" />
     <Compile Include="Mvc\ViewContext.cs" />
-    <Compile Include="Mvc\ViewData.cs" />
+    <Compile Include="Mvc\ViewDataDictionary.cs" />
     <Compile Include="Mvc\ViewLocator.cs" />
     <Compile Include="Mvc\ViewMasterPage.cs">
       <SubType>ASPXCodeBehind</SubType>
@@ -131,6 +144,7 @@
     <Compile Include="Mvc\ViewPage`1.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
+    <Compile Include="Mvc\ViewResult.cs" />
     <Compile Include="Mvc\ViewUserControl.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>

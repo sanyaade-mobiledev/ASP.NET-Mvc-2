@@ -6,6 +6,8 @@
     using System.Web;
     using System.Web.Compilation;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ComponentController {
         public ComponentController() {
         }
@@ -50,10 +52,10 @@
 
             //set the Url and Html
             pageInstance.Url = new UrlHelper(Context);
-            pageInstance.Html = new HtmlHelper(Context);
+            pageInstance.Html = new HtmlHelper(Context, pageInstance);
 
             //set the ViewData
-            pageInstance.SetViewData(viewData);
+            pageInstance.ViewData.Model = viewData;
 
             //render
             StringBuilder sb = new StringBuilder();

@@ -16,7 +16,7 @@ namespace System.Web.Mvc.Test {
                 new Mock<IController>().Object,
                 "view",
                 "master",
-                null,
+                new ViewDataDictionary(),
                 new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
             UrlHelper urlHelper = new UrlHelper(viewContext);
 
@@ -43,7 +43,7 @@ namespace System.Web.Mvc.Test {
             string url = urlHelper.Action("newaction");
 
             // Verify
-            Assert.AreEqual<string>("/app/home/newaction", url);
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home/newaction", url);
         }
 
         [TestMethod]
@@ -55,7 +55,7 @@ namespace System.Web.Mvc.Test {
             string url = urlHelper.Action("newaction", "home2");
 
             // Verify
-            Assert.AreEqual<string>("/app/home2/newaction", url);
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction", url);
         }
 
         [TestMethod]
@@ -67,7 +67,7 @@ namespace System.Web.Mvc.Test {
             string url = urlHelper.Action("newaction", "home2", new RouteValueDictionary(new { id = "someid" }));
 
             // Verify
-            Assert.AreEqual<string>("/app/home2/newaction/someid", url);
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
         }
 
         [TestMethod]
@@ -79,7 +79,7 @@ namespace System.Web.Mvc.Test {
             string url = urlHelper.Action("newaction", "home2", new { id = "someid" });
 
             // Verify
-            Assert.AreEqual<string>("/app/home2/newaction/someid", url);
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace System.Web.Mvc.Test {
             string url = urlHelper.Action("newaction", new RouteValueDictionary(new { Controller = "home2", id = "someid" }));
 
             // Verify
-            Assert.AreEqual<string>("/app/home2/newaction/someid", url);
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
         }
 
         [TestMethod]
@@ -103,7 +103,7 @@ namespace System.Web.Mvc.Test {
             string url = urlHelper.Action("newaction", new { Controller = "home2", id = "someid" });
 
             // Verify
-            Assert.AreEqual<string>("/app/home2/newaction/someid", url);
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
         }
 
         [TestMethod]
@@ -236,7 +236,7 @@ namespace System.Web.Mvc.Test {
             string url = urlHelper.RouteUrl(new RouteValueDictionary(new { Action = "newaction", Controller = "home2", id = "someid" }));
 
             // Verify
-            Assert.AreEqual<string>("/app/home2/newaction/someid", url);
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
         }
 
         [TestMethod]
@@ -248,7 +248,7 @@ namespace System.Web.Mvc.Test {
             string url = urlHelper.RouteUrl(new { Action = "newaction", Controller = "home2", id = "someid" });
 
             // Verify
-            Assert.AreEqual<string>("/app/home2/newaction/someid", url);
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
         }
 
         [TestMethod]
@@ -260,7 +260,7 @@ namespace System.Web.Mvc.Test {
             string url = urlHelper.RouteUrl("namedroute");
 
             // Verify
-            Assert.AreEqual<string>("/app/named/home/oldaction", url);
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/named/home/oldaction", url);
         }
 
         [TestMethod]
@@ -272,7 +272,7 @@ namespace System.Web.Mvc.Test {
             string url = urlHelper.RouteUrl("namedroute", new RouteValueDictionary(new { Action = "newaction", Controller = "home2", id = "someid" }));
 
             // Verify
-            Assert.AreEqual<string>("/app/named/home2/newaction/someid", url);
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/named/home2/newaction/someid", url);
         }
 
         [TestMethod]
@@ -284,7 +284,7 @@ namespace System.Web.Mvc.Test {
             string url = urlHelper.RouteUrl("namedroute", new { Action = "newaction", Controller = "home2", id = "someid" });
 
             // Verify
-            Assert.AreEqual<string>("/app/named/home2/newaction/someid", url);
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/named/home2/newaction/someid", url);
         }
 
         [TestMethod]
@@ -328,34 +328,15 @@ namespace System.Web.Mvc.Test {
                 "The provided object or dictionary already contains a definition for 'controller'.\r\nParameter name: controllerName");
         }
 
-        private static HttpContextBase GetHttpContext(string appPath, string requestPath, string httpMethod) {
-            Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
-            Mock<HttpRequestBase> mockRequest = new Mock<HttpRequestBase>();
-            if (!String.IsNullOrEmpty(appPath)) {
-                mockRequest.Expect(o => o.ApplicationPath).Returns(appPath);
-            }
-            if (!String.IsNullOrEmpty(requestPath)) {
-                mockRequest.Expect(o => o.AppRelativeCurrentExecutionFilePath).Returns( requestPath);
-            }
-            mockRequest.Expect(o => o.PathInfo).Returns(String.Empty);
-            if (!String.IsNullOrEmpty(httpMethod)) {
-                mockRequest.Expect(o => o.HttpMethod).Returns(httpMethod);
-            }
-            mockContext.Expect(o => o.Request).Returns(mockRequest.Object);
-            mockContext.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
-
-            return mockContext.Object;
-        }
-
         private static UrlHelper GetUrlHelper() {
-            HttpContextBase httpcontext = GetHttpContext("/app/", null, null);
+            HttpContextBase httpcontext = HtmlHelperTest.GetHttpContext("/app/", null, null);
             RouteCollection rt = new RouteCollection();
             rt.Add(new Route("{controller}/{action}/{id}", null) { Defaults = new RouteValueDictionary(new { id = "defaultid" }) });
             rt.Add("namedroute", new Route("named/{controller}/{action}/{id}", null) { Defaults = new RouteValueDictionary(new { id = "defaultid" }) });
             RouteData rd = new RouteData();
             rd.Values.Add("controller", "home");
             rd.Values.Add("action", "oldaction");
-            ViewContext context = new ViewContext(httpcontext, rd, new Mock<IController>().Object, "view", "master", null, new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
+            ViewContext context = new ViewContext(httpcontext, rd, new Mock<IController>().Object, "view", "master", new ViewDataDictionary(), new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
             UrlHelper urlHelper = new UrlHelper(context);
             urlHelper.RouteCollection = rt;
             return urlHelper;

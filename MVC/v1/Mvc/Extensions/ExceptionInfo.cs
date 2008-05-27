@@ -1,4 +1,6 @@
 ﻿namespace System.Web.Mvc {
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ExceptionInfo {
         public string PropertyName {
             get;

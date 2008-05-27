@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ImageBuilder {
         /// <summary>
         /// Creates an HTML IMG tag
@@ -20,7 +21,7 @@
                 alt = System.IO.Path.GetFileName(sourceUrl);
 
             htmlAttributes.Add("alt", alt);
-            string imageTag = TagBuilder.CreateTag(HtmlTagType.Image, "", htmlAttributes);
+            string imageTag = TagBuilder2.CreateTag(HtmlTagType.Image, "", htmlAttributes);
             return imageTag;
 
         }

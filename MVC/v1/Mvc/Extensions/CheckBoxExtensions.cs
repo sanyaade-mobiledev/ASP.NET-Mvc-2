@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class CheckBoxExtensions {
         /// <summary>
         /// Creates a checkbox input for your form

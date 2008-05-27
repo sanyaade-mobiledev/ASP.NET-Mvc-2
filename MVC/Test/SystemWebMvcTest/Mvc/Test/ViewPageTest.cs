@@ -5,39 +5,48 @@
 
     [TestClass]
     public class ViewPageTest {
-        [TestMethod]
-        public void SetViewData() {
-            ViewPage vp = new ViewPage();
-            vp.SetViewData(new { a = "123", b = "456" });
 
-            Assert.AreEqual("123", vp.ViewData["a"]);
-            Assert.AreEqual("456", vp.ViewData["b"]);
+        [TestMethod]
+        public void SetViewItemOnBaseClassPropagatesToDerivedClass() {
+            // Setup
+            ViewPage<object> vpInt = new ViewPage<object>();
+            ViewPage vp = vpInt;
+            object o = new object();
+
+            // Execute
+            vp.ViewData.Model = o;
+
+            // Verify
+            Assert.AreEqual(o, vpInt.ViewData.Model);
+            Assert.AreEqual(o, vp.ViewData.Model);
         }
 
         [TestMethod]
-        public void SetViewDataGeneric() {
-            MockViewPageDummyViewData vp = new MockViewPageDummyViewData();
-            vp.SetViewData(new DummyViewData { MyInt = 123, MyString = "abc" });
+        public void SetViewItemOnDerivedClassPropagatesToBaseClass() {
+            // Setup
+            ViewPage<object> vpInt = new ViewPage<object>();
+            ViewPage vp = vpInt;
+            object o = new object();
 
-            Assert.AreEqual(123, vp.ViewData.MyInt);
-            Assert.AreEqual("abc", vp.ViewData.MyString);
+            // Execute
+            vpInt.ViewData.Model = o;
+
+            // Verify
+            Assert.AreEqual(o, vpInt.ViewData.Model);
+            Assert.AreEqual(o, vp.ViewData.Model);
         }
 
         [TestMethod]
-        public void SetNullViewDataDoesNothing() {
-            MockViewPageDummyViewData vp = new MockViewPageDummyViewData();
-            vp.SetViewData(null);
-        }
+        public void SetViewItemToWrongTypeThrows() {
+            // Setup
+            ViewPage vp = new ViewPage<string>();
 
-        [TestMethod]
-        public void SetViewDataWrongGenericTypeThrows() {
-            MockViewPageBogusViewData vp = new MockViewPageBogusViewData();
-
-            ExceptionHelper.ExpectArgumentException(
+            // Execute & verify
+            ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    vp.SetViewData(new DummyViewData { MyInt = 123, MyString = "abc" });
+                    vp.ViewData.Model = 50;
                 },
-                "The view data passed into the page is of type 'System.Web.Mvc.Test.ViewPageTest+DummyViewData' but this page requires view data of type 'System.Int32'.\r\nParameter name: viewData");
+                "The model item passed into the dictionary is of type 'System.Int32' but this dictionary requires a model item of type 'System.String'.");
         }
 
         private static void WriterSetCorrectlyInternal(bool throwException) {
@@ -73,17 +82,6 @@
         [TestMethod]
         public void WriterSetCorrectlyThrowException() {
             WriterSetCorrectlyInternal(true /* throwException */);
-        }
-
-        private sealed class MockViewPageBogusViewData : ViewPage<int> {
-        }
-
-        private sealed class MockViewPageDummyViewData : ViewPage<DummyViewData> {
-        }
-
-        private sealed class DummyViewData {
-            public int MyInt { get; set; }
-            public string MyString { get; set; }
         }
 
         private sealed class MockViewPage : ViewPage {

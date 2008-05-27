@@ -36,13 +36,13 @@
             }
         }
 
-        public ViewData ViewData {
+        public ViewDataDictionary ViewData {
             get {
                 return ViewPage.ViewData;
             }
         }
 
-        private ViewPage ViewPage {
+        internal ViewPage ViewPage {
             get {
                 ViewPage viewPage = Page as ViewPage;
                 if (viewPage == null) {

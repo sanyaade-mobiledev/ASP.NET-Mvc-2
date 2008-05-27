@@ -6,6 +6,7 @@
     using System.Web;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class LinkExtensions {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1055:UriReturnValuesShouldNotBeStrings", Justification = "This is a UI method and is required to use strings as Uri"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
         public static string BuildUrlFromExpression<T>(this HtmlHelper helper, Expression<Action<T>> action) where T : Controller {
@@ -214,7 +215,7 @@
 
             htmlAttributes.Add("href", mailToUrl);
             htmlAttributes.Add("value", linkText);
-            string mailTag = TagBuilder.CreateTag(HtmlTagType.Mailto, "", new RouteValueDictionary(htmlAttributes));
+            string mailTag = TagBuilder2.CreateTag(HtmlTagType.Mailto, "", new RouteValueDictionary(htmlAttributes));
 
             return mailTag;
         }

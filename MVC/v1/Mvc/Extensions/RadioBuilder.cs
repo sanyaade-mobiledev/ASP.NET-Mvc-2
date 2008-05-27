@@ -5,6 +5,7 @@
     using System.Web;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class RadioBuilder {
         /// <summary>
         /// Creates an HTML Radio button list based on the passed-in datasource.
@@ -66,7 +67,7 @@
         /// <param name="htmlAttributes">Dictionary of settings</param>
         public static string RadioButton(string htmlName, RouteValueDictionary htmlAttributes) {
             htmlAttributes = htmlAttributes ?? new RouteValueDictionary();
-            string radioTag = TagBuilder.CreateInputTag(HtmlInputType.Radio, htmlName, htmlAttributes);
+            string radioTag = TagBuilder2.CreateInputTag(HtmlInputType.Radio, htmlName, htmlAttributes);
             return radioTag;
         }
     }

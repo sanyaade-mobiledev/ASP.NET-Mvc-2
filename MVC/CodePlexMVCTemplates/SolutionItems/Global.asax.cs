@@ -11,14 +11,12 @@ namespace $safeprojectname$
     {
         public static void RegisterRoutes(RouteCollection routes)
         {
-            // Note: Change the URL to "{controller}.mvc/{action}/{id}" to enable
-            //       automatic support on IIS6 and IIS7 classic mode
-            
+            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+
             routes.MapRoute(
                 "Default",                                              // Route name
                 "{controller}/{action}/{id}",                           // URL with parameters
-                new { controller = "Home", action = "Index", id = "" }, // Parameter defaults
-                new { controller = @"[^\.]*" }                          // Parameter constraints
+                new { controller = "Home", action = "Index", id = "" }  // Parameter defaults
             );
 
         }

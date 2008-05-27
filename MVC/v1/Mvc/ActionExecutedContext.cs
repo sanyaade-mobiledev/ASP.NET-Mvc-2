@@ -7,6 +7,9 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ActionExecutedContext : ControllerContext {
 
+        private static readonly EmptyResult _emptyResult = new EmptyResult();
+        private ActionResult _result;
+
         public ActionExecutedContext(ControllerContext controllerContext, MethodInfo actionMethod, Exception exception)
             : base(controllerContext) {
 
@@ -34,9 +37,12 @@
         }
 
         public ActionResult Result {
-            get;
-            set;
+            get {
+                return _result ?? _emptyResult;
+            }
+            set {
+                _result = value;
+            }
         }
-
     }
 }

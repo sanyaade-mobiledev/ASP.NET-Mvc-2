@@ -1,16 +1,16 @@
 ﻿Public Class HomeController
     Inherits System.Web.Mvc.Controller
 
-    Function Index() As ActionResult
+    Function Index()
         ViewData("Title") = "Home Page"
         ViewData("Message") = "Welcome to ASP.NET MVC!"
 
-        Return RenderView()
+        Return View()
     End Function
 
-    Function About() As ActionResult
+    Function About()
         ViewData("Title") = "About Page"
 
-        Return RenderView()
+        Return View()
     End Function
 End Class

@@ -4,6 +4,7 @@
     using System.Reflection;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class LinkBuilder {
         /// <summary>
         /// Builds a URL based on the Expression passed in

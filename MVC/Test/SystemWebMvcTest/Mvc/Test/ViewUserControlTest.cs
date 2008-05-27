@@ -7,39 +7,67 @@
 
     [TestClass]
     public class ViewUserControlTest {
-        [TestMethod]
-        public void SetViewData() {
-            ViewUserControl vp = new ViewUserControl();
-            vp.SetViewData(new { a = "123", b = "456" });
 
-            Assert.AreEqual("123", vp.ViewData["a"]);
-            Assert.AreEqual("456", vp.ViewData["b"]);
+        [TestMethod]
+        public void SetViewItem() {
+            // Setup
+            ViewUserControl vuc = new ViewUserControl();
+            object viewItem = new object();
+            vuc.ViewData = new ViewDataDictionary(viewItem);
+
+            // Execute
+            vuc.ViewData.Model = viewItem;
+            object newViewItem = vuc.ViewData.Model;
+
+            // Verify
+            Assert.AreSame(viewItem, newViewItem);
         }
 
         [TestMethod]
-        public void SetViewDataGeneric() {
-            MockViewUserControlDummyViewData vp = new MockViewUserControlDummyViewData();
-            vp.SetViewData(new MyViewData { IntProp = 123, StringProp = "abc" });
+        public void SetViewItemOnBaseClassPropagatesToDerivedClass() {
+            // Setup
+            ViewUserControl<object> vucInt = new ViewUserControl<object>();
+            ViewUserControl vuc = vucInt;
+            vuc.ViewData = new ViewDataDictionary();
+            object o = new object();
 
-            Assert.AreEqual(123, vp.ViewData.IntProp);
-            Assert.AreEqual("abc", vp.ViewData.StringProp);
+            // Execute
+            vuc.ViewData.Model = o;
+
+            // Verify
+            Assert.AreEqual(o, vucInt.ViewData.Model);
+            Assert.AreEqual(o, vuc.ViewData.Model);
         }
 
         [TestMethod]
-        public void SetNullViewDataDoesNothing() {
-            MockViewUserControlDummyViewData vp = new MockViewUserControlDummyViewData();
-            vp.SetViewData(null);
+        public void SetViewItemOnDerivedClassPropagatesToBaseClass() {
+            // Setup
+            ViewUserControl<object> vucInt = new ViewUserControl<object>();
+            ViewUserControl vuc = vucInt;
+            vucInt.ViewData = new ViewDataDictionary<object>();
+            object o = new object();
+
+            // Execute
+            vucInt.ViewData.Model = o;
+
+            // Verify
+            Assert.AreEqual(o, vucInt.ViewData.Model);
+            Assert.AreEqual(o, vuc.ViewData.Model);
         }
 
         [TestMethod]
-        public void SetViewDataWrongGenericTypeThrows() {
-            MockViewUserControlBogusViewData vp = new MockViewUserControlBogusViewData();
+        public void SetViewItemToWrongTypeThrows() {
+            // Setup
+            ViewUserControl<string> vucString = new ViewUserControl<string>();
+            vucString.ViewData = new ViewDataDictionary<string>();
+            ViewUserControl vuc = vucString;
 
-            ExceptionHelper.ExpectArgumentException(
+            // Execute & verify
+            ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    vp.SetViewData(new DummyViewData { MyInt = 123, MyString = "abc" });
+                    vuc.ViewData.Model = 50;
                 },
-                "The view data passed into the page is of type 'System.Web.Mvc.Test.ViewUserControlTest+DummyViewData' but this page requires view data of type 'System.Int32'.\r\nParameter name: viewData");
+                "The model item passed into the dictionary is of type 'System.Int32' but this dictionary requires a model item of type 'System.String'.");
         }
 
         [TestMethod]
@@ -76,7 +104,7 @@
             p.Controls.Add(new Control());
             ViewUserControl vuc = new ViewUserControl();
             p.Controls[0].Controls.Add(vuc);
-            p.SetViewData(new { FirstName = "Joe", LastName = "Schmoe" });
+            p.ViewData = new ViewDataDictionary { { "FirstName", "Joe" }, { "LastName", "Schmoe" } };
 
             // Execute
             object firstName = vuc.ViewData["FirstName"];
@@ -92,16 +120,10 @@
             // Setup
             ViewPage p = new ViewPage();
             p.Controls.Add(new Control());
-            ViewUserControl vuc = new ViewUserControl() { ViewDataKey = "SubData" };
+            ViewUserControl vuc = new ViewUserControl() { SubDataKey = "SubData" };
             p.Controls[0].Controls.Add(vuc);
-            p.SetViewData(new {
-                FirstName = "Joe",
-                LastName = "Schmoe",
-                SubData = new {
-                    FirstName = "SubJoe",
-                    LastName = "SubSchmoe"
-                }
-            });
+            p.ViewData = new ViewDataDictionary { { "FirstName", "Joe" }, { "LastName", "Schmoe" } };
+            p.ViewData.SubDataItems["SubData"] = new ViewDataDictionary { { "FirstName", "SubJoe" }, { "LastName", "SubSchmoe" } };
 
             // Execute
             object firstName = vuc.ViewData["FirstName"];
@@ -123,7 +145,7 @@
             ViewUserControl vuc = new ViewUserControl();
             outerVuc.Controls[0].Controls.Add(vuc);
 
-            p.SetViewData(new { FirstName = "Joe", LastName = "Schmoe" });
+            p.ViewData = new ViewDataDictionary { { "FirstName", "Joe" }, { "LastName", "Schmoe" } };
 
             // Execute
             object firstName = vuc.ViewData["FirstName"];
@@ -142,17 +164,11 @@
             ViewUserControl outerVuc = new ViewUserControl();
             p.Controls[0].Controls.Add(outerVuc);
             outerVuc.Controls.Add(new Control());
-            ViewUserControl vuc = new ViewUserControl() { ViewDataKey = "SubData" };
+            ViewUserControl vuc = new ViewUserControl() { SubDataKey = "SubData" };
             outerVuc.Controls[0].Controls.Add(vuc);
 
-            p.SetViewData(new {
-                FirstName = "Joe",
-                LastName = "Schmoe",
-                SubData = new {
-                    FirstName = "SubJoe",
-                    LastName = "SubSchmoe"
-                }
-            });
+            p.ViewData = new ViewDataDictionary { { "FirstName", "Joe" }, { "LastName", "Schmoe" } };
+            p.ViewData.SubDataItems["SubData"] = new ViewDataDictionary { { "FirstName", "SubJoe" }, { "LastName", "SubSchmoe" } };
 
             // Execute
             object firstName = vuc.ViewData["FirstName"];
@@ -168,20 +184,14 @@
             // Setup
             ViewPage p = new ViewPage();
             p.Controls.Add(new Control());
-            ViewUserControl outerVuc = new ViewUserControl() { ViewDataKey = "SubData" };
+            ViewUserControl outerVuc = new ViewUserControl() { SubDataKey = "SubData" };
             p.Controls[0].Controls.Add(outerVuc);
             outerVuc.Controls.Add(new Control());
             ViewUserControl vuc = new ViewUserControl();
             outerVuc.Controls[0].Controls.Add(vuc);
 
-            p.SetViewData(new {
-                FirstName = "Joe",
-                LastName = "Schmoe",
-                SubData = new {
-                    FirstName = "SubJoe",
-                    LastName = "SubSchmoe"
-                }
-            });
+            p.ViewData = new ViewDataDictionary { { "FirstName", "Joe" }, { "LastName", "Schmoe" } };
+            p.ViewData.SubDataItems["SubData"] = new ViewDataDictionary { { "FirstName", "SubJoe" }, { "LastName", "SubSchmoe" } };
 
             // Execute
             object firstName = vuc.ViewData["FirstName"];
@@ -198,35 +208,38 @@
         }
 
         [TestMethod]
-        public void GetWrongGenericViewDataTypeThrows() {
+        public void GetWrongGenericViewItemTypeThrows() {
             // Setup
             ViewPage p = new ViewPage();
-            p.Controls.Add(new Control());
-            MockViewUserControl<MyViewData> vuc = new MockViewUserControl<MyViewData>();
-            p.Controls[0].Controls.Add(vuc);
-            p.SetViewData(new { FirstName = "Joe", LastName = "Schmoe" });
+            p.ViewData = new ViewDataDictionary();
+            p.ViewData["Foo"] = new DummyViewData { MyInt = 123, MyString = "Whatever" };
+
+            MockViewUserControl<MyViewData> vuc = new MockViewUserControl<MyViewData>() { ViewDataKey = "FOO" };
             vuc.AppRelativeVirtualPath = "~/Foo.aspx";
+            p.Controls.Add(new Control());
+            p.Controls[0].Controls.Add(vuc);
 
             // Execute
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    var foo = vuc.ViewData.IntProp;
+                    var foo = vuc.ViewData.Model.IntProp;
                 },
-                "The view data for ViewUserControl '~/Foo.aspx' could not be found or is not of the type 'System.Web.Mvc.Test.ViewUserControlTest+MyViewData'.");
+                @"The model item passed into the dictionary is of type 'System.Web.Mvc.Test.ViewUserControlTest+DummyViewData' but this dictionary requires a model item of type 'System.Web.Mvc.Test.ViewUserControlTest+MyViewData'.");
         }
 
         [TestMethod]
-        public void GetGenericViewDataType() {
+        public void GetGenericViewItemType() {
             // Setup
             ViewPage p = new ViewPage();
             p.Controls.Add(new Control());
-            MockViewUserControl<MyViewData> vuc = new MockViewUserControl<MyViewData>();
+            MockViewUserControl<MyViewData> vuc = new MockViewUserControl<MyViewData>() { ViewDataKey = "FOO" };
             p.Controls[0].Controls.Add(vuc);
-            p.SetViewData(new MyViewData { IntProp = 123, StringProp = "miao" });
+            p.ViewData = new ViewDataDictionary();
+            p.ViewData["Foo"] = new MyViewData { IntProp = 123, StringProp = "miao" };
 
             // Execute
-            int intProp = vuc.ViewData.IntProp;
-            string stringProp = vuc.ViewData.StringProp;
+            int intProp = vuc.ViewData.Model.IntProp;
+            string stringProp = vuc.ViewData.Model.StringProp;
 
             // Verify
             Assert.AreEqual<int>(123, intProp);
@@ -244,13 +257,16 @@
                                                         new Mock<IController>().Object,
                                                         "view",
                                                         null,
-                                                        null,
+                                                        new ViewDataDictionary(),
                                                         new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
-            HtmlHelper htmlHelper = new HtmlHelper(vc);
-            containerPage.Html = htmlHelper;
+            vuc.ViewContext = vc;
+
+            // Execute
+            HtmlHelper htmlHelper = vuc.Html;
 
             // Verify
-            Assert.AreEqual(vuc.Html, htmlHelper);
+            Assert.AreEqual(vc, htmlHelper.ViewContext);
+            Assert.AreEqual(vuc, htmlHelper.ViewDataContainer);
         }
 
         [TestMethod]
@@ -265,7 +281,7 @@
                  delegate {
                      HtmlHelper foo = vuc.Html;
                  },
-                 "A ViewUserControl can only be used inside pages that derive from ViewPage or ViewPage<TViewData>.");
+                 "A ViewUserControl can only be used inside pages that derive from ViewPage or ViewPage<TViewItem>.");
         }
 
         [TestMethod]
@@ -279,7 +295,7 @@
                                                         new Mock<IController>().Object,
                                                         "view",
                                                         null,
-                                                        null,
+                                                        new ViewDataDictionary(),
                                                         new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
             UrlHelper urlHelper = new UrlHelper(vc);
             containerPage.Url = urlHelper;
@@ -300,7 +316,7 @@
                  delegate {
                      UrlHelper foo = vuc.Url;
                  },
-                 "A ViewUserControl can only be used inside pages that derive from ViewPage or ViewPage<TViewData>.");
+                 "A ViewUserControl can only be used inside pages that derive from ViewPage or ViewPage<TViewItem>.");
         }
 
         [TestMethod]
@@ -334,15 +350,12 @@
                  delegate {
                      HtmlTextWriter writer = vuc.Writer;
                  },
-                 "A ViewUserControl can only be used inside pages that derive from ViewPage or ViewPage<TViewData>.");
+                 "A ViewUserControl can only be used inside pages that derive from ViewPage or ViewPage<TViewItem>.");
         }
 
         private sealed class DummyViewData {
             public int MyInt { get; set; }
             public string MyString { get; set; }
-        }
-
-        private sealed class MockViewPage : ViewPage {
         }
 
         private sealed class MockViewUserControlContainerPage : ViewPage {
@@ -365,13 +378,7 @@
         private sealed class MockViewUserControl : ViewUserControl {
         }
 
-        private sealed class MockViewUserControlBogusViewData : ViewUserControl<int> {
-        }
-
-        private sealed class MockViewUserControlDummyViewData : ViewUserControl<MyViewData> {
-        }
-
-        private sealed class MockViewUserControl<TViewData> : ViewUserControl<TViewData> {
+        private sealed class MockViewUserControl<TViewData> : ViewUserControl<TViewData> where TViewData : class {
         }
 
         private sealed class MyViewData {

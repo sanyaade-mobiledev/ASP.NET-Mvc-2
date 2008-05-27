@@ -4,6 +4,7 @@
     using System.Linq.Expressions;
     using System.Reflection;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ViewExtensions {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
         public static string RenderComponent<TController>(this HtmlHelper helper, Expression<Action<TController>> action) where TController : ComponentController, new() {

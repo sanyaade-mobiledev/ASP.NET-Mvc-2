@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Reflection;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class MvcControlDataBinder {
 
         /// <summary>

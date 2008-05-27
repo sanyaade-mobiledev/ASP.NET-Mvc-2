@@ -1,15 +1,28 @@
 ﻿namespace System.Web.Mvc {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
+    using System.Linq;
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public class HtmlHelper {
-        private const string _anchorTag = @"<a href=""{0}"">{1}</a>";
+    public partial class HtmlHelper {
+
         private RouteCollection _routeCollection;
+
+        public HtmlHelper(ViewContext viewContext, IViewDataContainer viewDataContainer) {
+            if (viewContext == null) {
+                throw new ArgumentNullException("viewContext");
+            }
+            if (viewDataContainer == null) {
+                throw new ArgumentNullException("viewDataContainer");
+            }
+            ViewContext = viewContext;
+            ViewDataContainer = viewDataContainer;
+        }
 
         internal RouteCollection RouteCollection {
             get {
@@ -28,11 +41,15 @@
             private set;
         }
 
-        public HtmlHelper(ViewContext viewContext) {
-            if (viewContext == null) {
-                throw new ArgumentNullException("viewContext");
+        protected ViewDataDictionary ViewData {
+            get {
+                return ViewDataContainer.ViewData;
             }
-            ViewContext = viewContext;
+        }
+
+        public IViewDataContainer ViewDataContainer {
+            get;
+            private set;
         }
 
         public string ActionLink(string linkText, string actionName) {
@@ -112,17 +129,35 @@
 
         [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic",
             Justification = "For consistency, all helpers are instance methods.")]
+        public string AttributeEncode(string html) {
+            return (!String.IsNullOrEmpty(html)) ? HttpUtility.HtmlAttributeEncode(html) : String.Empty;
+        }
+
+        public string AttributeEncode(object value) {
+            return AttributeEncode(Convert.ToString(value, CultureInfo.InvariantCulture));
+        }
+
+        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic",
+            Justification = "For consistency, all helpers are instance methods.")]
         public string Encode(string html) {
-            return HttpUtility.HtmlEncode(html);
+            return (!String.IsNullOrEmpty(html)) ? HttpUtility.HtmlEncode(html) : String.Empty;
         }
 
         public string Encode(object value) {
-            return (value != null) ? Encode(value.ToString()) : null;
+            return Encode(Convert.ToString(value, CultureInfo.InvariantCulture));
+        }
+
+        private string EvalString(string key) {
+            return Convert.ToString(ViewData[key], CultureInfo.InvariantCulture);
         }
 
         private string GenerateLink(string linkText, string routeName, string actionName, string controllerName, RouteValueDictionary valuesDictionary) {
             string url = UrlHelper.GenerateUrl(routeName, actionName, controllerName, valuesDictionary, RouteCollection, ViewContext);
-            return String.Format(CultureInfo.InvariantCulture, _anchorTag, HttpUtility.HtmlAttributeEncode(url), HttpUtility.HtmlEncode(linkText));
+            TagBuilder tag = new TagBuilder("a") {
+                Attributes = new Dictionary<string, string> { { "href", url } },
+                InnerHtml = Encode(linkText)
+            };
+            return tag.ToString();
         }
 
         public string RouteLink(string linkText, object values) {
@@ -173,6 +208,48 @@
                 throw new ArgumentNullException("valuesDictionary");
             }
             return GenerateLink(linkText, routeName, null /* actionName */, null /* controllerName */, new RouteValueDictionary(valuesDictionary));
+        }
+
+        private string InputHelper(string name, bool useViewData, string defaultValue, string inputType, IDictionary<string, object> htmlAttributes) {
+            if (String.IsNullOrEmpty(name)) {
+                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "name");
+            }
+
+            IDictionary<string, string> attributes = ToStringDictionary(htmlAttributes);
+            TryAddValue(attributes, "type", inputType);
+            TryAddValue(attributes, "name", name);
+            TryAddValue(attributes, "id", name);
+            TryAddValue(attributes, "value", (useViewData) ? EvalString(name) : defaultValue);
+
+            TagBuilder builder = new TagBuilder("input") {
+                Attributes = attributes
+            };
+            return builder.ToString();
+        }
+
+        private static IDictionary<string, object> ToDictionary(object values) {
+            return new RouteValueDictionary(values);
+        }
+
+        internal static Dictionary<string, string> ToStringDictionary<TKey, TValue>(IDictionary<TKey, TValue> dictionary) {
+            if (dictionary == null) {
+                return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            return dictionary.ToDictionary(
+                entry => Convert.ToString(entry.Key, CultureInfo.InvariantCulture),
+                entry => Convert.ToString(entry.Value, CultureInfo.InvariantCulture),
+                StringComparer.OrdinalIgnoreCase);
+        }
+
+        internal static bool TryAddValue<TKey, TValue>(IDictionary<TKey, TValue> dict, TKey key, TValue value) {
+            if (dict.ContainsKey(key)) {
+                return false;
+            }
+            else {
+                dict[key] = value;
+                return true;
+            }
         }
     }
 }

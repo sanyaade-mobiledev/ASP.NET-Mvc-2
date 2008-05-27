@@ -4,28 +4,27 @@
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public class ViewPage<TViewData> : ViewPage {
-        private TViewData _viewData;
+    public class ViewPage<TModel> : ViewPage where TModel : class {
 
-        public new TViewData ViewData {
+        private ViewDataDictionary<TModel> _viewData;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public new ViewDataDictionary<TModel> ViewData {
             get {
+                if (_viewData == null) {
+                    SetViewData(new ViewDataDictionary<TModel>());
+                }
                 return _viewData;
+            }
+            set {
+                SetViewData(value);
             }
         }
 
-        protected internal override void SetViewData(object viewData) {
-            if (viewData != null && !(viewData is TViewData)) {
-                throw new ArgumentException(
-                    String.Format(
-                        CultureInfo.CurrentUICulture,
-                        MvcResources.ViewPageTViewData_WrongViewDataType,
-                        viewData.GetType(),
-                        typeof(TViewData)),
-                    "viewData");
-            }
+        protected override void SetViewData(ViewDataDictionary viewData) {
+            _viewData = new ViewDataDictionary<TModel>(viewData);
 
-            _viewData = (TViewData)viewData;
-            base.SetViewData(viewData);
+            base.SetViewData(_viewData);
         }
     }
 }

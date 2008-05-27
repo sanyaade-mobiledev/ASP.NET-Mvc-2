@@ -1,5 +1,6 @@
 ﻿using System.Web.Routing;
 namespace System.Web.Mvc {
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ImageExtensions {
         /// <summary>
         /// A Simple image

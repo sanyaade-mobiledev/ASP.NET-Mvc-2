@@ -252,7 +252,6 @@
   <ItemGroup>
     <Content Include="CodePlexMvcTemplatesVSI.csproj" />
     <Content Include="CodePlexMvcTemplatesVSI.xml" />
-    <Content Include="SolutionItems\AuthoringTests.txt" />
     <Content Include="SolutionItems\Content\Site.css" />
     <Content Include="SolutionItems\Controllers\Controller.cs" />
     <Content Include="SolutionItems\Controllers\Controller.vb" />

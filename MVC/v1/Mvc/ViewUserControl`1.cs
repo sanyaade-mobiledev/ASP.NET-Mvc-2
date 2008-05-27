@@ -1,47 +1,28 @@
 ﻿namespace System.Web.Mvc {
     using System.Globalization;
     using System.Web.Mvc.Resources;
+    using System.ComponentModel;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public class ViewUserControl<TViewData> : ViewUserControl {
-        private TViewData _viewData;
+    public class ViewUserControl<TModel> : ViewUserControl where TModel : class {
+        private ViewDataDictionary<TModel> _viewData;
 
-        public new TViewData ViewData {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public new ViewDataDictionary<TModel> ViewData {
             get {
                 EnsureViewData();
                 return _viewData;
             }
+            set {
+                SetViewData(value);
+            }
         }
-        private void EnsureViewData() {
-            // Get the ViewData for this ViewUserControl, optionally using the specified ViewDataKey
-            if (_viewData != null) {
-                return;
-            }
-            object viewData = ((IViewDataContainer)this).ViewData;
-            if (viewData == null || !(viewData is TViewData)) {
-                throw new InvalidOperationException(
-                    String.Format(
-                        CultureInfo.CurrentUICulture,
-                        MvcResources.ViewUserControl_WrongTViewDataType,
-                        AppRelativeVirtualPath,
-                        typeof(TViewData)));
-            }
-            _viewData = (TViewData)viewData;
-        }
-        protected internal override void SetViewData(object viewData) {
-            if (viewData != null && !(viewData is TViewData)) {
-                throw new ArgumentException(
-                    String.Format(
-                        CultureInfo.CurrentUICulture,
-                        MvcResources.ViewPageTViewData_WrongViewDataType,
-                        viewData.GetType(),
-                        typeof(TViewData)),
-                    "viewData");
-            }
 
-            _viewData = (TViewData)viewData;
-            base.SetViewData(viewData);
+        protected override void SetViewData(ViewDataDictionary viewData) {
+            _viewData = new ViewDataDictionary<TModel>(viewData);
+
+            base.SetViewData(_viewData);
         }
     }
 }

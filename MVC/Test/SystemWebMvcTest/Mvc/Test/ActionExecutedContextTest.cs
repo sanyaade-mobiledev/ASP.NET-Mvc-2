@@ -59,6 +59,41 @@
         }
 
         [TestMethod]
+        public void ResultProperty() {
+            // Setup
+            MethodInfo actionMethod = typeof(object).GetMethod("ToString");
+            Exception exception = new Exception();
+            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, exception);
+            ContentResult result = new ContentResult();
+
+            // Execute
+            ActionResult origVal = context.Result;
+            context.Result = result;
+            ActionResult newVal = context.Result;
+
+            // Verify
+            Assert.IsInstanceOfType(origVal, typeof(EmptyResult));
+            Assert.AreSame(result, newVal);
+        }
+
+        [TestMethod]
+        public void ResultPropertyReturnsSingletonEmptyResult() {
+            // Setup
+            MethodInfo actionMethod = typeof(object).GetMethod("ToString");
+            Exception exception = new Exception();
+            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, null /* exception */);
+
+            // Execute
+            ActionResult origVal = context.Result;
+            context.Result = null;
+            ActionResult newVal = context.Result;
+
+            // Verify
+            Assert.IsInstanceOfType(origVal, typeof(EmptyResult));
+            Assert.AreSame(origVal, newVal);
+        }
+
+        [TestMethod]
         public void SetExceptionHandled() {
             // Setup
             MethodInfo actionMethod = typeof(object).GetMethod("ToString");
@@ -74,24 +109,5 @@
             Assert.IsFalse(origVal);
             Assert.IsTrue(newVal);
         }
-
-        [TestMethod]
-        public void SetResult() {
-            // Setup
-            MethodInfo actionMethod = typeof(object).GetMethod("ToString");
-            Exception exception = new Exception();
-            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, exception);
-            EmptyResult result = new EmptyResult();
-
-            // Execute
-            ActionResult origVal = context.Result;
-            context.Result = result;
-            ActionResult newVal = context.Result;
-
-            // Verify
-            Assert.IsNull(origVal);
-            Assert.AreSame(result, newVal);
-        }
-
     }
 }

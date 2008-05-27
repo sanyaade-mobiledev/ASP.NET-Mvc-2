@@ -5,6 +5,8 @@
     using System.Web;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     /// <summary>
     /// A class representing an HTML form. Access this object using Html.Form()
     /// </summary>
@@ -54,6 +56,7 @@
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         public void Dispose() {
             Dispose(true);
             GC.SuppressFinalize(this);

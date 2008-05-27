@@ -1,5 +1,6 @@
 ﻿namespace System.Web.Mvc {
     using System.ComponentModel;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Web.Mvc.Resources;
     using System.Web.UI;
@@ -7,8 +8,10 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ViewUserControl : UserControl, IViewDataContainer {
+        private HtmlHelper _htmlHelper;
+        private ViewContext _viewContext;
+        private ViewDataDictionary _viewData;
         private string _viewDataKey;
-        private object _viewData;
 
         public AjaxHelper Ajax {
             get {
@@ -18,7 +21,10 @@
 
         public HtmlHelper Html {
             get {
-                return ViewPage.Html;
+                if (_htmlHelper == null) {
+                    _htmlHelper = new HtmlHelper(ViewContext, this);
+                }
+                return _htmlHelper;
             }
         }
 
@@ -34,16 +40,24 @@
             }
         }
 
-        public ViewData ViewData {
+        public ViewContext ViewContext {
             get {
-                EnsureViewData();
-                return new ViewData(_viewData);
+                return _viewContext ?? ViewPage.ViewContext;
+            }
+            set {
+                _viewContext = value;
             }
         }
 
-        public ViewContext ViewContext {
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
+            Justification = "This is the mechanism by which the ViewUserControl gets its ViewDataDictionary object.")]
+        public ViewDataDictionary ViewData {
             get {
-                return ViewPage.ViewContext;
+                EnsureViewData();
+                return _viewData;
+            }
+            set {
+                SetViewData(value);
             }
         }
 
@@ -57,11 +71,16 @@
             }
         }
 
-        private ViewPage ViewPage {
+        public string SubDataKey {
+            get;
+            set;
+        }
+
+        internal ViewPage ViewPage {
             get {
                 ViewPage viewPage = Page as ViewPage;
                 if (viewPage == null) {
-                    throw new InvalidOperationException(String.Format(CultureInfo.CurrentUICulture, MvcResources.ViewUserControl_RequiresViewPage));
+                    throw new InvalidOperationException(MvcResources.ViewUserControl_RequiresViewPage);
                 }
                 return viewPage;
             }
@@ -73,11 +92,16 @@
             }
         }
 
-        private void EnsureViewData() {
-            // Get the ViewData for this ViewUserControl, optionally using the specified ViewDataKey
+        protected virtual void SetViewData(ViewDataDictionary viewData) {
+            _viewData = viewData;
+        }
+
+        protected void EnsureViewData() {
             if (_viewData != null) {
                 return;
             }
+
+            // Get the ViewData for this ViewUserControl, optionally using the specified ViewDataKey
             IViewDataContainer vdc = GetViewDataContainer(this);
             if (vdc == null) {
                 throw new InvalidOperationException(
@@ -86,12 +110,25 @@
                         MvcResources.ViewUserControl_RequiresViewDataProvider,
                         AppRelativeVirtualPath));
             }
-            if (String.IsNullOrEmpty(ViewDataKey)) {
-                _viewData = vdc.ViewData;
+
+            ViewDataDictionary myViewData = vdc.ViewData;
+
+            // If we have a ViewDataKey, try to extract the ViewData from the SubDataItems, otherwise
+            // return the container's ViewData.
+            if (!String.IsNullOrEmpty(SubDataKey)) {
+                ViewDataDictionary subViewData;
+                vdc.ViewData.SubDataItems.TryGetValue(SubDataKey, out subViewData);
+                myViewData = new ViewDataDictionary(subViewData);
+                myViewData.Model = subViewData.Model;
             }
-            else {
-                _viewData = DataBinder.Eval(vdc.ViewData, ViewDataKey);
+
+            if (!String.IsNullOrEmpty(ViewDataKey)) {
+                ViewDataDictionary newMyViewData = new ViewDataDictionary();
+                newMyViewData.Model = myViewData[ViewDataKey];
+                myViewData = newMyViewData;
             }
+
+            SetViewData(myViewData);
         }
 
         private static IViewDataContainer GetViewDataContainer(Control control) {
@@ -112,21 +149,6 @@
             ViewUserControlContainerPage containerPage = new ViewUserControlContainerPage(this);
             containerPage.RenderView(viewContext);
         }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate",
-           Justification = "There is already a ViewData property and it has a slightly different meaning.")]
-        protected internal virtual void SetViewData(object viewData) {
-            _viewData = viewData;
-        }
-
-        #region IViewDataContainer Members
-        object IViewDataContainer.ViewData {
-            get {
-                EnsureViewData();
-                return _viewData;
-            }
-        }
-        #endregion
 
         private sealed class ViewUserControlContainerPage : ViewPage {
             public ViewUserControlContainerPage(ViewUserControl userControl) {

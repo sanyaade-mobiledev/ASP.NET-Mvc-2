@@ -4,6 +4,7 @@
     using System.Linq.Expressions;
     using System.Web.Routing;
 
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ButtonsAndLinkExtensions {
         /// <summary>
         /// Creates a submit button for your form
