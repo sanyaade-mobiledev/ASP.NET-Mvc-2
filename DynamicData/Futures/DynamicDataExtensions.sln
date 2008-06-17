@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicDataExtensions", "Extensions\DynamicDataExtensions.csproj", "{A2FBE563-25CD-4375-A339-03F03CE8A5A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtensionsTest", "ExtensionsTest\ExtensionsTest.csproj", "{E3FD0598-D3F3-4E6D-9733-841A7B495AC5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{310B7E7E-43F1-43BD-A38A-9A290B1EA0BD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ADO.NET Data Service", "ADO.NET Data Service", "{D6633434-D1EA-4620-9EE9-83DC8566C3CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataServiceSite", "Samples\ADO.NET Data Service\DataServiceSite\DataServiceSite.csproj", "{8A1F4C94-F368-48E8-BF37-4506B62421F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicDataClientSite", "Samples\ADO.NET Data Service\DynamicDataClientSite\DynamicDataClientSite.csproj", "{7422D9AF-231F-4CBA-8520-2664A132607C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicDataExtensionsSample", "Samples\DynamicDataExtensionsSample\DynamicDataExtensionsSample.csproj", "{F35A9962-A791-4702-8DF6-EEA00F51EE12}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A2FBE563-25CD-4375-A339-03F03CE8A5A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2FBE563-25CD-4375-A339-03F03CE8A5A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2FBE563-25CD-4375-A339-03F03CE8A5A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2FBE563-25CD-4375-A339-03F03CE8A5A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3FD0598-D3F3-4E6D-9733-841A7B495AC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3FD0598-D3F3-4E6D-9733-841A7B495AC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3FD0598-D3F3-4E6D-9733-841A7B495AC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3FD0598-D3F3-4E6D-9733-841A7B495AC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A1F4C94-F368-48E8-BF37-4506B62421F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A1F4C94-F368-48E8-BF37-4506B62421F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A1F4C94-F368-48E8-BF37-4506B62421F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A1F4C94-F368-48E8-BF37-4506B62421F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7422D9AF-231F-4CBA-8520-2664A132607C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7422D9AF-231F-4CBA-8520-2664A132607C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7422D9AF-231F-4CBA-8520-2664A132607C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7422D9AF-231F-4CBA-8520-2664A132607C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F35A9962-A791-4702-8DF6-EEA00F51EE12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F35A9962-A791-4702-8DF6-EEA00F51EE12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F35A9962-A791-4702-8DF6-EEA00F51EE12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F35A9962-A791-4702-8DF6-EEA00F51EE12}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D6633434-D1EA-4620-9EE9-83DC8566C3CE} = {310B7E7E-43F1-43BD-A38A-9A290B1EA0BD}
+		{F35A9962-A791-4702-8DF6-EEA00F51EE12} = {310B7E7E-43F1-43BD-A38A-9A290B1EA0BD}
+		{8A1F4C94-F368-48E8-BF37-4506B62421F9} = {D6633434-D1EA-4620-9EE9-83DC8566C3CE}
+		{7422D9AF-231F-4CBA-8520-2664A132607C} = {D6633434-D1EA-4620-9EE9-83DC8566C3CE}
+	EndGlobalSection
+EndGlobal
