@@ -6,16 +6,21 @@ using System.Web.Routing;
 using System.Web.Security;
 using System.Security;
 
-namespace WebFormRouting
-{
-    public class WebFormRouteHandler : IRouteHandler
-    {
-        public WebFormRouteHandler(string virtualPath) : this(virtualPath, true)
-        {
+namespace WebFormRouting {
+    public class WebFormRouteHandler : IRouteHandler {
+        public WebFormRouteHandler(string virtualPath)
+            : this(virtualPath, true) {
         }
 
-        public WebFormRouteHandler(string virtualPath, bool checkPhysicalUrlAccess)
-        {
+        public WebFormRouteHandler(string virtualPath, bool checkPhysicalUrlAccess) {
+            if (virtualPath == null) {
+                throw new ArgumentNullException("virtualPath");
+            }
+
+            if (!virtualPath.StartsWith("~/")) {
+                throw new ArgumentException("virtualPath must start with a tilde slash: \"~/\"", "virtualPath");
+            }
+
             this.VirtualPath = virtualPath;
             this.CheckPhysicalUrlAccess = checkPhysicalUrlAccess;
         }
@@ -37,15 +42,13 @@ namespace WebFormRouting
         /// <value>True by default</value>
         public bool CheckPhysicalUrlAccess { get; set; }
 
-        public IHttpHandler GetHttpHandler(RequestContext requestContext)
-        {
+        public IHttpHandler GetHttpHandler(RequestContext requestContext) {
             string virtualPath = GetSubstitutedVirtualPath(requestContext);
             if (this.CheckPhysicalUrlAccess && !UrlAuthorizationModule.CheckUrlAccessForPrincipal(virtualPath, requestContext.HttpContext.User, requestContext.HttpContext.Request.HttpMethod))
                 throw new SecurityException();
 
             var page = BuildManager.CreateInstanceFromVirtualPath(virtualPath, typeof(Page)) as IHttpHandler;
-            if (page != null)
-            {
+            if (page != null) {
                 //Pages that don't implement IRoutablePage won't have the RequestContext
                 //available to them. Can't generate outgoing routing URLs without that context.
                 var routablePage = page as IRoutablePage;
@@ -61,7 +64,7 @@ namespace WebFormRouting
         /// <param name="requestContext"></param>
         /// <returns></returns>
         public string GetSubstitutedVirtualPath(RequestContext requestContext) {
-            if(!VirtualPath.Contains("{"))
+            if (!VirtualPath.Contains("{"))
                 return VirtualPath;
 
             //Trim off ~/

@@ -8,15 +8,24 @@ namespace WebFormRouting
 {
     public static class WebFormRouteExtensions
     {
-        public static WebFormRouteMapping Map(this RouteCollection routes, string name, string urlPattern)
+        public static void MapWebFormRoute(this RouteCollection routes, string url, string virtualPath) 
         {
-           return new WebFormRouteMapping(routes, name, urlPattern);
+            routes.MapWebFormRoute(null, url, virtualPath, false);
         }
 
-        //Uses the url pattern as the name by default.
-        public static WebFormRouteMapping Map(this RouteCollection routes, string urlPattern)
+        public static void MapWebFormRoute(this RouteCollection routes, string name, string url, string virtualPath) 
         {
-           return new WebFormRouteMapping(routes, urlPattern, urlPattern);
+            routes.MapWebFormRoute(name, url, virtualPath, false);
+        }
+
+        public static void MapWebFormRoute(this RouteCollection routes, string url, string virtualPath, bool checkPhysicalUrlAccess) 
+        {
+            routes.MapWebFormRoute(null, url, virtualPath, checkPhysicalUrlAccess);
+        }
+
+        public static void MapWebFormRoute(this RouteCollection routes, string name, string url, string virtualPath, bool checkPhysicalUrlAccess)
+        {
+            routes.Add(name, new WebFormRoute(url, virtualPath, checkPhysicalUrlAccess));
         }
 
         public static string GetUrl(this IRoutablePage page, string name)
@@ -28,46 +37,6 @@ namespace WebFormRouting
            return null;
         }
 
-        public static string RouteLink(this IRoutablePage page, string name, string text)
-        {
-            var pathInfo = RouteTable.Routes.GetVirtualPath(page.RequestContext, name, new RouteValueDictionary());
 
-            if (pathInfo != null)
-            {
-                //I do something funky here with the link text for demo purposes
-                return string.Format("<a href=\"{0}\">{1}</a>", pathInfo.VirtualPath, text ?? pathInfo.VirtualPath);
-            }
-
-            return null;
-        }
-
-        public static string RouteLink(this IRoutablePage page, string name)
-        {
-            return RouteLink(page, name, null);
-        }
-    }
-
-    public class WebFormRouteMapping
-    {
-        RouteCollection routes;
-        string url;
-        string name;
-
-        public WebFormRouteMapping(RouteCollection routes, string name, string url)
-        {
-            this.url = url;
-            this.name = name;
-            this.routes = routes;
-        }
-
-        public void To(string virtualPath)
-        {
-            To(virtualPath, true);
-        }
-
-        public void To(string virtualPath, bool checkPhysicalUrlAccess)
-        {
-            this.routes.Add(name, new Route(url, new WebFormRouteHandler(virtualPath, checkPhysicalUrlAccess)));
-        }
     }
 }

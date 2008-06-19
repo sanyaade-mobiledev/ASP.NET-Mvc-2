@@ -10,7 +10,12 @@ namespace WebFormRouting
     /// </summary>
     public abstract class RoutablePage : Page, IRoutablePage
     {
-        public RequestContext RequestContext {get;set;}
+        public RoutablePage() {
+            this.Html = new HtmlHelper(this, RouteTable.Routes);
+            this.Url = new UrlHelper(this, RouteTable.Routes);
+        }
+
+        public RequestContext RequestContext {get; set; }
 
         public RouteData RouteData 
         {
@@ -27,5 +32,8 @@ namespace WebFormRouting
                 return this.RequestContext.RouteData;
             }
         }
+
+        public HtmlHelper Html {get; private set; }
+        public UrlHelper Url { get; private set; }
     }
 }

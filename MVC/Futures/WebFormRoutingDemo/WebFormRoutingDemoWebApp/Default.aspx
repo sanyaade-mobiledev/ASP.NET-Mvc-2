@@ -16,24 +16,28 @@
     <div>
         <table>
             <tr>
-                <td><%= this.RouteLink("Named") %></td>
+                <td><%= Html.RouteLink("/foo/bar", "Named")%></td>
                 <td>which really maps to /forms/blech.aspx</td>
             </tr>
             <tr>
-                <td><%= this.RouteLink("Numbers") %></td>
+                <td><%= Html.RouteLink("/one/two/three", "Numbers")%></td>
                 <td>which really maps to /forms/HaHa.aspx</td>
             </tr>
             <tr>
-                <td><%= this.RouteLink("Admin") %></td>
+                <td><%= Html.RouteLink("/Admin/{*anything}", "Admin", new {anything="/blah/blah" })%></td>
                 <td>which really maps to /admin/secretpage.aspx but access is <em>blocked</em> by Url Auth</td>
             </tr>
             <tr>
-                <td><%= this.RouteLink("Blocked") %></td>
+                <td><%= Html.RouteLink("/FrontDoor", "Blocked")%></td>
                 <td>which really maps to /admin/secretpage.aspx but access is <em>blocked</em> by Url Auth because we performed the check on the actual physical location</td>
             </tr>
             <tr>
-                <td><%= this.RouteLink("Secret") %></td>
+                <td><%= Html.RouteLink("/BackDoor", "Secret")%></td>
                 <td>which really maps to /admin/secretpage.aspx but access is <em>allowed</em> by Url Auth because we performed the check on the actual physical location</td>
+            </tr>
+            <tr>
+                <td><%= Html.RouteLink("/haha/{filename}", "Substitution", new {filename="HaHa" })%></td>
+                <td>which really maps to /forms/{filename}.aspx using substitution.</td>
             </tr>
         </table>
     </div>

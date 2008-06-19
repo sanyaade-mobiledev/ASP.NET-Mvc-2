@@ -11,5 +11,7 @@ namespace WebFormRouting
     public interface IRoutablePage : IHttpHandler
     {
         RequestContext RequestContext { get; set; }
+        HtmlHelper Html { get; }
+        UrlHelper Url { get; }
     }
 }
