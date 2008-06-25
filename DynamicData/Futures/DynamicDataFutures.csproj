@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30602</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A2FBE563-25CD-4375-A339-03F03CE8A5A1}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.Web.DynamicData</RootNamespace>
+    <AssemblyName>Microsoft.Web.DynamicData</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.Services.Client">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.DynamicData">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web.Extensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web.Routing">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Attributes\ColumnOrderAttribute.cs" />
+    <Compile Include="Attributes\FilterAttribute.cs" />
+    <Compile Include="Attributes\ImageFormatAttribute.cs" />
+    <Compile Include="Attributes\ImageUrlAttribute.cs" />
+    <Compile Include="Attributes\LocalizedDescriptionAttribute.cs" />
+    <Compile Include="Attributes\LocalizedDisplayNameAttribute.cs" />
+    <Compile Include="Controls\AdvancedFilterRepeater.cs" />
+    <Compile Include="Controls\DelegatingFilter.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Controls\DynamicLabel.cs" />
+    <Compile Include="Controls\DynamicReadonlyField.cs" />
+    <Compile Include="DataSources\DataServiceLinqDataSource.cs" />
+    <Compile Include="DataSources\DynamicObjectDataSource.cs" />
+    <Compile Include="DataSources\SimpleDynamicDataSource.cs" />
+    <Compile Include="DataSources\SimpleDynamicDataSourceCompleteEventArgs.cs" />
+    <Compile Include="DataSources\SimpleDynamicDataSourceView.cs" />
+    <Compile Include="DynamicDataFutures.cs" />
+    <Compile Include="FieldGenerator\AdvancedFieldGenerator.cs" />
+    <Compile Include="FieldTemplateFactory\AdvancedFieldTemplateFactory.cs" />
+    <Compile Include="HttpHandlers\ImageHandler.cs" />
+    <Compile Include="LinqExpressionHelper.cs" />
+    <Compile Include="MetadataProvider\InMemoryMetadataManager.cs" />
+    <Compile Include="MetadataProvider\InMemoryMetadataTypeDescriptionProvider.cs" />
+    <Compile Include="MetadataProvider\InMemoryMetadataTypeDescriptor.cs" />
+    <Compile Include="Misc\ResourceProxy.cs" />
+    <Compile Include="ModelProviders\DataServiceAssociationProvider.cs" />
+    <Compile Include="ModelProviders\DataServiceColumnProvider.cs" />
+    <Compile Include="ModelProviders\DataServiceModelProvider.cs" />
+    <Compile Include="ModelProviders\DataServiceTableProvider.cs" />
+    <Compile Include="ModelProviders\SimpleColumnProvider.cs" />
+    <Compile Include="ModelProviders\SimpleModelProvider.cs" />
+    <Compile Include="ModelProviders\SimpleTableProvider.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

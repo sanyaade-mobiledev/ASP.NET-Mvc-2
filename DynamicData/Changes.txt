@@ -1,0 +1,29 @@
+Dynamic Data Futures 1.1 Changes
+--------------------------------
+
+- Renamed project to Dynamic Data Futures.
+
+- Moved/renamed a number of library files for better logical organization. Classes
+are now organized what they generally do instead of how they apply to a particular
+sample.
+
+- Updated DbImage.ascx to better handle compound and GUID primary key tables. Also,
+page templates will disable AJAX partial rendering when editing an image column to
+allow the FileUpload control to work properly.
+
+- Added support for complex where parameters. This can be seen in the pages under
+ComplexWhereParameters in the sample app that already have a Where clause for
+LinqDataSource but also use the filters to contribute extra components.
+
+- Added automatic support for enumerated type columns. UIHint is no longer needed
+to reference Enumeration.ascx.
+
+- Moved a number of extension/utility methods to the DynamicDataFutures class. This
+includes localization helpers, metadata helpers, and default value helpers.
+
+- Consolidated IAutoFieldGenerator implementations into a single AdvancedFieldGenerator
+class. It now includes functionality enabling column ordering, programatically
+excluding a list of columns, and a workaround for issues with attribute localization.
+
+- Refactored common LINQ Expression generation code into the LinqExpressionHelper
+class.
