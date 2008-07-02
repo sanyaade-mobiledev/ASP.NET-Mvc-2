@@ -6,7 +6,6 @@
     <p>Click on the "Region Description". The cursor will focus on the text box.</p>
     
     <h2>Edit entry from table <%= table.DisplayName %></h2>
-    <asp:ScriptManagerProxy runat="server" ID="ScriptManagerProxy1" />
 
     <asp:UpdatePanel ID="UpdatePanel1" runat="server">
         <ContentTemplate>

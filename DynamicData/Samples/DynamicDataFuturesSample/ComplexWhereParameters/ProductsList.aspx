@@ -7,8 +7,7 @@
     <asp:DynamicDataManager ID="DynamicDataManager1" runat="server" AutoLoadForeignKeys="true" />
     
     <h2><%= table.DisplayName%></h2>
-    <asp:ScriptManagerProxy runat="server" ID="ScriptManagerProxy1" />
-    
+
     <asp:UpdatePanel ID="UpdatePanel1" runat="server">
     <Triggers>
     </Triggers>
@@ -35,12 +34,10 @@
                 <Columns>
                     <asp:TemplateField>
                         <ItemTemplate>
-                            <asp:HyperLink ID="EditHyperLink" runat="server"
-                                Text="Edit" NavigateUrl='<%# table.GetActionPath(PageAction.Edit, GetDataItem()) %>' />&nbsp;
+                            <asp:DynamicHyperLink ID="EditHyperLink" runat="server" Action="Edit" Text="Edit" />&nbsp;
                             <asp:LinkButton ID="DeleteLinkButton" runat="server" CommandName="Delete"
                                 CausesValidation="false" Text="Delete" OnClientClick='return confirm("Are you sure you want to delete this item?");' />&nbsp;
-                            <asp:HyperLink ID="DetailsHyperLink" runat="server"
-                                NavigateUrl='<%# table.GetActionPath(PageAction.Details, GetDataItem()) %>' Text="Details" />
+                            <asp:DynamicHyperLink ID="DetailsHyperLink" runat="server" Text="Details" />
                         </ItemTemplate>
                     </asp:TemplateField>
                 </Columns>
@@ -67,7 +64,7 @@
             
             <br />
             <div class="bottomhyperlink">
-                <asp:HyperLink ID="InsertHyperLink" runat="server"><img id="Img1" runat="server" src="~/DynamicData/Content/Images/plus.gif" alt="Insert new item" />Insert new item</asp:HyperLink>
+                <asp:DynamicHyperLink ID="InsertHyperLink" runat="server" Action="Insert"><img id="Img1" runat="server" src="~/DynamicData/Content/Images/plus.gif" alt="Insert new item" />Insert new item</asp:DynamicHyperLink>
             </div>
 
         </ContentTemplate>

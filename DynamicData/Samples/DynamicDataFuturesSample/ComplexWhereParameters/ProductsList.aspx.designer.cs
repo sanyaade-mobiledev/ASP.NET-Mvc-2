@@ -23,15 +23,6 @@ namespace DynamicDataFuturesSample {
         protected global::System.Web.DynamicData.DynamicDataManager DynamicDataManager1;
         
         /// <summary>
-        /// ScriptManagerProxy1 control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.ScriptManagerProxy ScriptManagerProxy1;
-        
-        /// <summary>
         /// UpdatePanel1 control.
         /// </summary>
         /// <remarks>
@@ -119,7 +110,7 @@ namespace DynamicDataFuturesSample {
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HyperLink InsertHyperLink;
+        protected global::Microsoft.Web.DynamicData.DynamicHyperLink InsertHyperLink;
         
         /// <summary>
         /// Img1 control.

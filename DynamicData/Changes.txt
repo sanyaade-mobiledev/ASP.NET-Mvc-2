@@ -1,5 +1,23 @@
-Dynamic Data Futures 1.1 Changes
---------------------------------
+Dynamic Data Futures 0.1.02 Changes (2008-07-02)
+------------------------------------------------
+
+- Modified ForeignKey_Edit field template to display a [Not Set] entry for required columns
+in insert mode. Added a RequiredFieldValidator to ensure that an entry is selected if the
+column is required.
+
+- Added Url and EmailAddress field templates.
+
+- Added DynamicHyperLink control. It generates links to Dynamic Data tables for
+all actions and works both in data-binding and simple scenarios.
+
+- Modified routes in Global.asax to generate pretty URLs using the new PrettyDynamicDataRoute.
+
+- Changed FilterAttribute.Order property to match the behavior of ColumnOrderAttribute.Order
+property. Now each filter has a default Order of 0; negative numbers can be used to push
+filters to the fron, while positive numbers can be used to push filters to the back.
+
+Dynamic Data Futures 0.1.01 Changes (2008-06-25)
+------------------------------------------------
 
 - Renamed project to Dynamic Data Futures.
 

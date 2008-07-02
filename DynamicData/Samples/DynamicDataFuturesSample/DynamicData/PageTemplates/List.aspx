@@ -8,8 +8,6 @@
 
     <h2><%= table.DisplayName%></h2>
 
-    <asp:ScriptManagerProxy runat="server" ID="ScriptManagerProxy1" />
-
     <asp:UpdatePanel ID="UpdatePanel1" runat="server">
         <ContentTemplate>
             <asp:ValidationSummary ID="ValidationSummary1" runat="server" EnableClientScript="true"
@@ -36,13 +34,11 @@
                 <Columns>
                     <asp:TemplateField>
                         <ItemTemplate>
-                            <asp:HyperLink ID="EditHyperLink" runat="server"
-                                NavigateUrl='<%# table.GetActionPath(PageAction.Edit, GetDataItem()) %>'
-                            Text="Edit" />&nbsp;<asp:LinkButton ID="DeleteLinkButton" runat="server" CommandName="Delete"
+                        <asp:DynamicHyperLink runat="server" ID="EditHyperLink" Action="Edit" Text="Edit"
+                            />&nbsp;<asp:LinkButton ID="DeleteLinkButton" runat="server" CommandName="Delete"
                                 CausesValidation="false" Text="Delete"
                                 OnClientClick='return confirm("Are you sure you want to delete this item?");'
-                            />&nbsp;<asp:HyperLink ID="DetailsHyperLink" runat="server"
-                                NavigateUrl='<%# table.GetActionPath(PageAction.Details, GetDataItem()) %>'
+                            />&nbsp;<asp:DynamicHyperLink ID="DetailsHyperLink" runat="server"
                                 Text="Details" />
                         </ItemTemplate>
                     </asp:TemplateField>
@@ -66,7 +62,7 @@
             <br />
 
             <div class="bottomhyperlink">
-                <asp:HyperLink ID="InsertHyperLink" runat="server"><img runat="server" src="~/DynamicData/Content/Images/plus.gif" alt="Insert new item" />Insert new item</asp:HyperLink>
+                <asp:DynamicHyperLink ID="InsertHyperLink" runat="server" Action="Insert"><img runat="server" src="~/DynamicData/Content/Images/plus.gif" alt="Insert new item" />Insert new item</asp:DynamicHyperLink>
             </div>
         </ContentTemplate>
     </asp:UpdatePanel>

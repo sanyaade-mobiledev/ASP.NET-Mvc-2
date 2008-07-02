@@ -6,8 +6,6 @@
 
     <h2>Edit entry from table <%= table.DisplayName %></h2>
 
-    <asp:ScriptManagerProxy runat="server" ID="ScriptManagerProxy1" />
-
     <asp:UpdatePanel ID="UpdatePanel1" runat="server">
         <ContentTemplate>
             <asp:ValidationSummary ID="ValidationSummary1" runat="server" EnableClientScript="true"

@@ -2737,7 +2737,7 @@ namespace DynamicDataFuturesSample
 		
 		private System.Nullable<short> _UnitsOnOrder;
 		
-		private DynamicDataFuturesSample.ReorderLevelEnum _ReorderLevel;
+		private ReorderLevelEnum _ReorderLevel;
 		
 		private bool _Discontinued;
 		
@@ -2767,7 +2767,7 @@ namespace DynamicDataFuturesSample
     partial void OnUnitsInStockChanged();
     partial void OnUnitsOnOrderChanging(System.Nullable<short> value);
     partial void OnUnitsOnOrderChanged();
-    partial void OnReorderLevelChanging(DynamicDataFuturesSample.ReorderLevelEnum value);
+    partial void OnReorderLevelChanging(ReorderLevelEnum value);
     partial void OnReorderLevelChanged();
     partial void OnDiscontinuedChanging(bool value);
     partial void OnDiscontinuedChanged();
@@ -2950,7 +2950,7 @@ namespace DynamicDataFuturesSample
 		}
 		
 		[Column(Storage="_ReorderLevel", DbType="SmallInt", CanBeNull=true)]
-		public DynamicDataFuturesSample.ReorderLevelEnum ReorderLevel
+		public ReorderLevelEnum ReorderLevel
 		{
 			get
 			{

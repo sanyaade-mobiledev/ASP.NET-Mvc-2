@@ -20,7 +20,9 @@ namespace DynamicDataFuturesSample {
             DropDownList1.ToolTip = Column.GetDescription();
 
             if (DropDownList1.Items.Count == 0) {
-                DropDownList1.Items.Add(new ListItem("[Not Set]", String.Empty));
+                if (Mode == DataBoundControlMode.Insert || !Column.IsRequired) {
+                    DropDownList1.Items.Add(new ListItem("[Not Set]", String.Empty));
+                }
                 foreach (string name in Enum.GetNames(Column.ColumnType)) {
                     DropDownList1.Items.Add(new ListItem(name));
                 }

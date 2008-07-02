@@ -32,10 +32,12 @@ namespace DynamicDataFuturesSample {
             return table;
         }
 
+        [DataObjectMethod(DataObjectMethodType.Select)]
         public DataTable Select() {
             return (table == null) ? CreateData() : table;
         }
 
+        [DataObjectMethod(DataObjectMethodType.Insert)]
         public int Insert(NewData newRecord) {
             if (newRecord.Name.Length < 3) {
                 throw new ValidationException("The name must have at least 3 characters");

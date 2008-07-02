@@ -128,7 +128,7 @@
       <Column Name="UnitPrice" Type="System.Decimal" DbType="Money" CanBeNull="true" />
       <Column Name="UnitsInStock" Type="System.Int16" DbType="SmallInt" CanBeNull="true" />
       <Column Name="UnitsOnOrder" Type="System.Int16" DbType="SmallInt" CanBeNull="true" />
-      <Column Name="ReorderLevel" Type="DynamicDataFuturesSample.ReorderLevelEnum" DbType="SmallInt" CanBeNull="true" />
+      <Column Name="ReorderLevel" Type="ReorderLevelEnum" DbType="SmallInt" CanBeNull="true" />
       <Column Name="Discontinued" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
       <Association Name="Product_Order_Detail" Member="Order_Details" OtherKey="ProductID" Type="Order_Detail" />
       <Association Name="Category_Product" Member="Category" ThisKey="CategoryID" Type="Category" IsForeignKey="true" />

@@ -14,6 +14,7 @@ namespace DynamicDataFuturesSample {
             // Display the Category and Supplier filters using the Autocomplete.ascx filter control
             [Filter(FilterControl = "Autocomplete")]
             [ColumnOrder(-2)]
+            [Required]
             public object Category { get; set; }
 
             [Filter(FilterControl = "Autocomplete")]
@@ -21,7 +22,7 @@ namespace DynamicDataFuturesSample {
 
             // Display the Discontinued filter using the BooleanRadio.ascx filter control
             // Make sure the Discontinued filter is displayed first
-            [Filter(FilterControl = "BooleanRadio", Order = 1)]
+            [Filter(FilterControl = "BooleanRadio", Order = -1)]
             public object Discontinued { get; set; }
 
             // Display the UnitsInStock filter using Integer.ascx filter control
@@ -80,6 +81,14 @@ namespace DynamicDataFuturesSample {
 
             [LocalizedDisplayName(typeof(Resources.Resources), "Category_CategoryName_DisplayName")]
             public object CategoryName { get; set; }
+        }
+    }
+
+    [MetadataType(typeof(Employee_MD))]
+    public partial class Employee {
+        public class Employee_MD {
+            [DataType(DataType.Url)]
+            public object PhotoPath { get; set; }
         }
     }
 }

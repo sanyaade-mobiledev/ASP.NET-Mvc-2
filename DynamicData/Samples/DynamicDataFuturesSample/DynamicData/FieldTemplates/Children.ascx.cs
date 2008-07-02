@@ -1,17 +1,5 @@
 ﻿using System;
-using System.Data;
-using System.Configuration;
-using System.Collections;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Web;
-using System.Web.Security;
 using System.Web.UI;
-using System.Web.UI.WebControls;
-using System.Web.UI.WebControls.WebParts;
-using System.Web.UI.HtmlControls;
-using System.Xml.Linq;
-using System.Web.DynamicData;
 using Microsoft.Web.DynamicData;
 
 namespace DynamicDataFuturesSample {
@@ -39,6 +27,7 @@ namespace DynamicDataFuturesSample {
 
         protected void Page_Load(object sender, EventArgs e) {
             HyperLink1.Text = "View " + ChildrenColumn.ChildTable.GetDisplayName();
+            InsertHyperLink.Text = "Insert " + ChildrenColumn.ChildTable.GetDisplayName();
         }
 
         protected string GetChildrenPath() {

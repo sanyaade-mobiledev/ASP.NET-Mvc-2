@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DynamicDataFuturesSample.DynamicData.FieldTemplates {
+namespace DynamicDataFuturesSample {
     
     
     public partial class DateAjaxCalendar_EditField {

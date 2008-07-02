@@ -17,8 +17,6 @@ namespace DynamicDataFuturesSample {
         protected void Page_Load(object sender, EventArgs e) {
             Title = table.GetDisplayName();
 
-            InsertHyperLink.NavigateUrl = table.GetActionPath(PageAction.Insert);
-
             // Disable various options if the table is readonly
             if (table.IsReadOnly) {
                 GridView1.Columns[0].Visible = false;

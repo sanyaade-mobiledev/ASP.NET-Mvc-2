@@ -25,7 +25,6 @@ namespace DynamicDataFuturesSample {
 
         protected void Page_Load(object sender, EventArgs e) {
             Title = table.GetDisplayName();
-            ListHyperLink.NavigateUrl = table.ListActionPath;
         }
 
         protected void DetailsView1_ItemDeleted(object sender, DetailsViewDeletedEventArgs e) {

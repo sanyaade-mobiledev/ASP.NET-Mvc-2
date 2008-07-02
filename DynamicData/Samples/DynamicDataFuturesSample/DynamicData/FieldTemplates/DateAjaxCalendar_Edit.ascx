@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" CodeBehind="DateAjaxCalendar_Edit.ascx.cs" Inherits="DynamicDataFuturesSample.DynamicData.FieldTemplates.DateAjaxCalendar_EditField" %>
+﻿<%@ Control Language="C#" CodeBehind="DateAjaxCalendar_Edit.ascx.cs" Inherits="DynamicDataFuturesSample.DateAjaxCalendar_EditField" %>
 
 <asp:TextBox ID="TextBox1" runat="server" Text='<%# FieldValueEditString %>' CssClass="droplist"></asp:TextBox>
 <ajaxToolkit:CalendarExtender ID="defaultCalendarExtender" runat="server" TargetControlID="TextBox1" />

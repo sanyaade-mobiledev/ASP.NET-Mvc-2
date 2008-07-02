@@ -12,7 +12,7 @@
         <Columns>
             <asp:TemplateField HeaderText="Table Name" SortExpression="TableName">
                 <ItemTemplate>
-                    <asp:HyperLink ID="HyperLink1" runat="server" NavigateUrl='<%#Eval("ListActionPath") %>'><%# ((MetaTable)Container.DataItem).GetDisplayName() %></asp:HyperLink>
+                    <asp:DynamicHyperLink ID="HyperLink1" runat="server" TableName='<%# Eval("Name") %>'><%# ((MetaTable)Container.DataItem).GetDisplayName() %></asp:DynamicHyperLink>
                 </ItemTemplate>
             </asp:TemplateField>
         </Columns>

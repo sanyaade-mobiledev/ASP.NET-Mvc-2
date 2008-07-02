@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30527</ProductVersion>
+    <ProductVersion>9.0.30602</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{F35A9962-A791-4702-8DF6-EEA00F51EE12}</ProjectGuid>
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
@@ -123,12 +123,26 @@
     <Compile Include="DynamicData\FieldTemplates\DbImage_Edit.ascx.designer.cs">
       <DependentUpon>DbImage_Edit.ascx</DependentUpon>
     </Compile>
+    <Compile Include="DynamicData\FieldTemplates\EmailAddress.ascx.cs">
+      <DependentUpon>EmailAddress.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="DynamicData\FieldTemplates\EmailAddress.ascx.designer.cs">
+      <DependentUpon>EmailAddress.ascx</DependentUpon>
+    </Compile>
     <Compile Include="DynamicData\FieldTemplates\FileImage.ascx.cs">
       <DependentUpon>FileImage.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="DynamicData\FieldTemplates\FileImage.ascx.designer.cs">
       <DependentUpon>FileImage.ascx</DependentUpon>
+    </Compile>
+    <Compile Include="DynamicData\FieldTemplates\Url.ascx.cs">
+      <DependentUpon>Url.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="DynamicData\FieldTemplates\Url.ascx.designer.cs">
+      <DependentUpon>Url.ascx</DependentUpon>
     </Compile>
     <Compile Include="DynamicObjectDataSourceTest\DynamicObjectDataSourceTest.aspx.cs">
       <DependentUpon>DynamicObjectDataSourceTest.aspx</DependentUpon>
@@ -450,7 +464,9 @@
       <LastGenOutput>Resources.es.designer.cs</LastGenOutput>
     </Content>
     <Content Include="ComplexWhereParameters\ProductsList.aspx" />
+    <Content Include="DynamicData\FieldTemplates\EmailAddress.ascx" />
     <Content Include="DynamicData\FieldTemplates\FileImage.ascx" />
+    <Content Include="DynamicData\FieldTemplates\Url.ascx" />
     <Content Include="DynamicObjectDataSourceTest\DynamicObjectDataSourceTest.aspx" />
     <Content Include="DynamicData\FieldTemplates\Enumeration.ascx" />
     <Content Include="DynamicData\FieldTemplates\Enumeration_Edit.ascx" />

@@ -30,7 +30,7 @@ namespace Microsoft.Web.DynamicData {
     /// </summary>
     public static class DynamicDataFutures {
 
-        #region Metadata helpers
+        #region Metadata and model helpers
 
         /// <summary>
         /// Gets a value indicating if the column should be scaffolded. This honors the
@@ -48,6 +48,28 @@ namespace Microsoft.Web.DynamicData {
 
             // always return true for enumerated types
             return column.ColumnType.IsEnum || column.Scaffold;
+        }
+
+        /// <summary>
+        /// Gets a dictionary with the values of the primary key of the given table for the
+        /// given row.
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="row"></param>
+        /// <returns></returns>
+        public static IDictionary<string, object> GetPrimaryKeyDictionary(this MetaTable table, object row) {
+            if(row == null) {
+                throw new ArgumentNullException("row");
+            }
+
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            var pks = table.GetPrimaryKeyValues(row);
+            int i = 0;
+            foreach (var pkColumn in table.PrimaryKeyColumns) {
+                result[pkColumn.Name] = pks[i++];
+            }
+
+            return result;
         }
 
         #endregion

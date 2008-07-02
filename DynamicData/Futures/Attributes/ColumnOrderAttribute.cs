@@ -1,17 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Microsoft.Web.DynamicData {
+    /// <summary>
+    /// Allows to specify the ordering of columns. Columns are will be sorted in increasing order based 
+    /// on the Order value. Columns without this attribute have a default Order of 0. Negative values are
+    /// allowed and can be used to place a column before all other columns.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     public class ColumnOrderAttribute : Attribute, IComparable {
 
         public static ColumnOrderAttribute Default = new ColumnOrderAttribute(0);
 
-        public ColumnOrderAttribute(int order) { Order = order; }
-        public int Order { get; private set; }
+        public ColumnOrderAttribute(int order) {
+            Order = order;
+        }
 
+        /// <summary>
+        /// The ordering of a column. Can be negative.
+        /// </summary>
+        public int Order { get; private set; }
 
         #region IComparable Members
 

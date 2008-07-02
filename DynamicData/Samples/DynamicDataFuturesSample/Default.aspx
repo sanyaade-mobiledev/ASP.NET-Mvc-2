@@ -14,7 +14,7 @@
         using CLR attributes.&nbsp; But for more dynamic scenarios, you may want to set 
         those attributes via code.&nbsp; The InMemoryMetadataManager class supports this 
         sceneario.</p>
-    <p><a href="/Products/Edit.aspx?ProductID=1">Click here</a> to see this being used 
+    <p><asp:DynamicHyperLink runat="server" TableName="Products" Action="Edit" ProductID="1">Click here</asp:DynamicHyperLink> to see this being used 
         in the standard Edit Product page.&nbsp; A call is made in global.asax.cs to set 
         a range programmatically on the UnitsInStock column.&nbsp; Try setting a value 
         greater than 1000.</p>
@@ -25,7 +25,7 @@
         Picture column as &lt;img&gt; tags that point to a custom HTTP handler that retrieves 
         the images from the database and serves them as the response. The edit template 
         allows you to upload an image to replace the existing one.</p>
-    <p><a href="/Categories/List.aspx">Click here</a> to see the Picture column in the Category table display an image from 
+    <p><asp:DynamicHyperLink runat="server" TableName="Categories">Click here</asp:DynamicHyperLink> to see the Picture column in the Category table display an image from 
         the database in the default List scaffold page.</p>
         
     <h3>Populate Insert templates with values from filters</h3>
@@ -34,10 +34,10 @@
         DefaultValueHelper class contains helper methods that set up the Dynamic Data 
         templates in such a way that the relationship fields are populated using values 
         from the URL.</p>
-    <p><a href="Territories/List.aspx?RegionID=2">Click here</a> to see this being used in the standard scaffold 
+    <p><asp:DynamicHyperLink runat="server" TableName="Territories">Click here</asp:DynamicHyperLink> to see this being used in the standard scaffold 
         Insert page for the 
         Territories table. Note that the table is already filtered by the Western region. Click on 
-        the &quot;Insert new item&quot; link (or <a href="Territories/Insert.aspx?RegionID=2">here</a>). 
+        the &quot;Insert new item&quot; link (or <asp:DynamicHyperLink runat="server" Action="Insert" TableName="Territories" RegionID="2">here</asp:DynamicHyperLink>). 
         Note that the Region dropdown will already have the Western region selected as the value.</p>
 
     <h3>Use advanced filters</h3>
@@ -48,13 +48,13 @@
         DynamicData\Filters directory. The filters are applied on the model using the 
         new FilterAttribute, which are then used by AdvancedFilterRepeater to pick the 
         right filter control.</p>
-    <p><a href="Products/List.aspx">Click here</a> to see the autocomplete filter used 
+    <p><asp:DynamicHyperLink runat="server" TableName="Products">Click here</asp:DynamicHyperLink> to see the autocomplete filter used 
         in the Products List scaffold page. Type the character &quot;n&quot; into the textbox for 
         Supplier to get an AJAX list of available options.</p>
-    <p><a href="Order_Details/List.aspx">Click here</a> to see a cascading drop-down filter used in the Order_Details List 
+    <p><asp:DynamicHyperLink runat="server" TableName="Order_Details">Click here</asp:DynamicHyperLink> to see a cascading drop-down filter used in the Order_Details List 
         scaffold page. First select an item from the Category dropdown. This populates 
         the second dropdown, which in turn filters the result list.</p>
-    <p><a href="Products/List.aspx">Click here</a> to see a filter based on the ReoerderLevel column that is an 
+    <p><asp:DynamicHyperLink runat="server" TableName="Products">Click here</asp:DynamicHyperLink> to see a filter based on the ReoerderLevel column that is an 
         enumerated type. The drop-down representing that filter contains all possible 
         values for the enumerated type ReorderLevelEnum.</p>
     
@@ -66,7 +66,7 @@
         attributes to the model to influence the ordering.&nbsp; The default 'order' is 
         0, so use a negative number for fields you want to show first, and a postive 
         number for fields you want to show last.</p>
-    <p><a href="Products/List.aspx">Click here</a> to see this feature applied to the 
+    <p><asp:DynamicHyperLink runat="server" TableName="Products">Click here</asp:DynamicHyperLink>  to see this feature applied to the 
         Products list page using the standard scaffold.&nbsp; e.g. note how the 
         UnitsInStock column is displayed first because it has the lowest ColumnOrder 
         number.</p>
@@ -95,7 +95,7 @@
         Category entity illustrate how this can be done by referencing properties from 
         generated static resource classes. The resource files are located in the 
         App_GlobalResources folder.</p>
-    <p><a href="Categories/List.aspx">Click here</a> to see localized values. Modify your browser&#39;s language settings to 
+    <p><asp:DynamicHyperLink runat="server" TableName="Categories">Click here</asp:DynamicHyperLink>  to see localized values. Modify your browser&#39;s language settings to 
         prefer the English (default) or Spanish locale.</p>
         
     <h3>Use enumerated column types</h3>
@@ -103,7 +103,7 @@
         The Enumeration_Edit field template takes advantage of this information to 
         generate a UI that contains a list of the possible values for the enumerated 
         type.</p>
-    <p><a href="Products/Edit.aspx?ProductID=1">Click here</a> to see this in action. The 
+    <p><asp:DynamicHyperLink runat="server" TableName="Products" Action="Edit" ProductID="1">Click</asp:DynamicHyperLink> to see this in action. The 
         ReorderLevel column of the Products table has been mapped to a new enumerated 
         type ReorderLevelEnum. The edit UI for the ReorderLevel column shows a drod-down 
         with a list of potential values from that type.</p>
@@ -118,6 +118,13 @@
         value (where the value is provided by an AJAX slider control) while still using 
         automatic filtering.</p>
         
+    <h3>Easily link to table actions with DynamicHyperLink</h3>
+    <p>DynamicHyperLink is a new control that generates links to table actions based on 
+        the current routing rules. It can also data bind to table rows, allowing to 
+        display links specific to the current item. You can see this control being used 
+        in the source of this page (Default.aspx) as well as in TableList.aspx, or the 
+        Details and List page templates.</p>
+        
     <h3>Associate labels with field template controls</h3>
     <p>Each Dynamic Data field template can expose the main data control used for 
         editing a field through the DataControl property. This lets pages and other 
@@ -125,8 +132,16 @@
         be known at design time. The DynamicLabel control takes advantage of this by 
         being able to associate itself with the actual control that will display the 
         data on the page.</p>
-    <p><a href="Regions/Edit.aspx?RegionID=1">Click here</a> to see this being used in 
+    <p><asp:DynamicHyperLink runat="server" TableName="Regions" Action="Edit" RegionID="1">Click here</asp:DynamicHyperLink> to see this being used in 
         the custom page for the Edit action of the Regions table.</p>
+        
+    <h3>Use pretty URLs</h3>
+    <p>The new PrettyDynamicDataRoute extends DynamicDataRoute and makes it easy to have 
+        an app automatically use &#39;pretty&#39; URLs for all tables.&nbsp; e.g. instead of 
+        /Products/Edit.aspx?ProductID=5, you can have /Products/Edit/5.&nbsp; You can 
+        see this route being used in global.asax.cs.</p>
+    <p><a href="Products/Edit/5">Click here</a> to go to a product Edit page, and check 
+        out what the URL looks like.</p>
     
 </asp:Content>
 

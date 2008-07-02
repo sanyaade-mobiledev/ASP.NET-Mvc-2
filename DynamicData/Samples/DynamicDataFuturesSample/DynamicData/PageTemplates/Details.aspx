@@ -1,12 +1,9 @@
 ﻿<%@ Page Language="C#" MasterPageFile="~/Site.master" CodeBehind="Details.aspx.cs" Inherits="DynamicDataFuturesSample.Details" %>
 
-
 <asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" Runat="Server">
     <asp:DynamicDataManager ID="DynamicDataManager1" runat="server" AutoLoadForeignKeys="true" />
 
     <h2>Entry from table <%= table.DisplayName %></h2>
-
-    <asp:ScriptManagerProxy runat="server" ID="ScriptManagerProxy1" />
 
     <asp:UpdatePanel ID="UpdatePanel1" runat="server">
         <ContentTemplate>
@@ -15,13 +12,11 @@
             <asp:DynamicValidator runat="server" ID="DetailsViewValidator" ControlToValidate="DetailsView1" Display="None" />
 
             <asp:DetailsView ID="DetailsView1" runat="server" DataSourceID="DetailsDataSource" OnItemDeleted="DetailsView1_ItemDeleted"
-                CssClass="detailstable" FieldHeaderStyle-CssClass="bold" >
+                CssClass="detailstable" FieldHeaderStyle-CssClass="bold"  >
                 <Fields>
                     <asp:TemplateField>
                         <ItemTemplate>
-                            <asp:HyperLink ID="EditHyperLink" runat="server"
-                                NavigateUrl='<%# table.GetActionPath(PageAction.Edit, GetDataItem()) %>'
-                                Text="Edit" />
+                            <asp:DynamicHyperLink ID="EditHyperLink" runat="server" Action="Edit" Text="Edit" />
                             <asp:LinkButton ID="DeleteLinkButton" runat="server" CommandName="Delete" CausesValidation="false"
                                 OnClientClick='return confirm("Are you sure you want to delete this item?");'
                                 Text="Delete" />
@@ -39,7 +34,7 @@
             <br />
 
             <div class="bottomhyperlink">
-                <asp:HyperLink ID="ListHyperLink" runat="server">Show all items</asp:HyperLink>
+                <asp:DynamicHyperLink ID="ListHyperLink" runat="server" Action="List">Show all items</asp:DynamicHyperLink>
             </div>        
         </ContentTemplate>
     </asp:UpdatePanel>

@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" CodeBehind="IntegerSlider_Edit.ascx.cs" Inherits="DynamicDataFuturesSample.DynamicData.FieldTemplates.IntegerSlider_EditField" %>
+﻿<%@ Control Language="C#" CodeBehind="IntegerSlider_Edit.ascx.cs" Inherits="DynamicDataFuturesSample.IntegerSlider_EditField" %>
 
 <asp:TextBox ID="TextBox1" runat="server" Text='<%# FieldValueEditString %>' CssClass="droplist"></asp:TextBox>
 
