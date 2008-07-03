@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScriptReferenceProfiler", "ScriptReferenceProfiler.csproj", "{4968FBBE-4181-4CFA-85F3-8A1139D94F94}"
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "ScriptReferenceProfilerTest", "..\..\..\..\Users\bleroy\Documents\Visual Studio Codename Orcas\WebSites\ScriptReferenceProfilerTest\", "{5585B7CA-7594-4BF8-AE15-D934D476488E}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFramework = "3.5"
+		ProjectReferences = "{4968FBBE-4181-4CFA-85F3-8A1139D94F94}|ScriptReferenceProfiler.dll;"
+		Debug.AspNetCompiler.VirtualPath = "/ScriptReferenceProfilerTest"
+		Debug.AspNetCompiler.PhysicalPath = "..\..\..\..\Users\bleroy\Documents\Visual Studio Codename Orcas\WebSites\ScriptReferenceProfilerTest\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\ScriptReferenceProfilerTest\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/ScriptReferenceProfilerTest"
+		Release.AspNetCompiler.PhysicalPath = "..\..\..\..\Users\bleroy\Documents\Visual Studio Codename Orcas\WebSites\ScriptReferenceProfilerTest\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\ScriptReferenceProfilerTest\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "33382"
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|.NET = Debug|.NET
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Release|.NET = Release|.NET
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4968FBBE-4181-4CFA-85F3-8A1139D94F94}.Debug|.NET.ActiveCfg = Debug|Any CPU
+		{4968FBBE-4181-4CFA-85F3-8A1139D94F94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4968FBBE-4181-4CFA-85F3-8A1139D94F94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4968FBBE-4181-4CFA-85F3-8A1139D94F94}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{4968FBBE-4181-4CFA-85F3-8A1139D94F94}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{4968FBBE-4181-4CFA-85F3-8A1139D94F94}.Release|.NET.ActiveCfg = Release|Any CPU
+		{4968FBBE-4181-4CFA-85F3-8A1139D94F94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4968FBBE-4181-4CFA-85F3-8A1139D94F94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4968FBBE-4181-4CFA-85F3-8A1139D94F94}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{4968FBBE-4181-4CFA-85F3-8A1139D94F94}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{5585B7CA-7594-4BF8-AE15-D934D476488E}.Debug|.NET.ActiveCfg = Debug|.NET
+		{5585B7CA-7594-4BF8-AE15-D934D476488E}.Debug|.NET.Build.0 = Debug|.NET
+		{5585B7CA-7594-4BF8-AE15-D934D476488E}.Debug|Any CPU.ActiveCfg = Debug|.NET
+		{5585B7CA-7594-4BF8-AE15-D934D476488E}.Debug|Mixed Platforms.ActiveCfg = Debug|.NET
+		{5585B7CA-7594-4BF8-AE15-D934D476488E}.Debug|Mixed Platforms.Build.0 = Debug|.NET
+		{5585B7CA-7594-4BF8-AE15-D934D476488E}.Release|.NET.ActiveCfg = Debug|.NET
+		{5585B7CA-7594-4BF8-AE15-D934D476488E}.Release|.NET.Build.0 = Debug|.NET
+		{5585B7CA-7594-4BF8-AE15-D934D476488E}.Release|Any CPU.ActiveCfg = Debug|.NET
+		{5585B7CA-7594-4BF8-AE15-D934D476488E}.Release|Mixed Platforms.ActiveCfg = Debug|.NET
+		{5585B7CA-7594-4BF8-AE15-D934D476488E}.Release|Mixed Platforms.Build.0 = Debug|.NET
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
