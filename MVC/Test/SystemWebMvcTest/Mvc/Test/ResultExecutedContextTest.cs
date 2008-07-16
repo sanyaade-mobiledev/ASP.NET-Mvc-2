@@ -11,7 +11,7 @@
             // Execute & verify
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    new ResultExecutedContext(null /* controllerContext */, null /* result */, null /* exception */);
+                    new ResultExecutedContext(null /* controllerContext */, null /* result */, false /* canceled */, null /* exception */);
                 },
                 "controllerContext");
         }
@@ -20,7 +20,7 @@
         public void ConstructorWithNullExceptionIsOk() {
             // Execute
             ActionResult result = new EmptyResult();
-            ResultExecutedContext context = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), result, null /* exception */);
+            ResultExecutedContext context = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), result, false /* canceled */, null /* exception */);
 
             // Verify
             Assert.IsNull(context.Exception);
@@ -31,9 +31,21 @@
             // Execute & verify
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    new ResultExecutedContext(ControllerContextTest.GetControllerContext(), null /* result */, null /* exception */);
+                    new ResultExecutedContext(ControllerContextTest.GetControllerContext(), null /* result */, false /* canceled */, null /* exception */);
                 },
                 "result");
+        }
+
+        [TestMethod]
+        public void GetCanceled() {
+            // Setup
+            ActionResult result = new EmptyResult();
+            ResultExecutedContext context1 = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), result, true /* canceled */, null /* exception */);
+            ResultExecutedContext context2 = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), result, false /* canceled */, null /* exception */);
+
+            // Execute & verify
+            Assert.IsTrue(context1.Canceled);
+            Assert.IsFalse(context2.Canceled);
         }
 
         [TestMethod]
@@ -41,7 +53,7 @@
             // Setup
             ActionResult result = new EmptyResult();
             Exception exception = new Exception();
-            ResultExecutedContext context = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), result, exception);
+            ResultExecutedContext context = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), result, false /* canceled */, exception);
 
             // Execute & verify
             Assert.AreSame(exception, context.Exception);
@@ -52,7 +64,7 @@
             // Setup
             ActionResult result = new EmptyResult();
             Exception exception = new Exception();
-            ResultExecutedContext context = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), result, exception);
+            ResultExecutedContext context = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), result, false /* canceled */, exception);
 
             // Execute & verify
             Assert.AreSame(result, context.Result);
@@ -63,7 +75,7 @@
             // Setup
             ActionResult result = new EmptyResult();
             Exception exception = new Exception();
-            ResultExecutedContext context = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), result, exception);
+            ResultExecutedContext context = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), result, false /* canceled */, exception);
 
             // Execute
             bool origVal = context.ExceptionHandled;

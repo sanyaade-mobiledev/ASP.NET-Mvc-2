@@ -11,6 +11,8 @@
 
         [TestMethod]
         public void ComparerIsOrdinalIgnoreCase() {
+            // DevDiv Bugs 195982: The ViewData dictionary property on Controller should be case insensitive
+
             // Setup
             ViewDataDictionary dictionary = new ViewDataDictionary();
             object item = new object();
@@ -34,6 +36,21 @@
 
             // Verify
             Assert.AreEqual("FooValue", value);
+        }
+
+        [TestMethod]
+        public void ItemWithKeyNotInDictionaryDoesNotCheckModel() {
+            // DevDiv Bugs 201014: Consider having ViewDataDictionary's indexer be just a dictionary
+            // indexer and have a separate public Eval() method
+
+            // Setup
+            ViewDataDictionary dictionary = new ViewDataDictionary(new { Foo = "Bar" });
+
+            // Execute
+            object value = dictionary["Foo"];
+
+            // Verify
+            Assert.IsNull(value);
         }
 
         [TestMethod]
@@ -66,145 +83,145 @@
 
 
         [TestMethod]
-        public void IndexerReturnsSimplePropertyValue() {
+        public void EvalReturnsSimplePropertyValue() {
             var obj = new { Foo = "Bar" };
             ViewDataDictionary vdd = new ViewDataDictionary(obj);
 
-            Assert.AreEqual("Bar", vdd["Foo"]);
+            Assert.AreEqual("Bar", vdd.Eval("Foo"));
         }
 
         [TestMethod]
-        public void IndexerWithModelAndDictionaryPropertyEvaluatesDictionaryValue() {
+        public void EvalWithModelAndDictionaryPropertyEvaluatesDictionaryValue() {
             var obj = new { Foo = new Dictionary<string, object> { { "Bar", "Baz" } } };
             ViewDataDictionary vdd = new ViewDataDictionary(obj);
 
-            Assert.AreEqual("Baz", vdd["Foo.Bar"]);
+            Assert.AreEqual("Baz", vdd.Eval("Foo.Bar"));
         }
 
         [TestMethod]
-        public void IndexerEvaluatesDictionaryThenModel() {
+        public void EvalEvaluatesDictionaryThenModel() {
             var obj = new { Foo = "NotBar" };
             ViewDataDictionary vdd = new ViewDataDictionary(obj);
             vdd.Add("Foo", "Bar");
 
-            Assert.AreEqual("Bar", vdd["Foo"]);
+            Assert.AreEqual("Bar", vdd.Eval("Foo"));
         }
 
         [TestMethod]
-        public void IndexerReturnsValueOfCompoundExpressionByFollowingObjectPath() {
+        public void EvalReturnsValueOfCompoundExpressionByFollowingObjectPath() {
             var obj = new { Foo = new { Bar = "Baz" } };
             ViewDataDictionary vdd = new ViewDataDictionary(obj);
 
-            Assert.AreEqual("Baz", vdd["Foo.Bar"]);
+            Assert.AreEqual("Baz", vdd.Eval("Foo.Bar"));
         }
 
         [TestMethod]
-        public void IndexerReturnsNullIfExpressionDoesNotMatch() {
+        public void EvalReturnsNullIfExpressionDoesNotMatch() {
             var obj = new { Foo = new { Biz = "Baz" } };
             ViewDataDictionary vdd = new ViewDataDictionary(obj);
 
-            Assert.AreEqual(null, vdd["Foo.Bar"]);
+            Assert.AreEqual(null, vdd.Eval("Foo.Bar"));
         }
 
         [TestMethod]
-        public void IndexerReturnsValueJustAdded() {
+        public void EvalReturnsValueJustAdded() {
             ViewDataDictionary vdd = new ViewDataDictionary();
             vdd.Add("Foo", "Blah");
 
-            Assert.AreEqual("Blah", vdd["Foo"]);
+            Assert.AreEqual("Blah", vdd.Eval("Foo"));
         }
 
         [TestMethod]
-        public void IndexerWithCompoundExpressionReturnsIndexedValue() {
+        public void EvalWithCompoundExpressionReturnsIndexedValue() {
             ViewDataDictionary vdd = new ViewDataDictionary();
             vdd.Add("Foo.Bar", "Baz");
 
-            Assert.AreEqual("Baz", vdd["Foo.Bar"]);
+            Assert.AreEqual("Baz", vdd.Eval("Foo.Bar"));
         }
 
         [TestMethod]
-        public void IndexerWithCompoundExpressionReturnsPropertyOfAddedObject() {
+        public void EvalWithCompoundExpressionReturnsPropertyOfAddedObject() {
             ViewDataDictionary vdd = new ViewDataDictionary();
             vdd.Add("Foo", new { Bar = "Baz" });
 
-            Assert.AreEqual("Baz", vdd["Foo.Bar"]);
+            Assert.AreEqual("Baz", vdd.Eval("Foo.Bar"));
         }
 
         [TestMethod]
-        public void IndexerWithCompoundIndexExpressionReturnsEval() {
+        public void EvalWithCompoundIndexExpressionReturnsEval() {
             ViewDataDictionary vdd = new ViewDataDictionary();
             vdd.Add("Foo.Bar", new { Baz = "Quux" });
 
-            Assert.AreEqual("Quux", vdd["Foo.Bar.Baz"]);
+            Assert.AreEqual("Quux", vdd.Eval("Foo.Bar.Baz"));
         }
 
         [TestMethod]
-        public void IndexerWithCompoundIndexAndCompoundExpressionReturnsValue() {
+        public void EvalWithCompoundIndexAndCompoundExpressionReturnsValue() {
             ViewDataDictionary vdd = new ViewDataDictionary();
             vdd.Add("Foo.Bar", new { Baz = new { Blah = "Quux" } });
 
-            Assert.AreEqual("Quux", vdd["Foo.Bar.Baz.Blah"]);
+            Assert.AreEqual("Quux", vdd.Eval("Foo.Bar.Baz.Blah"));
         }
 
         /// <summary>
         /// Make sure that dict["foo.bar"] gets chosen before dict["foo"]["bar"]
         /// </summary>
         [TestMethod]
-        public void IndexerChoosesValueInDictionaryOverOtherValue() {
+        public void EvalChoosesValueInDictionaryOverOtherValue() {
             ViewDataDictionary vdd = new ViewDataDictionary();
             vdd.Add("Foo", new { Bar = "Not Baz" });
             vdd.Add("Foo.Bar", "Baz");
 
-            Assert.AreEqual("Baz", vdd["Foo.Bar"]);
+            Assert.AreEqual("Baz", vdd.Eval("Foo.Bar"));
         }
 
         /// <summary>
         /// Make sure that dict["foo.bar"]["baz"] gets chosen before dict["foo"]["bar"]["baz"]
         /// </summary>
         [TestMethod]
-        public void IndexerChoosesCompoundValueInDictionaryOverOtherValues() {
+        public void EvalChoosesCompoundValueInDictionaryOverOtherValues() {
             ViewDataDictionary vdd = new ViewDataDictionary();
             vdd.Add("Foo", new { Bar = new { Baz = "Not Quux" } });
             vdd.Add("Foo.Bar", new { Baz = "Quux" });
 
-            Assert.AreEqual("Quux", vdd["Foo.Bar.Baz"]);
+            Assert.AreEqual("Quux", vdd.Eval("Foo.Bar.Baz"));
         }
 
         /// <summary>
         /// Make sure that dict["foo.bar"]["baz"] gets chosen before dict["foo"]["bar.baz"]
         /// </summary>
         [TestMethod]
-        public void IndexerChoosesCompoundValueInDictionaryOverOtherValuesWithCompoundProperty() {
+        public void EvalChoosesCompoundValueInDictionaryOverOtherValuesWithCompoundProperty() {
             ViewDataDictionary vdd = new ViewDataDictionary();
             vdd.Add("Foo", new Person());
             vdd.Add("Foo.Bar", new { Baz = "Quux" });
 
-            Assert.AreEqual("Quux", vdd["Foo.Bar.Baz"]);
+            Assert.AreEqual("Quux", vdd.Eval("Foo.Bar.Baz"));
         }
 
         [TestMethod]
-        public void IndexerWithCompoundExpressionAndDictionarySubExpressionChoosesDictionaryValue() {
+        public void EvalWithCompoundExpressionAndDictionarySubExpressionChoosesDictionaryValue() {
             ViewDataDictionary vdd = new ViewDataDictionary();
             vdd.Add("Foo", new Dictionary<string, object> { { "Bar", "Baz" } });
 
-            Assert.AreEqual("Baz", vdd["Foo.Bar"]);
+            Assert.AreEqual("Baz", vdd.Eval("Foo.Bar"));
         }
 
         [TestMethod]
-        public void IndexerWithDictionaryAndNoMatchReturnsNull() {
+        public void EvalWithDictionaryAndNoMatchReturnsNull() {
             ViewDataDictionary vdd = new ViewDataDictionary();
             vdd.Add("Foo", new Dictionary<string, object> { { "NotBar", "Baz" } });
 
-            object result = vdd["Foo.Bar"];
+            object result = vdd.Eval("Foo.Bar");
             Assert.IsNull(result);
         }
 
         [TestMethod]
-        public void IndexerWithNestedDictionariesEvalCorrectly() {
+        public void EvalWithNestedDictionariesEvalCorrectly() {
             ViewDataDictionary vdd = new ViewDataDictionary();
             vdd.Add("Foo", new Dictionary<string, object> { { "Bar", new Hashtable { { "Baz", "Quux" } } } });
 
-            Assert.AreEqual("Quux", vdd["Foo.Bar.Baz"]);
+            Assert.AreEqual("Quux", vdd.Eval("Foo.Bar.Baz"));
         }
 
         public class Person : CustomTypeDescriptor {

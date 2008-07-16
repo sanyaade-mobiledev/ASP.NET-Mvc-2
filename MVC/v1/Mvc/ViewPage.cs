@@ -65,6 +65,12 @@
             private set;
         }
 
+        public virtual void InitHelpers() {
+            Ajax = new AjaxHelper(ViewContext);
+            Html = new HtmlHelper(ViewContext, this);
+            Url = new UrlHelper(ViewContext);
+        }
+
         [SuppressMessage("Microsoft.Security", "CA2109:ReviewVisibleEventHandlers")]
         protected override void OnPreInit(EventArgs e) {
             base.OnPreInit(e);
@@ -86,10 +92,7 @@
 
         public virtual void RenderView(ViewContext viewContext) {
             ViewContext = viewContext;
-            Ajax = new AjaxHelper(viewContext);
-            Html = new HtmlHelper(viewContext, this);
-            Url = new UrlHelper(viewContext);
-
+            InitHelpers();
             ProcessRequest(HttpContext.Current);
         }
 

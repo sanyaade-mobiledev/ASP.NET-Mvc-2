@@ -16,8 +16,8 @@
             vp.ViewData = new ViewDataDictionary { { "a", "123" }, { "b", "456" } };
 
             // Verify
-            Assert.AreEqual("123", vmp.ViewData["a"]);
-            Assert.AreEqual("456", vmp.ViewData["b"]);
+            Assert.AreEqual("123", vmp.ViewData.Eval("a"));
+            Assert.AreEqual("456", vmp.ViewData.Eval("b"));
         }
 
         [TestMethod]
@@ -62,7 +62,7 @@
             // Verify
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    object foo = vmp.ViewData["foo"];
+                    object foo = vmp.ViewData;
                 },
                 "A ViewMasterPage can only be used with content pages that derive from ViewPage or ViewPage<TViewItem>.");
         }
@@ -123,7 +123,7 @@
                 "view",
                 null,
                 new ViewDataDictionary(),
-                new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
+                new TempDataDictionary());
 
             HtmlHelper htmlHelper = new HtmlHelper(vc, vp);
             vp.Html = htmlHelper;
@@ -145,7 +145,7 @@
                 "view",
                 null,
                 new ViewDataDictionary(),
-                new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
+                new TempDataDictionary());
             UrlHelper urlHelper = new UrlHelper(vc);
             vp.Url = urlHelper;
 

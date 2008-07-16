@@ -5,6 +5,7 @@
     using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
     using System.Web;
+    using System.Web.Mvc.Resources;
 
     [SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable",
         Justification = "This type is not meant to be serialized.")]
@@ -61,17 +62,23 @@
         // the key doesn't exist.  If he uses an IDictionary or Dictionary reference, its implementation throws.
         public new object this[string key] {
             get {
-                return _evaluator.Eval(key);
+                object value;
+                TryGetValue(key, out value);
+                return value;
             }
             set {
                 base[key] = value;
             }
         }
 
-        internal object DictionaryIndexer(string key) {
-            object value;
-            TryGetValue(key, out value);
-            return value;
+        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Eval",
+            Justification = "Commonly used shorthand for Evaluate.")]
+        public object Eval(string expression) {
+            if (String.IsNullOrEmpty(expression)) {
+                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "expression");
+            }
+
+            return _evaluator.Eval(expression);
         }
 
         internal sealed class ViewDataEvaluator {
@@ -142,7 +149,7 @@
 
                 ViewDataDictionary vdd = indexableObject as ViewDataDictionary;
                 if (vdd != null) {
-                    return vdd.DictionaryIndexer(key);
+                    return vdd[key];
                 }
 
                 MethodInfo containsKeyMethod = indexableType.GetMethod("ContainsKey", BindingFlags.Public | BindingFlags.Instance, null, new Type[] { typeof(string) }, null);

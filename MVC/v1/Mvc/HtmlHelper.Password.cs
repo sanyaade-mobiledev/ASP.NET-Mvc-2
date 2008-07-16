@@ -9,7 +9,7 @@
         }
 
         public string Password(string name, object htmlAttributes) {
-            return Password(name, ToDictionary(htmlAttributes));
+            return Password(name, TagBuilder.ToDictionary(htmlAttributes));
         }
 
         public string Password(string name, IDictionary<string, object> htmlAttributes) {
@@ -21,7 +21,7 @@
         }
 
         public string Password(string name, string value, object htmlAttributes) {
-            return Password(name, value, ToDictionary(htmlAttributes));
+            return Password(name, value, TagBuilder.ToDictionary(htmlAttributes));
         }
 
         public string Password(string name, string value, IDictionary<string, object> htmlAttributes) {

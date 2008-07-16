@@ -1,5 +1,6 @@
 ﻿namespace System.Web.Mvc {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Web;
@@ -8,16 +9,26 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ControllerBuilder {
-        private static ControllerBuilder _instance = new ControllerBuilder();
+
         private Func<IControllerFactory> _factoryThunk;
+        private static ControllerBuilder _instance = new ControllerBuilder();
+        private HashSet<string> _namespaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         public ControllerBuilder() {
-            SetControllerFactory(new DefaultControllerFactory());
+            SetControllerFactory(new DefaultControllerFactory() {
+                ControllerBuilder = this
+            });
         }
 
         public static ControllerBuilder Current {
             get {
                 return _instance;
+            }
+        }
+
+        public HashSet<string> DefaultNamespaces {
+            get {
+                return _namespaces;
             }
         }
 

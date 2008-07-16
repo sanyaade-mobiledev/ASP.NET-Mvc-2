@@ -170,12 +170,14 @@ namespace System.Web.TestUtil {
             Assert.AreEqual(valueToCheck, value);
         }
 
-        public static void TestEnumProperty<TEnumValue>(object instance, string propertyName, TEnumValue initialValue) {
+        public static void TestEnumProperty<TEnumValue>(object instance, string propertyName, TEnumValue initialValue, bool testDefaultValue) {
             // Verify initial value
             TestGetPropertyValue(instance, propertyName, initialValue);
 
-            // Verify DefaultValue attribute matches inital value
-            TestDefaultValue(instance, propertyName);
+            if (testDefaultValue) {
+                // Verify DefaultValue attribute matches inital value
+                TestDefaultValue(instance, propertyName);
+            }
 
             PropertyInfo propInfo = GetPropertyInfo(instance, propertyName);
 

@@ -59,7 +59,8 @@
             if (String.IsNullOrEmpty(actionName)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
             }
-            return GenerateLink(linkText, null /* routeName */, actionName, null /* controllerName */, new RouteValueDictionary());
+            string controllerName = ViewContext.RouteData.GetRequiredString("controller");
+            return GenerateLink(linkText, null /* routeName */, actionName, controllerName, new RouteValueDictionary());
         }
 
         public string ActionLink(string linkText, string actionName, object values) {
@@ -148,7 +149,7 @@
         }
 
         private string EvalString(string key) {
-            return Convert.ToString(ViewData[key], CultureInfo.InvariantCulture);
+            return Convert.ToString(ViewData.Eval(key), CultureInfo.InvariantCulture);
         }
 
         private string GenerateLink(string linkText, string routeName, string actionName, string controllerName, RouteValueDictionary valuesDictionary) {
@@ -215,41 +216,16 @@
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "name");
             }
 
-            IDictionary<string, string> attributes = ToStringDictionary(htmlAttributes);
-            TryAddValue(attributes, "type", inputType);
-            TryAddValue(attributes, "name", name);
-            TryAddValue(attributes, "id", name);
-            TryAddValue(attributes, "value", (useViewData) ? EvalString(name) : defaultValue);
-
             TagBuilder builder = new TagBuilder("input") {
-                Attributes = attributes
+                Attributes = TagBuilder.ToStringDictionary(htmlAttributes)
             };
+            
+            builder.TryAddValue("type", inputType);
+            builder.TryAddValue("name", name);
+            builder.TryAddValue("id", name);
+            builder.TryAddValue("value", (useViewData) ? EvalString(name) : defaultValue);
+            builder.TagRenderMode = TagRenderMode.SelfClosing;
             return builder.ToString();
-        }
-
-        private static IDictionary<string, object> ToDictionary(object values) {
-            return new RouteValueDictionary(values);
-        }
-
-        internal static Dictionary<string, string> ToStringDictionary<TKey, TValue>(IDictionary<TKey, TValue> dictionary) {
-            if (dictionary == null) {
-                return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            }
-
-            return dictionary.ToDictionary(
-                entry => Convert.ToString(entry.Key, CultureInfo.InvariantCulture),
-                entry => Convert.ToString(entry.Value, CultureInfo.InvariantCulture),
-                StringComparer.OrdinalIgnoreCase);
-        }
-
-        internal static bool TryAddValue<TKey, TValue>(IDictionary<TKey, TValue> dict, TKey key, TValue value) {
-            if (dict.ContainsKey(key)) {
-                return false;
-            }
-            else {
-                dict[key] = value;
-                return true;
-            }
         }
     }
 }

@@ -43,7 +43,7 @@
         public void ExecuteResultCallsResponseRedirect() {
             // Setup
             Mock<HttpResponseBase> mockResponse = new Mock<HttpResponseBase>();
-            mockResponse.Expect(o => o.Redirect(_baseUrl));
+            mockResponse.Expect(o => o.Redirect(_baseUrl, false /* endResponse */));
             Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
             mockContext.Expect(o => o.Response).Returns(mockResponse.Object);
             ControllerContext context = new ControllerContext(mockContext.Object, new RouteData(), new Mock<IController>().Object);

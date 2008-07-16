@@ -94,5 +94,15 @@ namespace System.Web.TestUtil {
             }
             return e;
         }
+
+        public static InvalidOperationException ExpectInvalidOperationException(GenericDelegate del, string exceptionMessage) {
+            InvalidOperationException e = ExpectExceptionHelper<InvalidOperationException>(del);
+            // Only check exception message on English build and OS, since some exception messages come from the OS
+            // and will be in the native language.
+            if (UnitTestHelper.EnglishBuildAndOS) {
+                Assert.AreEqual(exceptionMessage, e.Message, "Incorrect exception message.");
+            }
+            return e;
+        }
     }
 }

@@ -17,7 +17,7 @@ namespace System.Web.Mvc.Test {
                 "view",
                 "master",
                 new ViewDataDictionary(),
-                new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
+                new TempDataDictionary());
             UrlHelper urlHelper = new UrlHelper(viewContext);
 
             // Verify
@@ -336,7 +336,7 @@ namespace System.Web.Mvc.Test {
             RouteData rd = new RouteData();
             rd.Values.Add("controller", "home");
             rd.Values.Add("action", "oldaction");
-            ViewContext context = new ViewContext(httpcontext, rd, new Mock<IController>().Object, "view", "master", new ViewDataDictionary(), new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
+            ViewContext context = new ViewContext(httpcontext, rd, new Mock<IController>().Object, "view", "master", new ViewDataDictionary(), new TempDataDictionary());
             UrlHelper urlHelper = new UrlHelper(context);
             urlHelper.RouteCollection = rt;
             return urlHelper;

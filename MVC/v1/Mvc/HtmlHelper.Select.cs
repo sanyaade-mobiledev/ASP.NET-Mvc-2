@@ -15,7 +15,7 @@
         }
 
         public string DropDownList(string name, object htmlAttributes) {
-            return DropDownList(name, ToDictionary(htmlAttributes));
+            return DropDownList(name, TagBuilder.ToDictionary(htmlAttributes));
         }
 
         public string DropDownList(string name, IDictionary<string, object> htmlAttributes) {
@@ -29,7 +29,7 @@
         }
 
         public string DropDownList(string name, SelectList selectList, object htmlAttributes) {
-            return DropDownList(name, selectList, ToDictionary(htmlAttributes));
+            return DropDownList(name, selectList, TagBuilder.ToDictionary(htmlAttributes));
         }
 
         [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters",
@@ -44,7 +44,7 @@
         }
 
         public string ListBox(string name, object htmlAttributes) {
-            return ListBox(name, ToDictionary(htmlAttributes));
+            return ListBox(name, TagBuilder.ToDictionary(htmlAttributes));
         }
 
         public string ListBox(string name, IDictionary<string, object> htmlAttributes) {
@@ -58,7 +58,7 @@
         }
 
         public string ListBox(string name, MultiSelectList selectList, object htmlAttributes) {
-            return ListBox(name, selectList, ToDictionary(htmlAttributes));
+            return ListBox(name, selectList, TagBuilder.ToDictionary(htmlAttributes));
         }
 
         public string ListBox(string name, MultiSelectList selectList, IDictionary<string, object> htmlAttributes) {
@@ -69,7 +69,7 @@
         private TList GetSelectData<TList>(string name) where TList : MultiSelectList {
             object o = null;
             if (ViewData != null) {
-                o = ViewData[name];
+                o = ViewData.Eval(name);
             }
             if (o == null) {
                 throw new InvalidOperationException(
@@ -130,13 +130,13 @@
             }
 
             TagBuilder builder = new TagBuilder("select") {
-                Attributes = ToStringDictionary(htmlAttributes),
+                Attributes = TagBuilder.ToStringDictionary(htmlAttributes),
                 InnerHtml = listItemBuilder.ToString()
             };
-            TryAddValue(builder.Attributes, "name", name);
-            TryAddValue(builder.Attributes, "id", name);
+            builder.TryAddValue("name", name);
+            builder.TryAddValue("id", name);
             if (allowMultiple) {
-                TryAddValue(builder.Attributes, "multiple", "multiple");
+                builder.TryAddValue("multiple", "multiple");
             }
             return builder.ToString();
         }

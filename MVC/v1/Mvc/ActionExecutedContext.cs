@@ -7,10 +7,9 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ActionExecutedContext : ControllerContext {
 
-        private static readonly EmptyResult _emptyResult = new EmptyResult();
         private ActionResult _result;
 
-        public ActionExecutedContext(ControllerContext controllerContext, MethodInfo actionMethod, Exception exception)
+        public ActionExecutedContext(ControllerContext controllerContext, MethodInfo actionMethod, bool canceled, Exception exception)
             : base(controllerContext) {
 
             if (actionMethod == null) {
@@ -18,10 +17,16 @@
             }
 
             ActionMethod = actionMethod;
+            Canceled = canceled;
             Exception = exception;
         }
 
         public MethodInfo ActionMethod {
+            get;
+            private set;
+        }
+
+        public bool Canceled {
             get;
             private set;
         }
@@ -38,7 +43,7 @@
 
         public ActionResult Result {
             get {
-                return _result ?? _emptyResult;
+                return _result ?? EmptyResult.Instance;
             }
             set {
                 _result = value;

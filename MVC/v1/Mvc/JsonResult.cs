@@ -40,6 +40,7 @@
                 response.ContentEncoding = ContentEncoding;
             }
             if (Data != null) {
+                // The JavaScriptSerializer type was marked as obsolete prior to .NET Framework 3.5 SP1
 #pragma warning disable 0618
                 JavaScriptSerializer serializer = new JavaScriptSerializer();
                 response.Write(serializer.Serialize(Data));

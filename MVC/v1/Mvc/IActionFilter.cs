@@ -6,7 +6,5 @@
     public interface IActionFilter {
         void OnActionExecuting(ActionExecutingContext filterContext);
         void OnActionExecuted(ActionExecutedContext filterContext);
-        void OnResultExecuting(ResultExecutingContext filterContext);
-        void OnResultExecuted(ResultExecutedContext filterContext);
     }
 }

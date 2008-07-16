@@ -114,7 +114,7 @@
         private static TempDataDictionary GetTempDataDictionary() {
             Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
             mockContext.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
-            return new TempDataDictionary(mockContext.Object);
+            return new TempDataDictionary();
         }
     }
 }

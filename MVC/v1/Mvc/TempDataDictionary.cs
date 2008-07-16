@@ -3,106 +3,73 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Runtime.Serialization;
     using System.Web;
-    using System.Web.Util;
-
-    // REVIEW: Should this type be serializable? We store it in session so it might be a good idea.
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public class TempDataDictionary : IDictionary<string, object> {
-        internal static string TempDataSessionStateKey = "__ControllerTempData";
+    [Serializable]
+    public class TempDataDictionary : IDictionary<string, object>, ISerializable {
+        internal const string _tempDataSerializationKey = "__tempData";
 
-        // The First is the real TempData storage dictionary
-        // The Second is the list of tracked keys: the keys that have been modified during this request,
-        // and thus must survive to the next request (but not beyond).
-        private Pair<Dictionary<string, object>, HashSet<string>> _sessionData;
+        private Dictionary<string, object> _data;
+        private HashSet<string> _initialKeys;
+        private HashSet<string> _modifiedKeys;        
 
-        public HttpContextBase HttpContext {
-            get;
-            private set;
+        public TempDataDictionary() {
+            _initialKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _modifiedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _data = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public TempDataDictionary(HttpContextBase httpContext) {
-            if (httpContext == null) {
-                throw new ArgumentNullException("httpContext");
-            }
-
-            HttpContext = httpContext;
-
-            EnsureReadData();
-        }
-
-        private void EnsureReadData() {
-            if (_sessionData != null) {
-                // If we already got the TempData, do nothing
-                return;
-            }
-
-            // Try to retrieve the TempData from Session
-            if (HttpContext.Session != null) {
-                _sessionData = HttpContext.Session[TempDataSessionStateKey] as Pair<Dictionary<string, object>, HashSet<string>>;
-            }
-            if (_sessionData != null) {
-                // If we got it from Session, remove it so that no other request gets it
-                HttpContext.Session.Remove(TempDataSessionStateKey);
-
-                // Clear out any items that weren't being tracked (they were from two requests ago, and thus invalid)
-                HashSet<string> untrackedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (string key in _sessionData.First.Keys) {
-                    if (!_sessionData.Second.Contains(key)) {
-                        untrackedKeys.Add(key);
-                    }
-                }
-                foreach (string untrackedKey in untrackedKeys) {
-                    _sessionData.First.Remove(untrackedKey);
-                }
-                _sessionData.Second.Clear();
-            }
-            else {
-                // If there wasn't anything in Session, create a new TempData
-                _sessionData = new Pair<Dictionary<string, object>, HashSet<string>>(
-                    new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase),
-                    new HashSet<string>(StringComparer.OrdinalIgnoreCase));
-            }
-        }
-
-        private void EnsureWriteData(string key) {
-            // If someone wants to write to TempData, we have to add it to Session
-            HttpSessionStateBase session = HttpContext.Session;
-            if (session != null) {
-               session[TempDataSessionStateKey] = _sessionData;
-            }
-
-            // And track all keys that have been modified (added, removed, overwritten)
-            if (key == null) {
-                // If the user is clearing all the keys, then we have nothing to track
-                _sessionData.Second.Clear();
-            }
-            else {
-                // If they're just modifying a single key, add it to the list (if it isn't already there)
-                if (!_sessionData.Second.Contains(key)) {
-                    _sessionData.Second.Add(key);
-                }
-            }
+        protected TempDataDictionary(SerializationInfo info, StreamingContext context) {
+            _initialKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _modifiedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            _data = info.GetValue(_tempDataSerializationKey, typeof(Dictionary<string, object>)) as Dictionary<string, object>;
         }
 
         public int Count {
             [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
             get {
-                return _sessionData.First.Count;
+                return _data.Count;
             }
+        }
+
+        internal void ApplyChanges() {
+            foreach (string x in _initialKeys) {
+                if (!_modifiedKeys.Contains(x)) {
+                    _data.Remove(x);
+                }
+            }
+
+            _initialKeys = _modifiedKeys;
+            _modifiedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
 
         public Dictionary<string, object>.KeyCollection Keys {
             get {
-                return _sessionData.First.Keys;
+                return _data.Keys;
+            }
+        }
+
+        public void Load(ITempDataProvider tempDataProvider) {
+            TempDataDictionary tempData = tempDataProvider.LoadTempData();
+
+            _data = tempData._data;
+            _initialKeys = tempData._initialKeys;
+            _modifiedKeys = tempData._modifiedKeys;
+        }
+
+        public void Save(ITempDataProvider tempDataProvider) {
+            if (_modifiedKeys.Count > 0) {
+                ApplyChanges();
+                tempDataProvider.SaveTempData(this);
             }
         }
 
         public Dictionary<string, object>.ValueCollection Values {
             get {
-                return _sessionData.First.Values;
+                return _data.Values;
             }
         }
 
@@ -110,66 +77,72 @@
             [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
             get {
                 object value;
-                if (_sessionData.First.TryGetValue(key, out value)) {
+                if (TryGetValue(key, out value)) {
                     return value;
                 }
                 return null;
             }
             [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
             set {
-                EnsureWriteData(key);
-                _sessionData.First[key] = value;
+                _data[key] = value;
+                _modifiedKeys.Add(key);
             }
         }
 
         [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         public void Add(string key, object value) {
-            EnsureWriteData(key);
-            _sessionData.First.Add(key, value);
+            _data.Add(key, value);
+            _modifiedKeys.Add(key);
         }
 
         [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         public void Clear() {
-            EnsureWriteData(null);
-            _sessionData.First.Clear();
+            _data.Clear();
+            _modifiedKeys.Clear();
+            _initialKeys.Clear();
         }
 
         [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         public bool ContainsKey(string key) {
-            return _sessionData.First.ContainsKey(key);
+            return _data.ContainsKey(key);
         }
 
         public bool ContainsValue(object value) {
-            return _sessionData.First.ContainsValue(value);
+            return _data.ContainsValue(value);
         }
 
         public Dictionary<string, object>.Enumerator GetEnumerator() {
-            return _sessionData.First.GetEnumerator();
+            return _data.GetEnumerator();
+        }
+
+        protected virtual void GetObjectData(SerializationInfo info, StreamingContext context) {
+            info.AddValue(_tempDataSerializationKey, _data);
         }
 
         [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         public bool Remove(string key) {
-            EnsureWriteData(key);
-            return _sessionData.First.Remove(key);
+            _initialKeys.Remove(key);
+            _modifiedKeys.Remove(key);
+            return _data.Remove(key);
         }
 
         [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         public bool TryGetValue(string key, out object value) {
-            return _sessionData.First.TryGetValue(key, out value);
+            return _data.TryGetValue(key, out value);
         }
 
         #region IDictionary<string, object> Implementation
         ICollection<string> IDictionary<string, object>.Keys {
             [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
             get {
-                return ((IDictionary<string, object>)_sessionData.First).Keys;
+                return ((IDictionary<string, object>)_data).Keys;
             }
         }
 
         ICollection<object> IDictionary<string, object>.Values {
             [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
             get {
-                return ((IDictionary<string, object>)_sessionData.First).Values;
+                return ((IDictionary<string, object>)_data).Values;
             }
         }
         #endregion
@@ -177,7 +150,7 @@
         #region IEnumerable<KeyValuePair<string, object>> Implementation
         [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator() {
-            return ((IEnumerable<KeyValuePair<string, object>>)_sessionData.First).GetEnumerator();
+            return ((IEnumerable<KeyValuePair<string, object>>)_data).GetEnumerator();
         }
         #endregion
 
@@ -185,37 +158,44 @@
         bool ICollection<KeyValuePair<string, object>>.IsReadOnly {
             [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
             get {
-                return ((ICollection<KeyValuePair<string, object>>)_sessionData.First).IsReadOnly;
+                return ((ICollection<KeyValuePair<string, object>>)_data).IsReadOnly;
             }
         }
 
         [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         void ICollection<KeyValuePair<string, object>>.CopyTo(KeyValuePair<string, object>[] array, int index) {
-            ((ICollection<KeyValuePair<string, object>>)_sessionData.First).CopyTo(array, index);
+            ((ICollection<KeyValuePair<string, object>>)_data).CopyTo(array, index);
         }
 
         [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         void ICollection<KeyValuePair<string, object>>.Add(KeyValuePair<string, object> keyValuePair) {
-            EnsureWriteData(keyValuePair.Key);
-            ((ICollection<KeyValuePair<string, object>>)_sessionData.First).Add(keyValuePair);
+            _modifiedKeys.Add(keyValuePair.Key);
+            ((ICollection<KeyValuePair<string, object>>)_data).Add(keyValuePair);
         }
 
         [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         bool ICollection<KeyValuePair<string, object>>.Contains(KeyValuePair<string, object> keyValuePair) {
-            return ((ICollection<KeyValuePair<string, object>>)_sessionData.First).Contains(keyValuePair);
+            return ((ICollection<KeyValuePair<string, object>>)_data).Contains(keyValuePair);
         }
 
         [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         bool ICollection<KeyValuePair<string, object>>.Remove(KeyValuePair<string, object> keyValuePair) {
-            EnsureWriteData(keyValuePair.Key);
-            return ((ICollection<KeyValuePair<string, object>>)_sessionData.First).Remove(keyValuePair);
+            _modifiedKeys.Remove(keyValuePair.Key);
+            return ((ICollection<KeyValuePair<string, object>>)_data).Remove(keyValuePair);
         }
         #endregion
 
         #region IEnumerable Implementation
         [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         IEnumerator IEnumerable.GetEnumerator() {
-            return ((IEnumerable)_sessionData.First).GetEnumerator();
+            return ((IEnumerable)_data).GetEnumerator();
+        }
+        #endregion
+
+        #region ISerializable Members
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context) {
+            GetObjectData(info, context);
         }
         #endregion
     }

@@ -11,7 +11,7 @@
         public void ConstructorWithNullControllerContextThrows() {
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    new ViewContext(null, "view", null, new ViewDataDictionary(), new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
+                    new ViewContext(null, "view", null, new ViewDataDictionary(), new TempDataDictionary());
                 },
                 "controllerContext");
         }
@@ -23,7 +23,7 @@
             IController controller = new Mock<IController>().Object;
             RouteData routeData = new RouteData();
             ViewDataDictionary viewData = new ViewDataDictionary();
-            TempDataDictionary tempData = new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData());
+            TempDataDictionary tempData = new TempDataDictionary();
 
             // Execute
             ViewContext vc = new ViewContext(httpContext, routeData, controller, "view", "master", viewData, tempData);
@@ -45,7 +45,7 @@
             IController controller = new Mock<IController>().Object;
             RouteData routeData = new RouteData();
             ViewDataDictionary viewData = new ViewDataDictionary();
-            TempDataDictionary tempData = new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData());
+            TempDataDictionary tempData = new TempDataDictionary();
 
             // Execute
             ViewContext vc = new ViewContext(new ControllerContext(httpContext, routeData, controller), "view", "master", viewData, tempData);

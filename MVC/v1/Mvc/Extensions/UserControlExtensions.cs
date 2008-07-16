@@ -116,10 +116,7 @@
             ViewPage dummyPage = new ViewPage();
             dummyPage.ViewContext = context;
             dummyPage.Controls.Add(instance);
-
-            //pass it the default context from the helper
-            dummyPage.Url = new UrlHelper(context);
-            dummyPage.Html = new HtmlHelper(context, dummyPage);
+            dummyPage.InitHelpers();
 
             //set the properties
             SetUserControlProperties(instance, propertySettings);

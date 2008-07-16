@@ -9,12 +9,12 @@ using System.Security;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("System.Web.Mvc")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("System.Web.Mvc.dll")]
+[assembly: AssemblyDescription("System.Web.Mvc.dll")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("System.Web.Mvc")]
-[assembly: AssemblyCopyright("Copyright © 2008")]
+[assembly: AssemblyCompany("Microsoft Corporation")]
+[assembly: AssemblyProduct("Microsoft® .NET Framework")]
+[assembly: AssemblyCopyright("© Microsoft Corporation. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -37,7 +37,7 @@ using System.Security;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.30508.0")]
+[assembly: AssemblyFileVersion("1.0.30714.0")]
 
 [assembly: AllowPartiallyTrustedCallers]
 [assembly: CLSCompliant(true)]

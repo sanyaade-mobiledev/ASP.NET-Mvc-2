@@ -38,7 +38,8 @@
             if (String.IsNullOrEmpty(actionName)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
             }
-            return GenerateUrl(null /* routeName */, actionName, null /* controllerName */, new RouteValueDictionary());
+            string controllerName = ViewContext.RouteData.GetRequiredString("controller");
+            return GenerateUrl(null /* routeName */, actionName, controllerName, new RouteValueDictionary());
         }
 
         public string Action(string actionName, object values) {

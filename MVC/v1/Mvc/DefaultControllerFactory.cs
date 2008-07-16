@@ -1,8 +1,9 @@
 ﻿namespace System.Web.Mvc {
     using System;
     using System.Collections;
+    using System.Collections.Generic;
     using System.Globalization;
-    using System.Reflection;
+    using System.Linq;
     using System.Web;
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
@@ -10,10 +11,11 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class DefaultControllerFactory : IControllerFactory {
-        private static object _controllerTypeCacheLock = new object();
-        private static ControllerTypeCache _controllerTypeCache = new ControllerTypeCache();
-        private ControllerTypeCache _currentControllerTypeCache;
+
         private IBuildManager _buildManager;
+        private ControllerBuilder _controllerBuilder;
+        private ControllerTypeCache _instanceControllerTypeCache;
+        private static ControllerTypeCache _staticControllerTypeCache = new ControllerTypeCache();
 
         internal IBuildManager BuildManager {
             get {
@@ -27,15 +29,21 @@
             }
         }
 
-        internal ControllerTypeCache ControllerTypeCache {
+        internal ControllerBuilder ControllerBuilder {
             get {
-                if (_currentControllerTypeCache == null) {
-                    _currentControllerTypeCache = _controllerTypeCache;
-                }
-                return _currentControllerTypeCache;
+                return _controllerBuilder ?? ControllerBuilder.Current;
             }
             set {
-                _currentControllerTypeCache = value;
+                _controllerBuilder = value;
+            }
+        }
+
+        internal ControllerTypeCache ControllerTypeCache {
+            get {
+                return _instanceControllerTypeCache ?? _staticControllerTypeCache;
+            }
+            set {
+                _instanceControllerTypeCache = value;
             }
         }
 
@@ -94,65 +102,59 @@
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         protected internal virtual Type GetControllerType(string controllerName) {
             if (String.IsNullOrEmpty(controllerName)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "controllerName");
             }
 
-            if (!ControllerTypeCache.Initialized) {
-                lock (_controllerTypeCacheLock) {
-                    if (!ControllerTypeCache.Initialized) {
-                        ControllerTypeCache.Initialize();
-                        // Go through all assemblies referenced by the application and search for
-                        // controllers and controller factories.
-                        ICollection assemblies = BuildManager.GetReferencedAssemblies();
-                        foreach (Assembly asm in assemblies) {
-                            try {
-                                Type[] typesInAsm = asm.GetTypes();
-                                foreach (Type t in typesInAsm) {
-                                    if (IsController(t)) {
-                                        string foundControllerName = t.Name.Substring(0, t.Name.Length - 10);
-                                        if (!ControllerTypeCache.ContainsController(foundControllerName)) {
-                                            ControllerTypeCache.AddControllerType(foundControllerName, t);
-                                        }
-                                        else {
-                                            // A null value indicates a conflict for this key (i.e. more than one match)
-                                            ControllerTypeCache.AddControllerType(foundControllerName, null);
-                                        }
-                                    }
-                                }
-                            }
-                            catch {
-                                // TODO: Remove this try-catch. This is a temporary fix until we add a new feature.
-                            }
-                        }
+            // first search in the current route's namespace collection
+            object routeNamespacesObj;
+            Type match;
+            if (RequestContext != null && RequestContext.RouteData.DataTokens.TryGetValue("Namespaces", out routeNamespacesObj)) {
+                IEnumerable<string> routeNamespaces = routeNamespacesObj as IEnumerable<string>;
+                if (routeNamespaces != null) {
+                    HashSet<string> nsHash = new HashSet<string>(routeNamespaces, StringComparer.OrdinalIgnoreCase);
+                    match = GetControllerTypeWithinNamespaces(controllerName, nsHash);
+                    if (match != null) {
+                        return match;
                     }
                 }
             }
 
+            // then search in the application's default namespace collection
+            HashSet<string> nsDefaults = new HashSet<string>(ControllerBuilder.DefaultNamespaces, StringComparer.OrdinalIgnoreCase);
+            match = GetControllerTypeWithinNamespaces(controllerName, nsDefaults);
+            if (match != null) {
+                return match;
+            }
+
+            // if all else fails, search every namespace
+            return GetControllerTypeWithinNamespaces(controllerName, null /* namespaces */);
+        }
+
+        private Type GetControllerTypeWithinNamespaces(string controllerName, HashSet<string> namespaces) {
             // Once the master list of controllers has been created we can quickly index into it
-            Type controllerType;
-            if (ControllerTypeCache.TryGetControllerType(controllerName, out controllerType)) {
-                if (controllerType == null) {
-                    // A null value indicates a conflict for this key (i.e. more than one match)
+            ControllerTypeCache.EnsureInitialized(BuildManager);
+
+            IList<Type> matchingTypes = ControllerTypeCache.GetControllerTypes(controllerName, namespaces);
+            switch (matchingTypes.Count) {
+                case 0:
+                    // no matching types
+                    return null;
+
+                case 1:
+                    // single matching type
+                    return matchingTypes[0];
+
+                default:
+                    // multiple matching types
+                    string typeNames = String.Join(", ", matchingTypes.Select(t => t.FullName).ToArray());
                     throw new InvalidOperationException(
                         String.Format(
                             CultureInfo.CurrentUICulture,
-                            MvcResources.DefaultControllerFactory_DuplicateControllers,
-                            controllerName));
-                }
-                return controllerType;
+                            MvcResources.DefaultControllerFactory_ControllerNameAmbiguous,
+                            controllerName, typeNames));
             }
-            return null;
-        }
-
-        private static bool IsController(Type t) {
-            return
-                t.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) &&
-                (t != typeof(IController)) &&
-                (t != typeof(Controller)) &&
-                typeof(IController).IsAssignableFrom(t);
         }
 
         #region IControllerFactory Members

@@ -72,6 +72,20 @@
             return value;
         }
 
+        private IList<T> FiltersToTypedList<T>(IList<FilterAttribute> filters) where T : class {
+            List<T> typedList = new List<T>();
+
+            // always add the controller (if it's of the right type) first
+            T controllerFilter = ControllerContext.Controller as T;
+            if (controllerFilter != null) {
+                typedList.Add(controllerFilter);
+            }
+
+            // then add filters of the right type
+            typedList.AddRange(filters.OfType<T>());
+            return typedList;
+        }
+
         protected virtual MethodInfo FindActionMethod(string actionName, IDictionary<string, object> values) {
             if (String.IsNullOrEmpty(actionName)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
@@ -90,7 +104,7 @@
                 // 1) Action methods must not have the non-action attribute in their inheritance chain, and
                 // 2) special methods like constructors, property accessors, and event accessors cannot be action methods, and
                 // 3) methods originally defined on Object (like ToString()) or Controller (like Dispose()) cannot be action methods.
-                if (!methodInfo.IsDefined(typeof(NonActionAttribute), true) &&
+                if (!methodInfo.IsDefined(typeof(NonActionAttribute), true /* inherit */) &&
                     !methodInfo.IsSpecialName &&
                     !methodInfo.GetBaseDefinition().DeclaringType.IsAssignableFrom(typeof(Controller))) {
                     if (foundMatch != null) {
@@ -113,101 +127,23 @@
             return foundMatch;
         }
 
-        protected virtual IList<IActionFilter> GetActionFiltersForMember(MemberInfo memberInfo) {
-            if (memberInfo == null) {
-                throw new ArgumentNullException("memberInfo");
-            }
-
-            List<IActionFilter> unorderedFilters = new List<IActionFilter>();
-            SortedList<int, IActionFilter> orderedFilters = new SortedList<int, IActionFilter>();
-
-            ActionFilterAttribute[] attrs = (ActionFilterAttribute[])memberInfo.GetCustomAttributes(typeof(ActionFilterAttribute), false /* inherit */);
-            foreach (ActionFilterAttribute filter in attrs) {
-                // filters are allowed to have the same order only if the order is -1.  in that case,
-                // they are processed before explicitly ordered filters but in no particular order in
-                // relation to one another.
-                if (filter.Order >= 0) {
-                    if (orderedFilters.ContainsKey(filter.Order)) {
-                        MethodBase methodInfo = memberInfo as MethodBase;
-                        string exceptionMessage;
-                        if (methodInfo != null) {
-                            // Throw customized exception for action method
-                            exceptionMessage = String.Format(CultureInfo.CurrentUICulture,
-                                MvcResources.ControllerActionInvoker_FiltersOnMethodHaveDuplicateOrder,
-                                methodInfo.Name, methodInfo.DeclaringType.FullName, filter.Order);
-                        }
-                        else {
-                            // Throw customized exception for type
-                            exceptionMessage = String.Format(CultureInfo.CurrentUICulture,
-                                MvcResources.ControllerActionInvoker_FiltersOnTypeHaveDuplicateOrder,
-                                ((Type)memberInfo).FullName, filter.Order);
-                        }
-                        throw new InvalidOperationException(exceptionMessage);
-                    }
-                    orderedFilters.Add(filter.Order, filter);
-                }
-                else {
-                    unorderedFilters.Add(filter);
-                }
-            }
-
-            // now append the ordered list to the unordered list to create the final list
-            unorderedFilters.AddRange(orderedFilters.Values);
-            return unorderedFilters;
-        }
-
-        protected virtual IList<IActionFilter> GetAllActionFilters(MethodInfo methodInfo) {
+        protected virtual FilterInfo GetFiltersForActionMethod(MethodInfo methodInfo) {
             if (methodInfo == null) {
                 throw new ArgumentNullException("methodInfo");
             }
 
-            // use a stack since we're building the member chain backward
-            Stack<MemberInfo> memberChain = new Stack<MemberInfo>();
+            // Enumerable.OrderBy() is a stable sort, so this method preserves scope ordering.
+            FilterAttribute[] typeFilters = (FilterAttribute[])methodInfo.ReflectedType.GetCustomAttributes(typeof(FilterAttribute), true /* inherit */);
+            FilterAttribute[] methodFilters = (FilterAttribute[])methodInfo.GetCustomAttributes(typeof(FilterAttribute), true /* inherit */);
+            List<FilterAttribute> orderedFilters = typeFilters.Concat(methodFilters).OrderBy(attr => attr.Order).ToList();
 
-            // first, push the most derived action method, then its base method, and so forth
-            memberChain.Push(methodInfo);
-            MethodInfo baseMethod = methodInfo.GetBaseDefinition();
-            Type curType = methodInfo.DeclaringType.BaseType;
-            while (true) {
-                MemberInfo[] memberInfos = curType.GetMember(methodInfo.Name, MemberTypes.Method,
-                    BindingFlags.IgnoreCase | BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.Public);
-                MethodInfo foundMatch = null;
-                foreach (MethodInfo possibleMatch in memberInfos) {
-                    if (possibleMatch.GetBaseDefinition() == baseMethod) {
-                        foundMatch = possibleMatch;
-                        break;
-                    }
-                }
-                if (foundMatch == null) {
-                    // we've passed the declaring type of the base method
-                    break;
-                }
-                if (foundMatch.DeclaringType == curType) {
-                    // only push if there's no jump in the inheritance chain
-                    memberChain.Push(foundMatch);
-                }
-                curType = curType.BaseType;
-            }
-
-            // second, push the current controller type, then its base type, and so forth
-            curType = ControllerContext.Controller.GetType();
-            while (curType != null) {
-                memberChain.Push(curType);
-                curType = curType.BaseType;
-            }
-
-            // now build the actual filter list up from the beginning.  add the current controller
-            // if it implements IActionFilter, then process the memberInfo stack.
-            List<IActionFilter> filterList = new List<IActionFilter>();
-            IActionFilter controllerFilter = ControllerContext.Controller as IActionFilter;
-            if (controllerFilter != null) {
-                filterList.Add(controllerFilter);
-            }
-            foreach (MemberInfo memberInfo in memberChain) {
-                filterList.AddRange(GetActionFiltersForMember(memberInfo));
-            }
-
-            return filterList;
+            FilterInfo filterInfo = new FilterInfo {
+                ActionFilters = FiltersToTypedList<IActionFilter>(orderedFilters),
+                AuthorizationFilters = FiltersToTypedList<IAuthorizationFilter>(orderedFilters),
+                ExceptionFilters = FiltersToTypedList<IExceptionFilter>(orderedFilters),
+                ResultFilters = FiltersToTypedList<IResultFilter>(orderedFilters)
+            };
+            return filterInfo;
         }
 
         protected virtual object GetParameterValue(ParameterInfo parameterInfo, IDictionary<string, object> values) {
@@ -273,12 +209,28 @@
             MethodInfo methodInfo = FindActionMethod(actionName, values);
             if (methodInfo != null) {
                 IDictionary<string, object> parameters = GetParameterValues(methodInfo, values);
-                IList<IActionFilter> filters = GetAllActionFilters(methodInfo);
+                FilterInfo filterInfo = GetFiltersForActionMethod(methodInfo);
 
-                ActionExecutedContext postContext = InvokeActionMethodWithFilters(methodInfo, parameters, filters);
-                InvokeActionResultWithFilters(postContext.Result, filters);
+                try {
+                    AuthorizationContext authContext = InvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters);
+                    if (authContext.Cancel) {
+                        // not authorized, so don't execute the action method or its filters
+                        InvokeActionResult(authContext.Result ?? EmptyResult.Instance);
+                    }
+                    else {
+                        ActionExecutedContext postActionContext = InvokeActionMethodWithFilters(methodInfo, parameters, filterInfo.ActionFilters);
+                        InvokeActionResultWithFilters(postActionContext.Result, filterInfo.ResultFilters);
+                    }
+                }
+                catch (Exception ex) {
+                    // something blew up, so execute the exception filters
+                    ExceptionContext exceptionContext = InvokeExceptionFilters(ex, filterInfo.ExceptionFilters);
+                    if (!exceptionContext.ExceptionHandled) {
+                        throw;
+                    }
+                    InvokeActionResult(exceptionContext.Result);
+                }
 
-                // notify controller of completion
                 return true;
             }
 
@@ -320,7 +272,7 @@
         internal static ActionExecutedContext InvokeActionMethodFilter(IActionFilter filter, ActionExecutingContext preContext, Func<ActionExecutedContext> continuation) {
             filter.OnActionExecuting(preContext);
             if (preContext.Cancel) {
-                return new ActionExecutedContext(preContext, preContext.ActionMethod, null /* exception */) {
+                return new ActionExecutedContext(preContext, preContext.ActionMethod, true /* canceled */, null /* exception */) {
                     Result = preContext.Result
                 };
             }
@@ -332,7 +284,7 @@
             }
             catch (Exception ex) {
                 wasError = true;
-                postContext = new ActionExecutedContext(preContext, preContext.ActionMethod, ex);
+                postContext = new ActionExecutedContext(preContext, preContext.ActionMethod, false /* canceled */, ex);
                 filter.OnActionExecuted(postContext);
                 if (!postContext.ExceptionHandled) {
                     throw;
@@ -357,7 +309,7 @@
 
             ActionExecutingContext preContext = new ActionExecutingContext(ControllerContext, methodInfo, parameters);
             Func<ActionExecutedContext> continuation = () =>
-                new ActionExecutedContext(ControllerContext, methodInfo, null /* exception */) {
+                new ActionExecutedContext(ControllerContext, methodInfo, false /* canceled */, null /* exception */) {
                     Result = InvokeActionMethod(methodInfo, parameters)
                 };
 
@@ -374,10 +326,10 @@
             actionResult.ExecuteResult(ControllerContext);
         }
 
-        internal static ResultExecutedContext InvokeActionResultFilter(IActionFilter filter, ResultExecutingContext preContext, Func<ResultExecutedContext> continuation) {
+        internal static ResultExecutedContext InvokeActionResultFilter(IResultFilter filter, ResultExecutingContext preContext, Func<ResultExecutedContext> continuation) {
             filter.OnResultExecuting(preContext);
             if (preContext.Cancel) {
-                return new ResultExecutedContext(preContext, preContext.Result, null /* exception */);
+                return new ResultExecutedContext(preContext, preContext.Result, true /* canceled */, null /* exception */);
             }
 
             bool wasError = false;
@@ -388,13 +340,13 @@
             catch (ThreadAbortException) {
                 // This type of exception occurs as a result of Response.Redirect(), but we special-case so that
                 // the filters don't see this as an error.
-                postContext = new ResultExecutedContext(preContext, preContext.Result, null /* exception */);
+                postContext = new ResultExecutedContext(preContext, preContext.Result, false /* canceled */, null /* exception */);
                 filter.OnResultExecuted(postContext);
                 throw;
             }
             catch (Exception ex) {
                 wasError = true;
-                postContext = new ResultExecutedContext(preContext, preContext.Result, ex);
+                postContext = new ResultExecutedContext(preContext, preContext.Result, false /* canceled */, ex);
                 filter.OnResultExecuted(postContext);
                 if (!postContext.ExceptionHandled) {
                     throw;
@@ -406,7 +358,7 @@
             return postContext;
         }
 
-        protected virtual ResultExecutedContext InvokeActionResultWithFilters(ActionResult actionResult, IList<IActionFilter> filters) {
+        protected virtual ResultExecutedContext InvokeActionResultWithFilters(ActionResult actionResult, IList<IResultFilter> filters) {
             if (actionResult == null) {
                 throw new ArgumentNullException("actionResult");
             }
@@ -417,13 +369,49 @@
             ResultExecutingContext preContext = new ResultExecutingContext(ControllerContext, actionResult);
             Func<ResultExecutedContext> continuation = delegate {
                 InvokeActionResult(actionResult);
-                return new ResultExecutedContext(ControllerContext, preContext.Result, null /* exception */);
+                return new ResultExecutedContext(ControllerContext, preContext.Result, false /* canceled */, null /* exception */);
             };
 
             // need to reverse the filter list because the continuations are built up backward
             Func<ResultExecutedContext> thunk = filters.Reverse().Aggregate(continuation,
                 (next, filter) => () => InvokeActionResultFilter(filter, preContext, next));
             return thunk();
+        }
+
+        protected virtual AuthorizationContext InvokeAuthorizationFilters(MethodInfo methodInfo, IList<IAuthorizationFilter> filters) {
+            if (methodInfo == null) {
+                throw new ArgumentNullException("methodInfo");
+            }
+            if (filters == null) {
+                throw new ArgumentNullException("filters");
+            }
+
+            AuthorizationContext context = new AuthorizationContext(ControllerContext, methodInfo);
+            foreach (IAuthorizationFilter filter in filters) {
+                filter.OnAuthorization(context);
+                // short-circuit evaluation
+                if (context.Cancel) {
+                    break;
+                }
+            }
+
+            return context;
+        }
+
+        protected virtual ExceptionContext InvokeExceptionFilters(Exception exception, IList<IExceptionFilter> filters) {
+            if (exception == null) {
+                throw new ArgumentNullException("exception");
+            }
+            if (filters == null) {
+                throw new ArgumentNullException("filters");
+            }
+
+            ExceptionContext context = new ExceptionContext(ControllerContext, exception);
+            foreach (IExceptionFilter filter in filters) {
+                filter.OnException(context);
+            }
+
+            return context;
         }
     }
 }

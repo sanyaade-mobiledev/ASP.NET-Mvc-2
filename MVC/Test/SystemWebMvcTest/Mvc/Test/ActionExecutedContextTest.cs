@@ -12,7 +12,7 @@
             // Execute & verify
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    new ActionExecutedContext(ControllerContextTest.GetControllerContext(), null /* actionMethod */, null /* exception */);
+                    new ActionExecutedContext(ControllerContextTest.GetControllerContext(), null /* actionMethod */, false /* canceled */, null /* exception */);
                 },
                 "actionMethod");
         }
@@ -22,7 +22,7 @@
             // Execute & verify
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    new ActionExecutingContext(null /* controllerContext */, null /* actionMethod */, null /* exception */);
+                    new ActionExecutedContext(null /* controllerContext */, null /* actionMethod */, false /* canceled */, null /* exception */);
                 },
                 "controllerContext");
         }
@@ -30,7 +30,7 @@
         [TestMethod]
         public void ConstructorWithNullExceptionIsOk() {
             // Execute
-            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), typeof(object).GetMethod("ToString"), null /* exception */);
+            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), typeof(object).GetMethod("ToString"), false /* canceled */, null /* exception */);
 
             // Verify
             Assert.IsNull(context.Exception);
@@ -41,10 +41,22 @@
             // Setup
             MethodInfo actionMethod = typeof(object).GetMethod("ToString");
             Exception exception = new Exception();
-            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, exception);
+            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, false /* canceled */, exception);
 
             // Execute & verify
             Assert.AreSame(actionMethod, context.ActionMethod);
+        }
+
+        [TestMethod]
+        public void GetCanceled() {
+            // Setup
+            MethodInfo actionMethod = typeof(object).GetMethod("ToString");
+            ActionExecutedContext context1 = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, true /* canceled */, null /* exception */);
+            ActionExecutedContext context2 = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, false /* canceled */, null /* exception */);
+
+            // Execute & verify
+            Assert.IsTrue(context1.Canceled);
+            Assert.IsFalse(context2.Canceled);
         }
 
         [TestMethod]
@@ -52,7 +64,7 @@
             // Setup
             MethodInfo actionMethod = typeof(object).GetMethod("ToString");
             Exception exception = new Exception();
-            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, exception);
+            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, false /* canceled */, exception);
 
             // Execute & verify
             Assert.AreSame(exception, context.Exception);
@@ -63,7 +75,7 @@
             // Setup
             MethodInfo actionMethod = typeof(object).GetMethod("ToString");
             Exception exception = new Exception();
-            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, exception);
+            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, false /* canceled */, exception);
             ContentResult result = new ContentResult();
 
             // Execute
@@ -81,7 +93,7 @@
             // Setup
             MethodInfo actionMethod = typeof(object).GetMethod("ToString");
             Exception exception = new Exception();
-            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, null /* exception */);
+            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, false /* canceled */, null /* exception */);
 
             // Execute
             ActionResult origVal = context.Result;
@@ -98,7 +110,7 @@
             // Setup
             MethodInfo actionMethod = typeof(object).GetMethod("ToString");
             Exception exception = new Exception();
-            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, exception);
+            ActionExecutedContext context = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), actionMethod, false /* canceled */, exception);
 
             // Execute
             bool origVal = context.ExceptionHandled;

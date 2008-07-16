@@ -61,20 +61,20 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Order must be greater than or equal to -1..
-        /// </summary>
-        internal static string ActionFilter_OrderOutOfRange {
-            get {
-                return ResourceManager.GetString("ActionFilter_OrderOutOfRange", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No route in the route table matches the supplied values..
         /// </summary>
         internal static string ActionRedirectResult_NoRouteMatched {
             get {
                 return ResourceManager.GetString("ActionRedirectResult_NoRouteMatched", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The value &apos;{0}&apos; is outside the valid range of the enumeration type &apos;{1}&apos;..
+        /// </summary>
+        internal static string Common_InvalidEnumValue {
+            get {
+                return ResourceManager.GetString("Common_InvalidEnumValue", resourceCulture);
             }
         }
         
@@ -151,24 +151,6 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The action method &apos;{0}&apos; on controller &apos;{1}&apos; has two filter attributes with filter order {2}. If a filter specifies an order of 0 or greater, no other filter on that action method may specify that same order..
-        /// </summary>
-        internal static string ControllerActionInvoker_FiltersOnMethodHaveDuplicateOrder {
-            get {
-                return ResourceManager.GetString("ControllerActionInvoker_FiltersOnMethodHaveDuplicateOrder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Two filter attributes on controller &apos;{0}&apos; have filter order {1}. If a filter specifies an order of 0 or greater, no other filter on that type may specify that same order..
-        /// </summary>
-        internal static string ControllerActionInvoker_FiltersOnTypeHaveDuplicateOrder {
-            get {
-                return ResourceManager.GetString("ControllerActionInvoker_FiltersOnTypeHaveDuplicateOrder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The parameters specified in the dictionary do not match those of the method &apos;{0}&apos;..
         /// </summary>
         internal static string ControllerActionInvoker_ParameterDictionaryIsInvalid {
@@ -205,11 +187,11 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Duplicate controller types found for &apos;{0}&apos;. To disambiguate the controller set the controller&apos;s namespace in the route..
+        ///   Looks up a localized string similar to The controller name &apos;{0}&apos; is ambiguous between the following types: {1}. To disambiguate the controller set the controller&apos;s namespace in the route..
         /// </summary>
-        internal static string DefaultControllerFactory_DuplicateControllers {
+        internal static string DefaultControllerFactory_ControllerNameAmbiguous {
             get {
-                return ResourceManager.GetString("DefaultControllerFactory_DuplicateControllers", resourceCulture);
+                return ResourceManager.GetString("DefaultControllerFactory_ControllerNameAmbiguous", resourceCulture);
             }
         }
         
@@ -241,6 +223,24 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; does not inherit from Exception..
+        /// </summary>
+        internal static string ExceptionViewAttribute_NonExceptionType {
+            get {
+                return ResourceManager.GetString("ExceptionViewAttribute_NonExceptionType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Order must be greater than or equal to -1..
+        /// </summary>
+        internal static string FilterAttribute_OrderOutOfRange {
+            get {
+                return ResourceManager.GetString("FilterAttribute_OrderOutOfRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The provided object or dictionary already contains a definition for &apos;{0}&apos;..
         /// </summary>
         internal static string Helper_DictionaryAlreadyContainsKey {
@@ -264,6 +264,42 @@ namespace System.Web.Mvc.Resources {
         internal static string HtmlHelper_WrongSelectDataType {
             get {
                 return ResourceManager.GetString("HtmlHelper_WrongSelectDataType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The MvcHttpHandler does not work with the handler of type &apos;{0}&apos; since it does not derive from MvcHandler..
+        /// </summary>
+        internal static string MvcHttpHandler_DidNotReturnMvcHandler {
+            get {
+                return ResourceManager.GetString("MvcHttpHandler_DidNotReturnMvcHandler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A valid value for &apos;{0}&apos; must be specified in the configuration file or on the OutputCacheAttribute declaration..
+        /// </summary>
+        internal static string OutputCacheAttribute_InvalidParameter {
+            get {
+                return ResourceManager.GetString("OutputCacheAttribute_InvalidParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The configuration file does not contain a cache profile with the name &apos;{0}&apos;..
+        /// </summary>
+        internal static string OutputCacheAttribute_ProfileNotFound {
+            get {
+                return ResourceManager.GetString("OutputCacheAttribute_ProfileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The provider requires SessionState to be enabled..
+        /// </summary>
+        internal static string SessionStateTempDataProvider_SessionStateDisabled {
+            get {
+                return ResourceManager.GetString("SessionStateTempDataProvider_SessionStateDisabled", resourceCulture);
             }
         }
         

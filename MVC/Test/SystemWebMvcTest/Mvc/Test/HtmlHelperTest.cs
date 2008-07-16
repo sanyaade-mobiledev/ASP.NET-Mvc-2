@@ -442,7 +442,7 @@ namespace System.Web.Mvc.Test {
             Dictionary<int, object> original = new Dictionary<int, object> { { 1, 'a' }, { 2, 'b' } };
 
             // Execute
-            Dictionary<string, string> newDictionary = HtmlHelper.ToStringDictionary(original);
+            Dictionary<string, string> newDictionary = TagBuilder.ToStringDictionary(original);
 
             // Verify
             Assert.AreEqual(StringComparer.OrdinalIgnoreCase, newDictionary.Comparer);
@@ -454,39 +454,13 @@ namespace System.Web.Mvc.Test {
         [TestMethod]
         public void ToStringDictionaryWithNullParameter() {
             // Execute
-            Dictionary<string, string> newDictionary = HtmlHelper.ToStringDictionary((Dictionary<string, string>)null);
+            Dictionary<string, string> newDictionary = TagBuilder.ToStringDictionary((Dictionary<string, string>)null);
 
             // Verify
             Assert.AreEqual(StringComparer.OrdinalIgnoreCase, newDictionary.Comparer);
             Assert.AreEqual(0, newDictionary.Count);
         }
-
-        [TestMethod]
-        public void TryAddValueReturnsFalseIfKeyAlreadyExists() {
-            // Setup
-            Dictionary<string, string> dictionary = new Dictionary<string, string> { { "foo", "OldValue" } };
-
-            // Execute
-            bool wasAdded = HtmlHelper.TryAddValue(dictionary, "foo", "NewValue");
-
-            // Verify
-            Assert.IsFalse(wasAdded);
-            Assert.AreEqual("OldValue", dictionary["foo"]);
-        }
-
-        [TestMethod]
-        public void TryAddValueReturnsTrueIfKeyIsAdded() {
-            // Setup
-            Dictionary<string, string> dictionary = new Dictionary<string, string>();
-
-            // Execute
-            bool wasAdded = HtmlHelper.TryAddValue(dictionary, "foo", "NewValue");
-
-            // Verify
-            Assert.IsTrue(wasAdded);
-            Assert.AreEqual("NewValue", dictionary["foo"]);
-        }
-
+        
         private static HtmlHelper GetHtmlHelper() {
             HttpContextBase httpcontext = GetHttpContext("/app/", null, null);
             RouteCollection rt = new RouteCollection();
@@ -495,7 +469,7 @@ namespace System.Web.Mvc.Test {
             RouteData rd = new RouteData();
             rd.Values.Add("controller", "home");
             rd.Values.Add("action", "oldaction");
-            ViewContext context = new ViewContext(httpcontext, rd, new Mock<IController>().Object, "view", null, new ViewDataDictionary(), new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
+            ViewContext context = new ViewContext(httpcontext, rd, new Mock<IController>().Object, "view", null, new ViewDataDictionary(), new TempDataDictionary());
             HtmlHelper htmlHelper = new HtmlHelper(context, new Mock<IViewDataContainer>().Object);
             htmlHelper.RouteCollection = rt;
             return htmlHelper;
@@ -516,7 +490,7 @@ namespace System.Web.Mvc.Test {
                 "view",
                 null,
                 new ViewDataDictionary(),
-                new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
+                new TempDataDictionary());
             return viewContext;
         }
     }

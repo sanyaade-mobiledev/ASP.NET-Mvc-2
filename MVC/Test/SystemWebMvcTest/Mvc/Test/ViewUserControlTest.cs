@@ -107,8 +107,8 @@
             p.ViewData = new ViewDataDictionary { { "FirstName", "Joe" }, { "LastName", "Schmoe" } };
 
             // Execute
-            object firstName = vuc.ViewData["FirstName"];
-            object lastName = vuc.ViewData["LastName"];
+            object firstName = vuc.ViewData.Eval("FirstName");
+            object lastName = vuc.ViewData.Eval("LastName");
 
             // Verify
             Assert.AreEqual("Joe", firstName);
@@ -126,8 +126,8 @@
             p.ViewData.SubDataItems["SubData"] = new ViewDataDictionary { { "FirstName", "SubJoe" }, { "LastName", "SubSchmoe" } };
 
             // Execute
-            object firstName = vuc.ViewData["FirstName"];
-            object lastName = vuc.ViewData["LastName"];
+            object firstName = vuc.ViewData.Eval("FirstName");
+            object lastName = vuc.ViewData.Eval("LastName");
 
             // Verify
             Assert.AreEqual("SubJoe", firstName);
@@ -148,8 +148,8 @@
             p.ViewData = new ViewDataDictionary { { "FirstName", "Joe" }, { "LastName", "Schmoe" } };
 
             // Execute
-            object firstName = vuc.ViewData["FirstName"];
-            object lastName = vuc.ViewData["LastName"];
+            object firstName = vuc.ViewData.Eval("FirstName");
+            object lastName = vuc.ViewData.Eval("LastName");
 
             // Verify
             Assert.AreEqual("Joe", firstName);
@@ -171,8 +171,8 @@
             p.ViewData.SubDataItems["SubData"] = new ViewDataDictionary { { "FirstName", "SubJoe" }, { "LastName", "SubSchmoe" } };
 
             // Execute
-            object firstName = vuc.ViewData["FirstName"];
-            object lastName = vuc.ViewData["LastName"];
+            object firstName = vuc.ViewData.Eval("FirstName");
+            object lastName = vuc.ViewData.Eval("LastName");
 
             // Verify
             Assert.AreEqual("SubJoe", firstName);
@@ -194,8 +194,8 @@
             p.ViewData.SubDataItems["SubData"] = new ViewDataDictionary { { "FirstName", "SubJoe" }, { "LastName", "SubSchmoe" } };
 
             // Execute
-            object firstName = vuc.ViewData["FirstName"];
-            object lastName = vuc.ViewData["LastName"];
+            object firstName = vuc.ViewData.Eval("FirstName");
+            object lastName = vuc.ViewData.Eval("LastName");
 
             // Verify
             Assert.AreEqual("SubJoe", firstName);
@@ -258,7 +258,7 @@
                                                         "view",
                                                         null,
                                                         new ViewDataDictionary(),
-                                                        new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
+                                                        new TempDataDictionary());
             vuc.ViewContext = vc;
 
             // Execute
@@ -296,7 +296,7 @@
                                                         "view",
                                                         null,
                                                         new ViewDataDictionary(),
-                                                        new TempDataDictionary(ControllerContextTest.GetEmptyContextForTempData()));
+                                                        new TempDataDictionary());
             UrlHelper urlHelper = new UrlHelper(vc);
             containerPage.Url = urlHelper;
 

@@ -117,23 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ActionFilter_OrderOutOfRange" xml:space="preserve">
-    <value>Order must be greater than or equal to -1.</value>
-  </data>
   <data name="ActionRedirectResult_NoRouteMatched" xml:space="preserve">
     <value>No route in the route table matches the supplied values.</value>
+  </data>
+  <data name="Common_InvalidEnumValue" xml:space="preserve">
+    <value>The value '{0}' is outside the valid range of the enumeration type '{1}'.</value>
   </data>
   <data name="Common_NullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
   <data name="Common_PropertyCannotBeNullOrEmpty" xml:space="preserve">
     <value>The property '{0}' cannot be null or empty.</value>
-  </data>
-  <data name="ControllerActionInvoker_FiltersOnMethodHaveDuplicateOrder" xml:space="preserve">
-    <value>The action method '{0}' on controller '{1}' has two filter attributes with filter order {2}. If a filter specifies an order of 0 or greater, no other filter on that action method may specify that same order.</value>
-  </data>
-  <data name="ControllerActionInvoker_FiltersOnTypeHaveDuplicateOrder" xml:space="preserve">
-    <value>Two filter attributes on controller '{0}' have filter order {1}. If a filter specifies an order of 0 or greater, no other filter on that type may specify that same order.</value>
   </data>
   <data name="ControllerActionInvoker_ParameterDictionaryIsInvalid" xml:space="preserve">
     <value>The parameters specified in the dictionary do not match those of the method '{0}'.</value>
@@ -165,8 +159,8 @@
   <data name="Controller_UnknownAction" xml:space="preserve">
     <value>A public action method '{0}' could not be found on controller '{1}'.</value>
   </data>
-  <data name="DefaultControllerFactory_DuplicateControllers" xml:space="preserve">
-    <value>Duplicate controller types found for '{0}'. To disambiguate the controller set the controller's namespace in the route.</value>
+  <data name="DefaultControllerFactory_ControllerNameAmbiguous" xml:space="preserve">
+    <value>The controller name '{0}' is ambiguous between the following types: {1}. To disambiguate the controller set the controller's namespace in the route.</value>
   </data>
   <data name="DefaultControllerFactory_ErrorCreatingController" xml:space="preserve">
     <value>An error occurred while creating a controller of type '{0}'. If the controller doesn't have a controller factory, ensure that it has a parameterless public constructor.</value>
@@ -177,6 +171,12 @@
   <data name="DefaultControllerFactory_NoControllerFound" xml:space="preserve">
     <value>The controller for path '{0}' could not be found or it does not implement the IController interface.</value>
   </data>
+  <data name="ExceptionViewAttribute_NonExceptionType" xml:space="preserve">
+    <value>The type '{0}' does not inherit from Exception.</value>
+  </data>
+  <data name="FilterAttribute_OrderOutOfRange" xml:space="preserve">
+    <value>Order must be greater than or equal to -1.</value>
+  </data>
   <data name="Helper_DictionaryAlreadyContainsKey" xml:space="preserve">
     <value>The provided object or dictionary already contains a definition for '{0}'.</value>
   </data>
@@ -185,6 +185,18 @@
   </data>
   <data name="HtmlHelper_WrongSelectDataType" xml:space="preserve">
     <value>The ViewData item with the key '{0}' is of type '{1}' but needs to be of type '{2}'.</value>
+  </data>
+  <data name="MvcHttpHandler_DidNotReturnMvcHandler" xml:space="preserve">
+    <value>The MvcHttpHandler does not work with the handler of type '{0}' since it does not derive from MvcHandler.</value>
+  </data>
+  <data name="OutputCacheAttribute_InvalidParameter" xml:space="preserve">
+    <value>A valid value for '{0}' must be specified in the configuration file or on the OutputCacheAttribute declaration.</value>
+  </data>
+  <data name="OutputCacheAttribute_ProfileNotFound" xml:space="preserve">
+    <value>The configuration file does not contain a cache profile with the name '{0}'.</value>
+  </data>
+  <data name="SessionStateTempDataProvider_SessionStateDisabled" xml:space="preserve">
+    <value>The provider requires SessionState to be enabled.</value>
   </data>
   <data name="ViewDataDictionary_NullTModel" xml:space="preserve">
     <value>The model item passed into the dictionary is null but this dictionary requires a model item of non-nullable type '{0}'.</value>

@@ -145,21 +145,6 @@
         }
 
         [TestMethod]
-        public void ViewDataDictionaryIsCaseInsensitive() {
-            // DevDiv Bugs 195982: The ViewData dictionary property on Controller should be case insensitive
-
-            // Setup
-            Controller controller = new EmptyController();
-            object o = new object();
-
-            // Execute
-            controller.ViewData["Foo"] = o;
-
-            // Verify
-            Assert.AreSame(o, controller.ViewData["FOO"]);
-        }
-
-        [TestMethod]
         public void ViewDataProperty() {
             var controller = new EmptyController();
             // test returns empty dictionary by default
@@ -225,6 +210,8 @@
         public void ExecuteWithUnknownAction() {
             // Setup
             UnknownActionController controller = new UnknownActionController();
+            // We need a provider since Controller.Execute is called
+            controller.TempDataProvider = new EmptyTempDataProvider();
             ControllerContext context = GetControllerContext("Foo");
 
             Mock<ControllerActionInvoker> mockInvoker = new Mock<ControllerActionInvoker>(context);
@@ -291,7 +278,7 @@
         }
 
         [TestMethod]
-        public void RedirectToActionOverwritesActionDictionaryKey() {
+        public void RedirectToActionDoesNotOverwritesActionDictionaryKey() {
             // Setup
             Controller controller = GetEmptyController();
             object values = new { Action = "SomeAction" };
@@ -301,11 +288,11 @@
             RouteValueDictionary newValues = result.Values;
 
             // Verify
-            Assert.AreEqual("SomeOtherAction", newValues["action"]);
+            Assert.AreEqual("SomeAction", newValues["action"]);
         }
 
         [TestMethod]
-        public void RedirectToActionOverwritesControllerDictionaryKeyIfSpecified() {
+        public void RedirectToActionDoesNotOverwritesControllerDictionaryKeyIfSpecified() {
             // Setup
             Controller controller = GetEmptyController();
             object values = new { Action = "SomeAction", Controller = "SomeController" };
@@ -315,7 +302,7 @@
             RouteValueDictionary newValues = result.Values;
 
             // Verify
-            Assert.AreEqual("SomeOtherController", newValues["controller"]);
+            Assert.AreEqual("SomeController", newValues["controller"]);
         }
 
         [TestMethod]
@@ -375,6 +362,35 @@
             Assert.AreEqual("SomeOtherAction", result.Values["action"]);
             Assert.AreEqual("SomeOtherController", result.Values["controller"]);
             Assert.AreEqual("SomeFoo", result.Values["foo"]);
+        }
+
+        [TestMethod]
+        public void RedirectToActionSelectsCurrentControllerByDefault() {
+            // Setup
+            TestRouteController controller = new TestRouteController();
+            controller.ControllerContext = GetControllerContext("SomeAction", "TestRoute");
+
+            // Execute
+            RedirectToRouteResult route = controller.Index() as RedirectToRouteResult;
+
+            // Verify
+            Assert.AreEqual("SomeAction", route.Values["action"]);
+            Assert.AreEqual("TestRoute", route.Values["controller"]);
+        }
+
+        [TestMethod]
+        public void RedirectToActionDictionaryOverridesDefaultControllerName() {
+            // Setup
+            TestRouteController controller = new TestRouteController();
+            object values = new { controller = "SomeOtherController" };
+            controller.ControllerContext = GetControllerContext("SomeAction", "TestRoute");
+
+            // Execute
+            RedirectToRouteResult route = controller.RedirectToAction("SomeOtherAction", values);
+
+            // Verify
+            Assert.AreEqual("SomeOtherAction", route.Values["action"]);
+            Assert.AreEqual("SomeOtherController", route.Values["controller"]);
         }
 
         [TestMethod]
@@ -700,6 +716,77 @@
         }
 
         [TestMethod]
+        public void TempDataGreetUserWithNoUserIDRedirects() {
+            // Setup
+            TempDataHomeController tempDataHomeController = new TempDataHomeController();
+
+            // Execute
+            RedirectToRouteResult result = tempDataHomeController.GreetUser() as RedirectToRouteResult;
+            RouteValueDictionary values = result.Values;
+
+            // Verify
+            Assert.IsTrue(values.ContainsKey("action"));
+            Assert.AreEqual("ErrorPage", values["action"]);
+            Assert.AreEqual(0, tempDataHomeController.TempData.Count);
+        }
+
+        [TestMethod]
+        public void TempDataGreetUserWithUserIDCopiesToViewDataAndRenders() {
+            // Setup
+            TempDataHomeController tempDataHomeController = new TempDataHomeController();
+            tempDataHomeController.TempData["UserID"] = "TestUserID";
+
+            // Execute
+            ViewResult result = tempDataHomeController.GreetUser() as ViewResult;
+            ViewDataDictionary viewData = tempDataHomeController.ViewData;
+
+            // Verify
+            Assert.AreEqual("GreetUser", result.ViewName);
+            Assert.IsNotNull(viewData);
+            Assert.IsTrue(viewData.ContainsKey("NewUserID"));
+            Assert.AreEqual("TestUserID", viewData["NewUserID"]);
+        }
+
+        [TestMethod]
+        public void TempDataIndexSavesUserIDAndRedirects() {
+            // Setup
+            TempDataHomeController tempDataHomeController = new TempDataHomeController();
+
+            // Execute
+            RedirectToRouteResult result = tempDataHomeController.Index() as RedirectToRouteResult;
+            RouteValueDictionary values = result.Values;
+
+            // Verify
+            Assert.IsTrue(values.ContainsKey("action"));
+            Assert.AreEqual("GreetUser", values["action"]);
+
+            Assert.IsTrue(tempDataHomeController.TempData.ContainsKey("UserID"));
+            Assert.AreEqual("user123", tempDataHomeController.TempData["UserID"]);
+        }
+
+        [TestMethod]
+        public void TempDataSavedWhenControllerThrows() {
+            // Setup
+            BrokenController controller = new BrokenController();
+            Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
+            HttpSessionStateBase session = GetEmptySession();
+            mockContext.Expect(o => o.Session).Returns(session);
+            RouteData rd = new RouteData();
+            rd.Values.Add("action", "Crash");
+            controller.ControllerContext = new ControllerContext(mockContext.Object, rd, controller);
+
+            // Execute and Verify
+            ExceptionHelper.ExpectException<InvalidOperationException>(
+                delegate {
+                    controller.Execute(controller.ControllerContext);
+                });
+            Assert.AreNotEqual(mockContext.Object.Session[SessionStateTempDataProvider.TempDataSessionStateKey], null);
+            TempDataDictionary tempData = new TempDataDictionary();
+            tempData.Load(controller.TempDataProvider);
+            Assert.AreEqual(tempData["Key1"], "Value1");
+        }
+
+        [TestMethod]
         public void TempDataMovedToPreviousTempDataInDestinationController() {
             // Setup
             Mock<Controller> mockController = new Mock<Controller>();
@@ -707,20 +794,22 @@
             HttpSessionStateBase session = GetEmptySession();
             mockContext.Expect(o => o.Session).Returns(session);
             mockController.Object.ControllerContext = new ControllerContext(mockContext.Object, new RouteData(), mockController.Object);
-            mockController.Object.TempData = new TempDataDictionary(mockController.Object.HttpContext);
 
             // Execute
-            mockController.Object.TempData["Key"] = "Value";
+            mockController.Object.TempData.Add("Key", "Value");
+            mockController.Object.TempData.ApplyChanges();
+            mockController.Object.TempDataProvider.SaveTempData(mockController.Object.TempData);
 
             // Verify
             Assert.IsTrue(mockController.Object.TempData.ContainsKey("Key"), "The key should still exist in the old TempData");
+            Assert.IsTrue(mockController.Object.TempData.ContainsValue("Value"), "The value should still exist in the old TempData");
 
             // Instantiate "destination" controller with the same session state and see that it gets the temp data
             Mock<Controller> mockDestinationController = new Mock<Controller>();
             Mock<HttpContextBase> mockDestinationContext = new Mock<HttpContextBase>();
             mockDestinationContext.Expect(o => o.Session).Returns(session);
             mockDestinationController.Object.ControllerContext = new ControllerContext(mockDestinationContext.Object, new RouteData(), mockDestinationController.Object);
-            mockDestinationController.Object.TempData = new TempDataDictionary(mockDestinationController.Object.HttpContext);
+            mockDestinationController.Object.TempData.Load(mockDestinationController.Object.TempDataProvider);
 
             // Verify
             Assert.AreEqual("Value", mockDestinationController.Object.TempData["Key"], "The key should exist in the new TempData");
@@ -728,13 +817,15 @@
             // Execute
             mockDestinationController.Object.TempData["NewKey"] = "NewValue";
             Assert.AreEqual("NewValue", mockDestinationController.Object.TempData["NewKey"], "The new key should exist in the new TempData");
+            mockDestinationController.Object.TempData.ApplyChanges();
+            mockDestinationController.Object.TempDataProvider.SaveTempData(mockDestinationController.Object.TempData);
 
             // Instantiate "second destination" controller with the same session state and see that it gets the temp data
             Mock<Controller> mockSecondDestinationController = new Mock<Controller>();
             Mock<HttpContextBase> mockSecondDestinationContext = new Mock<HttpContextBase>();
             mockSecondDestinationContext.Expect(o => o.Session).Returns(session);
             mockSecondDestinationController.Object.ControllerContext = new ControllerContext(mockSecondDestinationContext.Object, new RouteData(), mockSecondDestinationController.Object);
-            mockSecondDestinationController.Object.TempData = new TempDataDictionary(mockSecondDestinationController.Object.HttpContext);
+            mockSecondDestinationController.Object.TempData.Load(mockSecondDestinationController.Object.TempDataProvider);
 
             // Verify
             Assert.IsFalse(mockSecondDestinationController.Object.TempData.ContainsKey("Key"), "The key should not exist in the new TempData");
@@ -749,8 +840,8 @@
             HttpSessionStateBase session = null;
             mockContext.Expect(o => o.Session).Returns(session);
             mockController.Object.ControllerContext = new ControllerContext(mockContext.Object, new RouteData(), mockController.Object);
-            mockController.Object.TempData = new TempDataDictionary(mockController.Object.HttpContext);
-
+            mockController.Object.TempData = new TempDataDictionary();
+            
             // Execute
             mockController.Object.TempData["Key"] = "Value";
 
@@ -766,12 +857,22 @@
             return new ControllerContext(mockContext.Object, rd, new Mock<IController>().Object);
         }
 
+        private static ControllerContext GetControllerContext(string actionName, string controllerName) {
+            Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
+            mockContext.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
+            RouteData rd = new RouteData();
+            rd.Values["action"] = actionName;
+            rd.Values["controller"] = controllerName;
+            return new ControllerContext(mockContext.Object, rd, new Mock<IController>().Object);
+        }
+
         private static Controller GetEmptyController() {
             ControllerContext context = GetControllerContext("Foo");
             var controller = new EmptyController() {
                 ControllerContext = context,
                 RouteCollection = new RouteCollection(),
-                TempData = new TempDataDictionary(context.HttpContext)
+                TempData = new TempDataDictionary(),
+                TempDataProvider = new SessionStateTempDataProvider(context.HttpContext)
             };
             return controller;
         }
@@ -785,17 +886,17 @@
             private Hashtable _sessionData = new Hashtable(StringComparer.OrdinalIgnoreCase);
 
             public override void Remove(string name) {
-                Assert.AreEqual<string>(TempDataDictionary.TempDataSessionStateKey, name);
+                Assert.AreEqual<string>(SessionStateTempDataProvider.TempDataSessionStateKey, name);
                 _sessionData.Remove(name);
             }
 
             public override object this[string name] {
                 get {
-                    Assert.AreEqual<string>(TempDataDictionary.TempDataSessionStateKey, name);
+                    Assert.AreEqual<string>(SessionStateTempDataProvider.TempDataSessionStateKey, name);
                     return _sessionData[name];
                 }
                 set {
-                    Assert.AreEqual<string>(TempDataDictionary.TempDataSessionStateKey, name);
+                    Assert.AreEqual<string>(SessionStateTempDataProvider.TempDataSessionStateKey, name);
                     _sessionData[name] = value;
                 }
             }
@@ -811,13 +912,76 @@
                 base.HandleUnknownAction(actionName);
             }
         }
-
+                
         private sealed class UnknownActionController : Controller {
             public bool WasCalled;
 
             protected override void HandleUnknownAction(string actionName) {
                 WasCalled = true;
             }
+        }
+
+        private sealed class TestTempDataProvider : ITempDataProvider {
+            private TempDataDictionary _tempData;
+
+            public void SaveTempData(TempDataDictionary tempDataDictionary) {
+                _tempData = tempDataDictionary;
+            }
+
+            public TempDataDictionary LoadTempData() {
+                TempDataDictionary tempData = null;
+
+                if (_tempData != null) {
+                    tempData = _tempData;
+                    _tempData = null;
+                }
+                else {
+                    return new TempDataDictionary();
+                }
+
+                return tempData;
+            }
+        }
+
+        private sealed class TempDataHomeController : Controller {
+            public ActionResult Index() {
+                // Save UserID into TempData and redirect to greeting page
+                TempData["UserID"] = "user123";
+                return RedirectToAction("GreetUser");
+            }
+
+            public ActionResult GreetUser() {
+                // Check that the UserID is present. If it's not
+                // there, redirect to error page. If it is, show
+                // the greet user view.
+                if (!TempData.ContainsKey("UserID")) {
+                    return RedirectToAction("ErrorPage");
+                }
+                ViewData["NewUserID"] = TempData["UserID"];
+                return View("GreetUser");
+            }
+        }
+
+        public class BrokenController : Controller {
+            public ActionResult Crash() {
+                TempData["Key1"] = "Value1";
+                throw new InvalidOperationException("Crashing....");
+            }
+        }
+
+        private sealed class TestRouteController : Controller {
+            public ActionResult Index() {
+                return RedirectToAction("SomeAction");
+            }
+        } 
+    }
+    
+    internal class EmptyTempDataProvider : ITempDataProvider {
+        public void SaveTempData(TempDataDictionary tempDataDictionary) {
+        }
+
+        public TempDataDictionary LoadTempData() {
+            return new TempDataDictionary();
         }
     }
 }

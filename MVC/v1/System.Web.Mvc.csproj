@@ -33,6 +33,10 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Moq, Version=2.0.2991.26580, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\ReferenceAssemblies\Moq.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core">
@@ -43,7 +47,7 @@
     <Reference Include="System.Web.Abstractions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\ReferenceAssemblies\System.Web.Abstractions.dll</HintPath>
-      <Private>True</Private>
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Web.Extensions">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -51,11 +55,23 @@
     <Reference Include="System.Web.Routing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\ReferenceAssemblies\System.Web.Routing.dll</HintPath>
-      <Private>True</Private>
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Mvc\AuthorizationContext.cs" />
+    <Compile Include="Mvc\AuthorizeAttribute.cs" />
+    <Compile Include="Mvc\AjaxOptions.cs" />
+    <Compile Include="Mvc\AjaxExtensions.cs" />
+    <Compile Include="Mvc\HandleErrorAttribute.cs" />
+    <Compile Include="Mvc\HandleErrorInfo.cs" />
+    <Compile Include="Mvc\HttpUnauthorizedResult.cs" />
+    <Compile Include="Mvc\MvcHttpHandler.cs" />
+    <Compile Include="Mvc\SessionStateTempDataProvider.cs" />
+    <Compile Include="Mvc\ITempDataProvider.cs" />
+    <Compile Include="Mvc\OutputCacheAttribute.cs" />
+    <Compile Include="Mvc\FilterInfo.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Mvc\ActionFilterAttribute.cs" />
     <Compile Include="Mvc\ActionResult.cs" />
@@ -68,6 +84,11 @@
     <Compile Include="Mvc\ControllerTypeCache.cs" />
     <Compile Include="Mvc\ActionExecutedContext.cs" />
     <Compile Include="Mvc\ContentResult.cs" />
+    <Compile Include="Mvc\FilterAttribute.cs" />
+    <Compile Include="Mvc\IResultFilter.cs" />
+    <Compile Include="Mvc\ExceptionContext.cs" />
+    <Compile Include="Mvc\IExceptionFilter.cs" />
+    <Compile Include="Mvc\IAuthorizationFilter.cs" />
     <Compile Include="Mvc\JsonResult.cs" />
     <Compile Include="Mvc\NameValueCollectionExtensions.cs" />
     <Compile Include="Mvc\HtmlHelper.Hidden.cs" />
@@ -77,20 +98,14 @@
     <Compile Include="Mvc\HtmlHelper.Select.cs" />
     <Compile Include="Mvc\EmptyResult.cs" />
     <Compile Include="Mvc\Extensions\BindingHelperExtensions.cs" />
-    <Compile Include="Mvc\Extensions\ButtonBuilder.cs" />
-    <Compile Include="Mvc\Extensions\ButtonsAndLinkExtensions.cs" />
     <Compile Include="Mvc\Extensions\CheckBoxBuilder.cs" />
     <Compile Include="Mvc\Extensions\CheckBoxExtensions.cs" />
-    <Compile Include="Mvc\Extensions\ComponentController.cs" />
     <Compile Include="Mvc\Extensions\ExceptionInfo.cs" />
     <Compile Include="Mvc\Extensions\FormExtensions.cs" />
     <Compile Include="Mvc\Extensions\FormMethod.cs" />
-    <Compile Include="Mvc\Extensions\GlobalSuppressions.cs" />
     <Compile Include="Mvc\Extensions\HtmlExtensionUtility.cs" />
     <Compile Include="Mvc\Extensions\HtmlInputType.cs" />
     <Compile Include="Mvc\Extensions\HtmlTagType.cs" />
-    <Compile Include="Mvc\Extensions\ImageBuilder.cs" />
-    <Compile Include="Mvc\Extensions\ImageExtensions.cs" />
     <Compile Include="Mvc\Extensions\LinkBuilder.cs" />
     <Compile Include="Mvc\Extensions\LinkExtensions.cs" />
     <Compile Include="Mvc\Extensions\MvcControlDataBinder.cs" />
@@ -103,7 +118,6 @@
     <Compile Include="Mvc\Extensions\TextInputBuilder.cs" />
     <Compile Include="Mvc\Extensions\TextInputExtensions.cs" />
     <Compile Include="Mvc\Extensions\UserControlExtensions.cs" />
-    <Compile Include="Mvc\Extensions\ViewExtensions.cs" />
     <Compile Include="Mvc\ListItem.cs" />
     <Compile Include="Mvc\MultiSelectList.cs" />
     <Compile Include="Mvc\RedirectResult.cs" />
@@ -159,7 +173,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>MvcResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Util\Pair.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\MvcResources.resx">

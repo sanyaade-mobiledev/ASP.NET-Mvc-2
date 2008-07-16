@@ -11,9 +11,11 @@
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public abstract class Controller : IActionFilter, IController, IDisposable {
+    public abstract class Controller : IActionFilter, IAuthorizationFilter, IController, IDisposable, IExceptionFilter, IResultFilter {
 
         private RouteCollection _routeCollection;
+        private TempDataDictionary _tempData;
+        private ITempDataProvider _tempDataProvider;
         private ViewDataDictionary _viewData;
         private IViewEngine _viewEngine;
 
@@ -76,10 +78,29 @@
         }
 
         [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
-            Justification = "This property is settable so that unit tests can provide mock implementations.")]
+         Justification = "This property is settable so that unit tests can provide mock implementations.")]
         public TempDataDictionary TempData {
-            get;
-            set;
+            get {
+                if (_tempData == null) {
+                    _tempData = new TempDataDictionary();
+                }
+                return _tempData;
+            }
+            set {
+                _tempData = value;
+            }
+        }
+
+        public ITempDataProvider TempDataProvider {
+            get {
+                if (_tempDataProvider == null) {
+                    _tempDataProvider = new SessionStateTempDataProvider(ControllerContext.HttpContext);
+                }
+                return _tempDataProvider;
+            }
+            set {
+                _tempDataProvider = value;
+            }
         }
 
         public IPrincipal User {
@@ -153,12 +174,17 @@
             }
 
             ControllerContext = controllerContext;
-            TempData = new TempDataDictionary(controllerContext.HttpContext);
+            TempData.Load(TempDataProvider);
 
-            string actionName = RouteData.GetRequiredString("action");
-            ControllerActionInvoker invoker = ActionInvoker ?? new ControllerActionInvoker(controllerContext);
-            if (!invoker.InvokeAction(actionName, new Dictionary<string, object>())) {
-                HandleUnknownAction(actionName);
+            try {
+                string actionName = RouteData.GetRequiredString("action");
+                ControllerActionInvoker invoker = ActionInvoker ?? new ControllerActionInvoker(controllerContext);
+                if (!invoker.InvokeAction(actionName, new Dictionary<string, object>())) {
+                    HandleUnknownAction(actionName);
+                }
+            }
+            finally {
+                TempData.Save(TempDataProvider);
             }
         }
 
@@ -187,6 +213,12 @@
         }
 
         protected virtual void OnActionExecuted(ActionExecutedContext filterContext) {
+        }
+
+        protected virtual void OnAuthorization(AuthorizationContext filterContext) {
+        }
+
+        protected virtual void OnException(ExceptionContext filterContext) {
         }
 
         protected virtual void OnResultExecuted(ResultExecutedContext filterContext) {
@@ -231,11 +263,23 @@
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
             }
 
-            RouteValueDictionary newDict = (values != null) ? new RouteValueDictionary(values) : new RouteValueDictionary();
+            RouteValueDictionary newDict = new RouteValueDictionary();
+
             newDict["action"] = actionName;
             if (!String.IsNullOrEmpty(controllerName)) {
                 newDict["controller"] = controllerName;
             }
+
+            if (!newDict.ContainsKey("controller") && RouteData != null && RouteData.Values.ContainsKey("controller")) {
+                newDict["controller"] = RouteData.Values["controller"];
+            }
+
+            if (values != null) {
+                foreach (var entry in values) {
+                    newDict[entry.Key] = entry.Value;
+                 }
+            }
+
             return new RedirectToRouteResult(newDict);
         }
 
@@ -301,19 +345,33 @@
         void IActionFilter.OnActionExecuted(ActionExecutedContext filterContext) {
             OnActionExecuted(filterContext);
         }
+        #endregion
 
-        void IActionFilter.OnResultExecuting(ResultExecutingContext filterContext) {
-            OnResultExecuting(filterContext);
-        }
-
-        void IActionFilter.OnResultExecuted(ResultExecutedContext filterContext) {
-            OnResultExecuted(filterContext);
+        #region IAuthorizationFilter Members
+        void IAuthorizationFilter.OnAuthorization(AuthorizationContext filterContext) {
+            OnAuthorization(filterContext);
         }
         #endregion
 
         #region IController Members
         void IController.Execute(ControllerContext controllerContext) {
             Execute(controllerContext);
+        }
+        #endregion
+
+        #region IExceptionFilter Members
+        void IExceptionFilter.OnException(ExceptionContext filterContext) {
+            OnException(filterContext);
+        }
+        #endregion
+
+        #region IResultFilter Members
+        void IResultFilter.OnResultExecuting(ResultExecutingContext filterContext) {
+            OnResultExecuting(filterContext);
+        }
+
+        void IResultFilter.OnResultExecuted(ResultExecutedContext filterContext) {
+            OnResultExecuted(filterContext);
         }
         #endregion
     }

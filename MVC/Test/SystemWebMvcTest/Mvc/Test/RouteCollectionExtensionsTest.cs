@@ -67,30 +67,6 @@
         }
 
         [TestMethod]
-        public void MapRoute5TreatsEmptyNameAsUnnamedRoute() {
-            // Setup
-            RouteCollection routes = new RouteCollection();
-
-            // Execute
-            routes.MapRoute("", "", null, null);
-
-            // Verify
-            Assert.AreEqual(1, routes.Count);
-        }
-
-        [TestMethod]
-        public void MapRoute5TreatsNullNameAsUnnamedRoute() {
-            // Setup
-            RouteCollection routes = new RouteCollection();
-
-            // Execute
-            routes.MapRoute(null, "", null, null);
-
-            // Verify
-            Assert.AreEqual(1, routes.Count);
-        }
-
-        [TestMethod]
         public void MapRoute5WithNullRouteCollectionThrows() {
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {

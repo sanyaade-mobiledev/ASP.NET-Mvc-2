@@ -9,7 +9,7 @@
         }
 
         public string TextBox(string name, object htmlAttributes) {
-            return TextBox(name, ToDictionary(htmlAttributes));
+            return TextBox(name, TagBuilder.ToDictionary(htmlAttributes));
         }
 
         public string TextBox(string name, IDictionary<string, object> htmlAttributes) {
@@ -21,7 +21,7 @@
         }
 
         public string TextBox(string name, string value, object htmlAttributes) {
-            return TextBox(name, value, ToDictionary(htmlAttributes));
+            return TextBox(name, value, TagBuilder.ToDictionary(htmlAttributes));
         }
 
         public string TextBox(string name, string value, IDictionary<string, object> htmlAttributes) {

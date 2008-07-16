@@ -30,7 +30,7 @@
                 throw new ArgumentNullException("context");
             }
 
-            context.HttpContext.Response.Redirect(Url);
+            context.HttpContext.Response.Redirect(Url, false /* endResponse */);
         }
 
     }

@@ -6,7 +6,7 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ResultExecutedContext : ControllerContext {
 
-        public ResultExecutedContext(ControllerContext controllerContext, ActionResult result, Exception exception)
+        public ResultExecutedContext(ControllerContext controllerContext, ActionResult result, bool canceled, Exception exception)
             : base(controllerContext) {
 
             if (result == null) {
@@ -14,7 +14,13 @@
             }
 
             Result = result;
+            Canceled = canceled;
             Exception = exception;
+        }
+
+        public bool Canceled {
+            get;
+            private set;
         }
 
         public Exception Exception {

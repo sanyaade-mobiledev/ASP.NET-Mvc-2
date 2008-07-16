@@ -9,7 +9,7 @@
         }
 
         public string Hidden(string name, object htmlAttributes) {
-            return Hidden(name, ToDictionary(htmlAttributes));
+            return Hidden(name, TagBuilder.ToDictionary(htmlAttributes));
         }
 
         public string Hidden(string name, IDictionary<string, object> htmlAttributes) {
@@ -21,7 +21,7 @@
         }
 
         public string Hidden(string name, string value, object htmlAttributes) {
-            return Hidden(name, value, ToDictionary(htmlAttributes));
+            return Hidden(name, value, TagBuilder.ToDictionary(htmlAttributes));
         }
 
         public string Hidden(string name, string value, IDictionary<string, object> htmlAttributes) {

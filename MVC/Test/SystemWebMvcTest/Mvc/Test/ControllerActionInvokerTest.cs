@@ -412,264 +412,89 @@
         }
 
         [TestMethod]
-        public void GetActionFiltersForMemberSortsUnorderedBeforeOrdered() {
+        public void GetFiltersForActionMethod() {
             // Setup
-            var controller = new ActionFilterOrderingController();
+            IController controller = new GetMemberChainSubderivedController();
             ControllerContext context = GetControllerContext(controller);
+            MethodInfo methodInfo = typeof(GetMemberChainSubderivedController).GetMethod("SomeVirtual");
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ActionFilterOrderingController).GetMethod("OrderedAndUnordered");
 
             // Execute
-            var filters = helper.PublicGetActionFiltersForMember(mi);
+            var filters = helper.PublicGetFiltersForActionMethod(methodInfo);
 
             // Verify
-            Assert.AreEqual(6, filters.Count);
-            Assert.AreEqual(-1, ((ActionFilterAttribute)filters[0]).Order);
-            Assert.AreEqual(-1, ((ActionFilterAttribute)filters[1]).Order);
-            Assert.AreEqual(-1, ((ActionFilterAttribute)filters[2]).Order);
-            Assert.AreEqual(1, ((ActionFilterAttribute)filters[3]).Order);
-            Assert.AreEqual(5, ((ActionFilterAttribute)filters[4]).Order);
-            Assert.AreEqual(10, ((ActionFilterAttribute)filters[5]).Order);
+            Assert.AreEqual(3, filters.AuthorizationFilters.Count, "Wrong number of authorization filters.");
+            Assert.AreSame(controller, filters.AuthorizationFilters[0]);
+            Assert.AreEqual("BaseClass", ((KeyedFilterAttribute)filters.AuthorizationFilters[1]).Key);
+            Assert.AreEqual("BaseMethod", ((KeyedFilterAttribute)filters.AuthorizationFilters[2]).Key);
+
+            Assert.AreEqual(6, filters.ActionFilters.Count, "Wrong number of action filters.");
+            Assert.AreSame(controller, filters.ActionFilters[0]);
+            Assert.AreEqual("BaseClass", ((KeyedFilterAttribute)filters.ActionFilters[1]).Key);
+            Assert.AreEqual("BaseMethod", ((KeyedFilterAttribute)filters.ActionFilters[2]).Key);
+            Assert.AreEqual("DerivedClass", ((KeyedFilterAttribute)filters.ActionFilters[3]).Key);
+            Assert.AreEqual("SubderivedClass", ((KeyedFilterAttribute)filters.ActionFilters[4]).Key);
+            Assert.AreEqual("SubderivedMethod", ((KeyedFilterAttribute)filters.ActionFilters[5]).Key);
+
+            Assert.AreEqual(6, filters.ResultFilters.Count, "Wrong number of result filters.");
+            Assert.AreSame(controller, filters.ResultFilters[0]);
+            Assert.AreEqual("BaseClass", ((KeyedFilterAttribute)filters.ResultFilters[1]).Key);
+            Assert.AreEqual("BaseMethod", ((KeyedFilterAttribute)filters.ResultFilters[2]).Key);
+            Assert.AreEqual("DerivedClass", ((KeyedFilterAttribute)filters.ResultFilters[3]).Key);
+            Assert.AreEqual("SubderivedClass", ((KeyedFilterAttribute)filters.ResultFilters[4]).Key);
+            Assert.AreEqual("SubderivedMethod", ((KeyedFilterAttribute)filters.ResultFilters[5]).Key);
+
+            Assert.AreEqual(1, filters.ExceptionFilters.Count, "Wrong number of exception filters.");
+            Assert.AreSame(controller, filters.ExceptionFilters[0]);
         }
 
         [TestMethod]
-        public void GetActionFiltersForMemberWithConflictingOrdersOnMethodThrows() {
+        public void GetFiltersForActionMethodGetsDerivedClassFiltersForBaseClassMethod() {
+            // DevDiv 208062: Action filters specified on derived class won't run if the action method is on a base class
+
             // Setup
-            var controller = new ActionFilterOrderingController();
+            IController controller = new GetMemberChainDerivedController();
             ControllerContext context = GetControllerContext(controller);
+            MethodInfo methodInfo = typeof(GetMemberChainDerivedController).GetMethod("SomeVirtual");
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ActionFilterOrderingController).GetMethod("ConflictingOrders");
-
-            // Execute & verify
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    helper.PublicGetActionFiltersForMember(mi);
-                },
-                "The action method 'ConflictingOrders' on controller 'System.Web.Mvc.Test.ControllerActionInvokerTest+"
-                    + "ActionFilterOrderingController' has two filter attributes with filter order 0. If a filter "
-                    + "specifies an order of 0 or greater, no other filter on that action method may specify that same order.");
-        }
-
-        [TestMethod]
-        public void GetActionFiltersForMemberWithConflictingOrdersOnTypeThrows() {
-            // Setup
-            var controller = new ActionFilterOrderingController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-
-            // Execute & verify
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    helper.PublicGetActionFiltersForMember(typeof(ConflictingActionFilterOrderingController));
-                },
-                "Two filter attributes on controller 'System.Web.Mvc.Test.ControllerActionInvokerTest+"
-                    + "ConflictingActionFilterOrderingController' have filter order 0. If a filter specifies an order of 0 "
-                    + "or greater, no other filter on that type may specify that same order.");
-        }
-
-        [TestMethod]
-        public void GetActionFiltersForMemberWithNoFilters() {
-            // Setup
-            var controller = new ActionFilterOrderingController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ActionFilterOrderingController).GetMethod("NoFilters");
 
             // Execute
-            var filters = helper.PublicGetActionFiltersForMember(mi);
+            var filters = helper.PublicGetFiltersForActionMethod(methodInfo);
 
             // Verify
-            Assert.AreEqual(0, filters.Count);
+            Assert.AreEqual(3, filters.AuthorizationFilters.Count, "Wrong number of authorization filters.");
+            Assert.AreSame(controller, filters.AuthorizationFilters[0]);
+            Assert.AreEqual("BaseClass", ((KeyedFilterAttribute)filters.AuthorizationFilters[1]).Key);
+            Assert.AreEqual("BaseMethod", ((KeyedFilterAttribute)filters.AuthorizationFilters[2]).Key);
+
+            Assert.AreEqual(4, filters.ActionFilters.Count, "Wrong number of action filters.");
+            Assert.AreSame(controller, filters.ActionFilters[0]);
+            Assert.AreEqual("BaseClass", ((KeyedFilterAttribute)filters.ActionFilters[1]).Key);
+            Assert.AreEqual("BaseMethod", ((KeyedFilterAttribute)filters.ActionFilters[2]).Key);
+            Assert.AreEqual("DerivedClass", ((KeyedFilterAttribute)filters.ActionFilters[3]).Key);
+
+            Assert.AreEqual(4, filters.ResultFilters.Count, "Wrong number of result filters.");
+            Assert.AreSame(controller, filters.ResultFilters[0]);
+            Assert.AreEqual("BaseClass", ((KeyedFilterAttribute)filters.ResultFilters[1]).Key);
+            Assert.AreEqual("BaseMethod", ((KeyedFilterAttribute)filters.ResultFilters[2]).Key);
+            Assert.AreEqual("DerivedClass", ((KeyedFilterAttribute)filters.ResultFilters[3]).Key);
+
+            Assert.AreEqual(1, filters.ExceptionFilters.Count, "Wrong number of exception filters.");
+            Assert.AreSame(controller, filters.ExceptionFilters[0]);
         }
 
         [TestMethod]
-        public void GetActionFiltersForMemberWithNullMemberInfoThrows() {
+        public void GetFiltersForActionMethodWithNullMethodInfoThrows() {
             // Setup
-            var controller = new ActionFilterOrderingController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-
-            // Execute & verify
-            ExceptionHelper.ExpectArgumentNullException(
-                delegate {
-                    helper.PublicGetActionFiltersForMember(null /* memberInfo */);
-                },
-                "memberInfo");
-        }
-
-        [TestMethod]
-        public void GetActionFiltersForMemberWithSingleOrdered() {
-            // Setup
-            var controller = new ActionFilterOrderingController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ActionFilterOrderingController).GetMethod("SingleOrdered");
-
-            // Execute
-            var filters = helper.PublicGetActionFiltersForMember(mi);
-
-            // Verify
-            Assert.AreEqual(1, filters.Count);
-            Assert.AreEqual(10, ((ActionFilterAttribute)filters[0]).Order);
-        }
-
-        [TestMethod]
-        public void GetActionFiltersForMemberWithSingleUnordered() {
-            // Setup
-            var controller = new ActionFilterOrderingController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ActionFilterOrderingController).GetMethod("SingleUnordered");
-
-            // Execute
-            var filters = helper.PublicGetActionFiltersForMember(mi);
-
-            // Verify
-            Assert.AreEqual(1, filters.Count);
-            Assert.AreEqual(-1, ((ActionFilterAttribute)filters[0]).Order);
-        }
-
-        [TestMethod]
-        public void GetAllActionFiltersCallsGetActionFiltersForMember() {
-            // GetAllActionFilters() should return filters in this order:
-            //   1. The controller itself (if it implements IActionFilter)
-            //   2. Attributes applied to the controller's base classes
-            //   3. Attributes applied to the controller class
-            //   4. Attributes applied to the target method's base declarations
-            //   5. Attributes applied to the target method
-
-            // Setup
-            var controller = new DerivedActionFilterOrderingController();
-            ControllerContext context = GetControllerContext(controller);
-            MethodInfo mi = typeof(DerivedActionFilterOrderingController).GetMethod("OverriddenMethod");
-
-            InvokerForFilters invoker = new InvokerForFilters(context);
-            invoker.Expectations.Enqueue(mi); // PublicGetAllActionFilters
-            invoker.Expectations.Enqueue(mi); // GetAllActionFilters
-            invoker.Expectations.Enqueue(typeof(object)); // GetActionFiltersForMember
-            invoker.Expectations.Enqueue(typeof(Controller)); // GetActionFiltersForMember
-            invoker.Expectations.Enqueue(typeof(ActionFilterOrderingController)); // GetActionFiltersForMember
-            invoker.Expectations.Enqueue(typeof(DerivedActionFilterOrderingController)); // GetActionFiltersForMember
-            invoker.Expectations.Enqueue(typeof(ActionFilterOrderingController).GetMethod("OverriddenMethod")); // GetActionFiltersForMember
-            invoker.Expectations.Enqueue(mi); // GetActionFiltersForMember
-
-            // Execute
-            IList<IActionFilter> filters = invoker.PublicGetAllActionFilters(mi);
-
-            // Verify
-            Assert.AreEqual(1, filters.Count);
-            Assert.AreEqual<int>(0, invoker.Expectations.Count);
-        }
-
-        [TestMethod]
-        public void GetAllActionFiltersGetsControllerTypeFromContext() {
-            // DevDiv Bugs 193338: MVC: ControllerFilters are not executed if the target action is defined in a base type
-
-            // If a ControllerContext points to a derived controller but the target action method
-            // is in the base controller, we should still execute the derived controller's action filters since
-            // we're calling the method on an instance of the derived controller.
-
-            // Setup
-            var controller = new DerivedActionFilterOrderingController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(DerivedActionFilterOrderingController).GetMethod("NoFilters");
-
-            // Execute
-            var filters = helper.PublicGetAllActionFilters(mi);
-
-            // Verify
-            Assert.AreEqual(3, filters.Count);
-            Assert.AreSame(controller, filters[0]); // controller should be the first filter
-            Assert.AreEqual("BaseClass", ((KeyedActionFilterAttribute)filters[1]).Key);
-            Assert.AreEqual("DerivedClass", ((KeyedActionFilterAttribute)filters[2]).Key);
-        }
-
-        [TestMethod]
-        public void GetAllActionFiltersDoesNotAddHiddenMembers() {
-            // If a target method hides a method in the base class, GetAllActionFilters() shouldn't return the
-            // filters declared on the base class method.
-
-            // Setup
-            var controller = new DerivedActionFilterOrderingController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(DerivedActionFilterOrderingController).GetMethod("HiddenMethod");
-
-            // Execute
-            var filters = helper.PublicGetAllActionFilters(mi);
-
-            // Verify
-            Assert.AreEqual(4, filters.Count);
-            Assert.AreSame(controller, filters[0]); // controller should be the first filter
-            Assert.AreEqual("BaseClass", ((KeyedActionFilterAttribute)filters[1]).Key);
-            Assert.AreEqual("DerivedClass", ((KeyedActionFilterAttribute)filters[2]).Key);
-            Assert.AreEqual("NewMethod", ((KeyedActionFilterAttribute)filters[3]).Key);
-        }
-
-        [TestMethod]
-        public void GetAllActionFiltersReturnsBaseFiltersFirst() {
-            // GetAllActionFilters() should return filters in this order:
-            //   1. The controller itself (if it implements IActionFilter)
-            //   2. Attributes applied to the controller's base classes
-            //   3. Attributes applied to the controller class
-            //   4. Attributes applied to the target method's base declarations
-            //   5. Attributes applied to the target method
-
-            // Setup
-            var controller = new DerivedActionFilterOrderingController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(DerivedActionFilterOrderingController).GetMethod("OverriddenMethod");
-
-            // Execute
-            var filters = helper.PublicGetAllActionFilters(mi);
-
-            // Verify
-            Assert.AreEqual(5, filters.Count);
-            Assert.AreSame(controller, filters[0]); // controller should be the first filter
-            Assert.AreEqual("BaseClass", ((KeyedActionFilterAttribute)filters[1]).Key);
-            Assert.AreEqual("DerivedClass", ((KeyedActionFilterAttribute)filters[2]).Key);
-            Assert.AreEqual("BaseMethod", ((KeyedActionFilterAttribute)filters[3]).Key);
-            Assert.AreEqual("OverrideMethod", ((KeyedActionFilterAttribute)filters[4]).Key);
-        }
-
-        [TestMethod]
-        public void GetAllActionFiltersWithJumpsInMethodInfoInheritanceChain() {
-            // DevDiv Bugs 193448: MVC: Filters from base virtual method are not triggered if it is overriden on the second inherited class
-
-            // Setup
-            var controller = new SubDerivedActionFilterOrderingController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(SubDerivedActionFilterOrderingController).GetMethod("SomeVirtual");
-
-            // Execute
-            var filters = helper.PublicGetAllActionFilters(mi);
-
-            // Verify
-            Assert.AreEqual(6, filters.Count);
-            Assert.AreSame(controller, filters[0]); // controller should be the first filter
-            Assert.AreEqual("BaseClass", ((KeyedActionFilterAttribute)filters[1]).Key);
-            Assert.AreEqual("DerivedClass", ((KeyedActionFilterAttribute)filters[2]).Key);
-            Assert.AreEqual("SubDerivedClass", ((KeyedActionFilterAttribute)filters[3]).Key);
-            Assert.AreEqual("BaseVirtual", ((KeyedActionFilterAttribute)filters[4]).Key);
-            Assert.AreEqual("SubDerivedVirtual", ((KeyedActionFilterAttribute)filters[5]).Key);
-        }
-
-        [TestMethod]
-        public void GetAllActionFiltersWithNullMethodInfoThrows() {
-            // Setup
-            var controller = new DerivedActionFilterOrderingController();
+            IController controller = new GetMemberChainSubderivedController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
             // Execute & verify
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    helper.PublicGetAllActionFilters(null /* methodInfo */);
-                },
-                "methodInfo");
+                    helper.PublicGetFiltersForActionMethod(null /* methodInfo */);
+                }, "methodInfo");
         }
 
         [TestMethod]
@@ -1090,22 +915,27 @@
         [TestMethod]
         public void GetParameterValuesCallsGetParameterValue() {
             // Setup
-            var controller = new ParameterTestingController();
+            IController controller = new ParameterTestingController();
             IDictionary<string, object> dict = new Dictionary<string, object>();
             ControllerContext context = GetControllerContext(controller);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("Foo");
             ParameterInfo[] pis = mi.GetParameters();
 
-            InvokerForParameters invoker = new InvokerForParameters(context);
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
+            mockHelper.Expect(h => h.PublicGetParameterValue(pis[0], dict)).Returns("Myfoo").Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValue(pis[1], dict)).Returns("Mybar").Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValue(pis[2], dict)).Returns("Mybaz").Verifiable();
+            ControllerActionInvokerHelper helper = mockHelper.Object;
 
             // Execute
-            IDictionary<string, object> parameters = invoker.PublicGetParameterValues(mi, dict);
+            IDictionary<string, object> parameters = helper.PublicGetParameterValues(mi, dict);
 
             // Verify
             Assert.AreEqual(3, parameters.Count);
             Assert.AreEqual("Myfoo", parameters["foo"]);
             Assert.AreEqual("Mybar", parameters["bar"]);
             Assert.AreEqual("Mybaz", parameters["baz"]);
+            mockHelper.Verify();
         }
 
         [TestMethod]
@@ -1255,6 +1085,36 @@
                     helper.PublicGetParameterValue(null /* parameterInfo */, null /* values */);
                 },
                 "parameterInfo");
+        }
+
+        [TestMethod]
+        public void InvokeAction() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            ControllerContext context = GetControllerContext(controller);
+            IDictionary<string, object> values = new Dictionary<string, object>();
+            IDictionary<string, object> paramValues = new Dictionary<string, object>();
+            MethodInfo methodInfo = typeof(object).GetMethod("ToString");
+            var filterInfo = new FilterInfo();
+            ActionResult actionResult = new EmptyResult();
+            ActionExecutedContext postContext = new ActionExecutedContext(context, methodInfo, false /* canceled */, null /* exception */) {
+                Result = actionResult
+            };
+            AuthorizationContext authContext = new AuthorizationContext(context, methodInfo);
+
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
+            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod", values)).Returns(methodInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo, values)).Returns(paramValues).Verifiable();
+            mockHelper.Expect(h => h.PublicGetFiltersForActionMethod(methodInfo)).Returns(filterInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters)).Returns(authContext).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeActionMethodWithFilters(methodInfo, paramValues, filterInfo.ActionFilters)).Returns(postContext).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeActionResultWithFilters(actionResult, filterInfo.ResultFilters)).Returns((ResultExecutedContext)null).Verifiable();
+            ControllerActionInvokerHelper helper = mockHelper.Object;
+
+            // Execute
+            bool retVal = helper.InvokeAction("SomeMethod", values);
+            Assert.IsTrue(retVal, "InvokeAction() should return True on success.");
+            mockHelper.Verify();
         }
 
         [TestMethod]
@@ -1411,7 +1271,7 @@
             bool wasCalled = false;
             MethodInfo mi = typeof(object).GetMethod("ToString");
             Dictionary<string, object> parameters = new Dictionary<string, object>();
-            ActionExecutedContext postContext = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), mi, null /* exception */);
+            ActionExecutedContext postContext = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), mi, false /* canceled */, null /* exception */);
             ActionResult actionResult = new EmptyResult();
             ActionFilterImpl filter = new ActionFilterImpl() {
                 OnActionExecutingImpl = delegate(ActionExecutingContext filterContext) {
@@ -1433,6 +1293,7 @@
             Assert.IsTrue(wasCalled);
             Assert.AreSame(mi, result.ActionMethod);
             Assert.IsNull(result.Exception);
+            Assert.IsTrue(result.Canceled);
             Assert.AreSame(actionResult, result.Result);
         }
 
@@ -1442,7 +1303,7 @@
             List<string> actions = new List<string>();
             MethodInfo mi = typeof(object).GetMethod("ToString");
             Dictionary<string, object> parameters = new Dictionary<string, object>();
-            ActionExecutedContext postContext = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), mi, null /* exception */);
+            ActionExecutedContext postContext = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), mi, false /* canceled */, null /* exception */);
             ActionFilterImpl filter = new ActionFilterImpl() {
                 OnActionExecutingImpl = delegate(ActionExecutingContext filterContext) {
                     Assert.AreSame(mi, filterContext.ActionMethod);
@@ -1470,6 +1331,129 @@
             Assert.AreEqual("Continuation", actions[1]);
             Assert.AreEqual("OnActionExecuted", actions[2]);
             Assert.AreSame(result, postContext);
+        }
+
+        [TestMethod]
+        public void InvokeActionInvokesEmptyResultIfAuthorizationFailsAndNoResultSpecified() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            ControllerContext context = GetControllerContext(controller);
+            IDictionary<string, object> values = new Dictionary<string, object>();
+            IDictionary<string, object> paramValues = new Dictionary<string, object>();
+            MethodInfo methodInfo = typeof(object).GetMethod("ToString");
+            var filterInfo = new FilterInfo();
+            ActionResult actionResult = new EmptyResult();
+            ActionExecutedContext postContext = new ActionExecutedContext(context, methodInfo, false /* canceled */, null /* exception */) {
+                Result = actionResult
+            };
+            AuthorizationContext authContext = new AuthorizationContext(context, methodInfo) { Cancel = true };
+
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
+            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod", values)).Returns(methodInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo, values)).Returns(paramValues).Verifiable();
+            mockHelper.Expect(h => h.PublicGetFiltersForActionMethod(methodInfo)).Returns(filterInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters)).Returns(authContext).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeActionResult(EmptyResult.Instance)).Verifiable();
+            ControllerActionInvokerHelper helper = mockHelper.Object;
+
+            // Execute
+            bool retVal = helper.InvokeAction("SomeMethod", values);
+            Assert.IsTrue(retVal, "InvokeAction() should return True on success.");
+            mockHelper.Verify();
+        }
+
+        [TestMethod]
+        public void InvokeActionInvokesExceptionFiltersAndExecutesResultIfExceptionHandled() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            ControllerContext context = GetControllerContext(controller);
+            IDictionary<string, object> values = new Dictionary<string, object>();
+            IDictionary<string, object> paramValues = new Dictionary<string, object>();
+            MethodInfo methodInfo = typeof(object).GetMethod("ToString");
+            var filterInfo = new FilterInfo();
+            Exception exception = new Exception();
+            ActionResult actionResult = new EmptyResult();
+            ExceptionContext exContext = new ExceptionContext(context, exception) {
+                ExceptionHandled = true,
+                Result = actionResult
+            };
+
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
+            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod", values)).Returns(methodInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo, values)).Returns(paramValues).Verifiable();
+            mockHelper.Expect(h => h.PublicGetFiltersForActionMethod(methodInfo)).Returns(filterInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters)).Throws(exception).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeExceptionFilters(exception, filterInfo.ExceptionFilters)).Returns(exContext).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeActionResult(actionResult)).Verifiable();
+            ControllerActionInvokerHelper helper = mockHelper.Object;
+
+            // Execute
+            bool retVal = helper.InvokeAction("SomeMethod", values);
+            Assert.IsTrue(retVal, "InvokeAction() should return True on success.");
+            mockHelper.Verify();
+        }
+
+        [TestMethod]
+        public void InvokeActionInvokesExceptionFiltersAndRethrowsExceptionIfNotHandled() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            ControllerContext context = GetControllerContext(controller);
+            IDictionary<string, object> values = new Dictionary<string, object>();
+            IDictionary<string, object> paramValues = new Dictionary<string, object>();
+            MethodInfo methodInfo = typeof(object).GetMethod("ToString");
+            var filterInfo = new FilterInfo();
+            Exception exception = new Exception();
+            ExceptionContext exContext = new ExceptionContext(context, exception);
+
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
+            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod", values)).Returns(methodInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo, values)).Returns(paramValues).Verifiable();
+            mockHelper.Expect(h => h.PublicGetFiltersForActionMethod(methodInfo)).Returns(filterInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters)).Throws(exception).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeExceptionFilters(exception, filterInfo.ExceptionFilters)).Returns(exContext).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeActionResult(It.IsAny<ActionResult>())).Callback(delegate {
+                Assert.Fail("InvokeActionResult() shouldn't be called if the exception was unhandled by filters.");
+            });
+            ControllerActionInvokerHelper helper = mockHelper.Object;
+
+            // Execute
+            Exception thrownException = ExceptionHelper.ExpectException<Exception>(
+                delegate {
+                    helper.InvokeAction("SomeMethod", values);
+                });
+
+            // Verify
+            Assert.AreSame(exception, thrownException);
+            mockHelper.Verify();
+        }
+
+        [TestMethod]
+        public void InvokeActionInvokesResultIfAuthorizationFails() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            ControllerContext context = GetControllerContext(controller);
+            IDictionary<string, object> values = new Dictionary<string, object>();
+            IDictionary<string, object> paramValues = new Dictionary<string, object>();
+            MethodInfo methodInfo = typeof(object).GetMethod("ToString");
+            var filterInfo = new FilterInfo();
+            ActionResult actionResult = new EmptyResult();
+            ActionExecutedContext postContext = new ActionExecutedContext(context, methodInfo, false /* canceled */, null /* exception */) {
+                Result = actionResult
+            };
+            AuthorizationContext authContext = new AuthorizationContext(context, methodInfo) { Cancel = true, Result = actionResult };
+
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
+            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod", values)).Returns(methodInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo, values)).Returns(paramValues).Verifiable();
+            mockHelper.Expect(h => h.PublicGetFiltersForActionMethod(methodInfo)).Returns(filterInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters)).Returns(authContext).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeActionResult(actionResult)).Verifiable();
+            ControllerActionInvokerHelper helper = mockHelper.Object;
+
+            // Execute
+            bool retVal = helper.InvokeAction("SomeMethod", values);
+            Assert.IsTrue(retVal, "InvokeAction() should return True on success.");
+            mockHelper.Verify();
         }
 
         [TestMethod]
@@ -1722,7 +1706,7 @@
             // Setup
             ResultExecutingContext storedContext = null;
             ActionResult result = new EmptyResult();
-            List<IActionFilter> filters = new List<IActionFilter>() {
+            List<IResultFilter> filters = new List<IResultFilter>() {
                 new ActionFilterImpl() {
                     OnResultExecutingImpl = delegate(ResultExecutingContext ctx) {
                         storedContext = ctx;
@@ -1749,7 +1733,7 @@
         public void InvokeActionResultWithFiltersTracksChangesToActionResult() {
             // Setup
             ActionResult newResult = new EmptyResult();
-            List<IActionFilter> filters = new List<IActionFilter>() {
+            List<IResultFilter> filters = new List<IResultFilter>() {
                 new ActionFilterImpl() {
                     OnResultExecutingImpl = delegate { },
                     OnResultExecutedImpl = delegate(ResultExecutedContext ctx) {
@@ -1778,7 +1762,7 @@
         public void InvokeActionResultWithFiltersTracksChangesToActionResultWithException() {
             // Setup
             ActionResult newResult = new EmptyResult();
-            List<IActionFilter> filters = new List<IActionFilter>() {
+            List<IResultFilter> filters = new List<IResultFilter>() {
                 new ActionFilterImpl() {
                     OnResultExecutingImpl = delegate { },
                     OnResultExecutedImpl = delegate(ResultExecutedContext ctx) {
@@ -1806,7 +1790,7 @@
         public void InvokeActionResultWithFiltersTracksChangesToActionResultWithThreadAbortException() {
             // Setup
             ActionResult newResult = new EmptyResult();
-            List<IActionFilter> filters = new List<IActionFilter>() {
+            List<IResultFilter> filters = new List<IResultFilter>() {
                 new ActionFilterImpl() {
                     OnResultExecutingImpl = delegate { },
                     OnResultExecutedImpl = delegate(ResultExecutedContext ctx) {
@@ -1892,28 +1876,6 @@
         }
 
         [TestMethod]
-        public void InvokeActionReturnsTrueOnSuccess() {
-            // Setup
-            var controller = new Mock<IController>().Object;
-            IDictionary<string, object> dict = new Dictionary<string, object>();
-            ControllerContext context = GetControllerContext(controller);
-            MethodInfo mi = typeof(object).GetMethod("ToString");
-            IDictionary<string, object> parameterValues = new Dictionary<string, object>();
-            InvokerForEverything invoker = new InvokerForEverything(context) {
-                ExpectedMethodInfo = mi,
-                ExpectedValues = dict,
-                ExpectedParameterValues = parameterValues
-            };
-
-            // Execute
-            bool retVal = invoker.InvokeAction("ReturnsNull", dict);
-
-            // Verify
-            Assert.IsTrue(retVal);
-            Assert.AreEqual<int>(8, invoker.ExpectationCount);
-        }
-
-        [TestMethod]
         public void InvokeActionWithEmptyActionNameThrows() {
             // Setup
             var controller = new BasicMethodInvokeController();
@@ -1941,6 +1903,193 @@
                     invoker.InvokeAction(null /* actionName */, null /* values */);
                 },
                 "actionName");
+        }
+
+        [TestMethod]
+        public void InvokeActionWithResultExceptionInvokesExceptionFiltersAndExecutesResultIfExceptionHandled() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            ControllerContext context = GetControllerContext(controller);
+            IDictionary<string, object> values = new Dictionary<string, object>();
+            IDictionary<string, object> paramValues = new Dictionary<string, object>();
+            MethodInfo methodInfo = typeof(object).GetMethod("ToString");
+            var filterInfo = new FilterInfo();
+            Exception exception = new Exception();
+            ActionResult actionResult = new EmptyResult();
+            ActionExecutedContext postContext = new ActionExecutedContext(context, methodInfo, false /* canceled */, null /* exception */) {
+                Result = actionResult
+            };
+            ExceptionContext exContext = new ExceptionContext(context, exception) {
+                ExceptionHandled = true,
+                Result = actionResult
+            };
+            AuthorizationContext authContext = new AuthorizationContext(context, methodInfo);
+
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
+            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod", values)).Returns(methodInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo, values)).Returns(paramValues).Verifiable();
+            mockHelper.Expect(h => h.PublicGetFiltersForActionMethod(methodInfo)).Returns(filterInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters)).Returns(authContext).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeActionMethodWithFilters(methodInfo, paramValues, filterInfo.ActionFilters)).Returns(postContext).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeActionResultWithFilters(actionResult, filterInfo.ResultFilters)).Throws(exception).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeExceptionFilters(exception, filterInfo.ExceptionFilters)).Returns(exContext).Verifiable();
+            mockHelper.Expect(h => h.PublicInvokeActionResult(actionResult)).Verifiable();
+            ControllerActionInvokerHelper helper = mockHelper.Object;
+
+            // Execute
+            bool retVal = helper.InvokeAction("SomeMethod", values);
+            Assert.IsTrue(retVal, "InvokeAction() should return True on success.");
+            mockHelper.Verify();
+        }
+
+        [TestMethod]
+        public void InvokeAuthorizationFilters() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            MethodInfo methodInfo = typeof(object).GetMethod("ToString");
+            ControllerContext controllerContext = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
+
+            List<AuthorizationFilterHelper> callQueue = new List<AuthorizationFilterHelper>();
+            AuthorizationFilterHelper filter1 = new AuthorizationFilterHelper(callQueue);
+            AuthorizationFilterHelper filter2 = new AuthorizationFilterHelper(callQueue);
+
+            // Execute
+            AuthorizationContext postContext = helper.PublicInvokeAuthorizationFilters(methodInfo, new List<IAuthorizationFilter> { filter1, filter2 });
+
+            // Verify
+            Assert.AreSame(methodInfo, postContext.ActionMethod);
+            Assert.AreEqual(2, callQueue.Count);
+            Assert.AreSame(filter1, callQueue[0]);
+            Assert.AreSame(filter2, callQueue[1]);
+        }
+
+        [TestMethod]
+        public void InvokeAuthorizationFiltersStopsExecutingIfResultProvided() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            MethodInfo methodInfo = typeof(object).GetMethod("ToString");
+            ControllerContext controllerContext = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
+            ActionResult result = new EmptyResult();
+
+            List<AuthorizationFilterHelper> callQueue = new List<AuthorizationFilterHelper>();
+            AuthorizationFilterHelper filter1 = new AuthorizationFilterHelper(callQueue) { ShouldCancel = true, ShortCircuitResult = result };
+            AuthorizationFilterHelper filter2 = new AuthorizationFilterHelper(callQueue);
+
+            // Execute
+            AuthorizationContext postContext = helper.PublicInvokeAuthorizationFilters(methodInfo, new List<IAuthorizationFilter> { filter1, filter2 });
+
+            // Verify
+            Assert.AreSame(methodInfo, postContext.ActionMethod);
+            Assert.IsTrue(postContext.Cancel);
+            Assert.AreSame(result, postContext.Result);
+            Assert.AreEqual(1, callQueue.Count);
+            Assert.AreSame(filter1, callQueue[0]);
+        }
+
+        [TestMethod]
+        public void InvokeAuthorizationFiltersWithNullFiltersThrows() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            ControllerContext context = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
+
+            // Execute & verify
+            ExceptionHelper.ExpectArgumentNullException(
+                delegate {
+                    helper.PublicInvokeAuthorizationFilters(typeof(object).GetMethod("ToString"), null /* filters */);
+                }, "filters");
+        }
+
+        [TestMethod]
+        public void InvokeExceptionFiltersWithNullMethodInfoThrows() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            ControllerContext context = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
+
+            // Execute & verify
+            ExceptionHelper.ExpectArgumentNullException(
+                delegate {
+                    helper.PublicInvokeAuthorizationFilters(null /* methodInfo */, null /* filters */);
+                }, "methodInfo");
+        }
+
+        [TestMethod]
+        public void InvokeExceptionFilters() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            Exception exception = new Exception();
+            ControllerContext controllerContext = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
+
+            List<ExceptionFilterHelper> callQueue = new List<ExceptionFilterHelper>();
+            ExceptionFilterHelper filter1 = new ExceptionFilterHelper(callQueue);
+            ExceptionFilterHelper filter2 = new ExceptionFilterHelper(callQueue);
+
+            // Execute
+            ExceptionContext postContext = helper.PublicInvokeExceptionFilters(exception, new List<IExceptionFilter> { filter1, filter2 });
+
+            // Verify
+            Assert.AreSame(exception, postContext.Exception);
+            Assert.IsFalse(postContext.ExceptionHandled);
+            Assert.AreSame(filter1.ContextPassed, filter2.ContextPassed, "The same context should have been passed to each exception filter.");
+            Assert.AreEqual(2, callQueue.Count);
+            Assert.AreSame(filter1, callQueue[0]);
+            Assert.AreSame(filter2, callQueue[1]);
+        }
+
+        [TestMethod]
+        public void InvokeExceptionFiltersContinuesExecutingIfExceptionHandled() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            Exception exception = new Exception();
+            ControllerContext controllerContext = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
+
+            List<ExceptionFilterHelper> callQueue = new List<ExceptionFilterHelper>();
+            ExceptionFilterHelper filter1 = new ExceptionFilterHelper(callQueue) { ShouldHandleException = true };
+            ExceptionFilterHelper filter2 = new ExceptionFilterHelper(callQueue);
+
+            // Execute
+            ExceptionContext postContext = helper.PublicInvokeExceptionFilters(exception, new List<IExceptionFilter> { filter1, filter2 });
+
+            // Verify
+            Assert.AreSame(exception, postContext.Exception);
+            Assert.IsTrue(postContext.ExceptionHandled, "The exception should have been handled.");
+            Assert.AreSame(filter1.ContextPassed, filter2.ContextPassed, "The same context should have been passed to each exception filter.");
+            Assert.AreEqual(2, callQueue.Count);
+            Assert.AreSame(filter1, callQueue[0]);
+            Assert.AreSame(filter2, callQueue[1]);
+        }
+
+        [TestMethod]
+        public void InvokeExceptionFiltersWithNullExceptionThrows() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            ControllerContext context = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
+
+            // Execute & verify
+            ExceptionHelper.ExpectArgumentNullException(
+                delegate {
+                    helper.PublicInvokeExceptionFilters(null /* exception */, null /* filters */);
+                }, "exception");
+        }
+
+        [TestMethod]
+        public void InvokeExceptionFiltersWithNullFiltersThrows() {
+            // Setup
+            IController controller = new Mock<IController>().Object;
+            ControllerContext context = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
+
+            // Execute & verify
+            ExceptionHelper.ExpectArgumentNullException(
+                delegate {
+                    helper.PublicInvokeExceptionFilters(new Exception(), null /* filters */);
+                }, "filters");
         }
 
         [TestMethod]
@@ -1972,7 +2121,7 @@
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
             // Execute
-            helper.PublicInvokeActionResultWithFilters(actionResult, new List<IActionFilter>() { filter1, filter2 });
+            helper.PublicInvokeActionResultWithFilters(actionResult, new List<IResultFilter>() { filter1, filter2 });
 
             // Verify
             Assert.AreEqual(5, actions.Count);
@@ -2005,7 +2154,7 @@
 
             // Execute
             ResultExecutedContext result = helper.PublicInvokeActionResultWithFilters(actionResult,
-                new List<IActionFilter>() { filter });
+                new List<IResultFilter>() { filter });
 
             // Verify
             Assert.IsTrue(wasCalled);
@@ -2140,6 +2289,7 @@
             // Verify
             Assert.IsTrue(wasCalled);
             Assert.IsNull(result.Exception);
+            Assert.IsTrue(result.Canceled);
             Assert.AreSame(actionResult, result.Result);
         }
 
@@ -2148,7 +2298,7 @@
             // Setup
             List<string> actions = new List<string>();
             ActionResult actionResult = new EmptyResult();
-            ResultExecutedContext postContext = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), actionResult, null /* exception */);
+            ResultExecutedContext postContext = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), actionResult, false /* canceled */, null /* exception */);
             ActionFilterImpl filter = new ActionFilterImpl() {
                 OnResultExecutingImpl = delegate(ResultExecutingContext filterContext) {
                     Assert.AreSame(actionResult, filterContext.Result);
@@ -2186,20 +2336,37 @@
         private class EmptyActionFilterAttribute : ActionFilterAttribute {
         }
 
-        private class KeyedActionFilterAttribute : ActionFilterAttribute {
-
-            public KeyedActionFilterAttribute(string key) {
-                Key = key;
-            }
-
+        private abstract class KeyedFilterAttribute : FilterAttribute {
             public string Key {
                 get;
-                private set;
+                set;
             }
-
         }
 
-        private class ActionFilterImpl : IActionFilter {
+        private class KeyedAuthorizationFilterAttribute : KeyedFilterAttribute, IAuthorizationFilter {
+            public void OnAuthorization(AuthorizationContext filterContext) {
+                throw new NotImplementedException();
+            }
+        }
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
+        private class KeyedActionFilterAttribute : KeyedFilterAttribute, IActionFilter, IResultFilter {
+            public void OnActionExecuting(ActionExecutingContext filterContext) {
+                throw new NotImplementedException();
+            }
+            public void OnActionExecuted(ActionExecutedContext filterContext) {
+                throw new NotImplementedException();
+            }
+            public void OnResultExecuting(ResultExecutingContext filterContext) {
+                throw new NotImplementedException();
+            }
+
+            public void OnResultExecuted(ResultExecutedContext filterContext) {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class ActionFilterImpl : IActionFilter, IResultFilter {
 
             public Action<ActionExecutingContext> OnActionExecutingImpl {
                 get;
@@ -2239,74 +2406,29 @@
 
         }
 
-        [KeyedActionFilter("BaseClass", Order = 0)]
-        private class ActionFilterOrderingController : Controller {
+        [KeyedActionFilter(Key = "BaseClass", Order = 0)]
+        [KeyedAuthorizationFilter(Key = "BaseClass", Order = 0)]
+        private class GetMemberChainController : Controller {
 
-            [EmptyActionFilter]
-            [EmptyActionFilter(Order = 1)]
-            [EmptyActionFilter]
-            [EmptyActionFilter(Order = 10)]
-            [EmptyActionFilter]
-            [EmptyActionFilter(Order = 5)]
-            public void OrderedAndUnordered() {
-            }
-
-            [EmptyActionFilter]
-            public void SingleUnordered() {
-            }
-
-            public void NoFilters() {
-            }
-
-            [EmptyActionFilter(Order = 10)]
-            public void SingleOrdered() {
-            }
-
-            [EmptyActionFilter(Order = 0)]
-            [EmptyActionFilter(Order = 0)]
-            public void ConflictingOrders() {
-            }
-
-            [KeyedActionFilter("BaseMethod", Order = 0)]
-            public virtual void HiddenMethod() {
-            }
-
-            [KeyedActionFilter("BaseMethod", Order = 0)]
-            public virtual void OverriddenMethod() {
-            }
-
-            [KeyedActionFilter("BaseVirtual", Order = 0)]
+            [KeyedActionFilter(Key = "BaseMethod", Order = 0)]
+            [KeyedAuthorizationFilter(Key = "BaseMethod", Order = 0)]
             public virtual void SomeVirtual() {
             }
 
         }
 
-        [KeyedActionFilter("DerivedClass", Order = 0)]
-        private class DerivedActionFilterOrderingController : ActionFilterOrderingController {
-
-
-            [KeyedActionFilter("NewMethod", Order = 0)]
-            public new void HiddenMethod() {
-            }
-
-            [KeyedActionFilter("OverrideMethod", Order = 0)]
-            public override void OverriddenMethod() {
-            }
+        [KeyedActionFilter(Key = "DerivedClass", Order = 1)]
+        private class GetMemberChainDerivedController : GetMemberChainController {
 
         }
 
-        [KeyedActionFilter("SubDerivedClass", Order = 0)]
-        private class SubDerivedActionFilterOrderingController : DerivedActionFilterOrderingController {
+        [KeyedActionFilter(Key = "SubderivedClass", Order = 2)]
+        private class GetMemberChainSubderivedController : GetMemberChainDerivedController {
 
-            [KeyedActionFilter("SubDerivedVirtual", Order = 0)]
+            [KeyedActionFilter(Key = "SubderivedMethod", Order = 2)]
             public override void SomeVirtual() {
             }
 
-        }
-
-        [EmptyActionFilter(Order = 0)]
-        [EmptyActionFilter(Order = 0)]
-        private class ConflictingActionFilterOrderingController : Controller {
         }
 
         // This controller serves only to test vanilla method invocation - nothing exciting here
@@ -2598,158 +2720,137 @@
                 : base(context) {
             }
 
+            protected override MethodInfo FindActionMethod(string actionName, IDictionary<string, object> values) {
+                return PublicFindActionMethod(actionName, values);
+            }
+
             public virtual MethodInfo PublicFindActionMethod(string actionName, IDictionary<string, object> values) {
-                return FindActionMethod(actionName, values);
+                return base.FindActionMethod(actionName, values);
             }
 
-            public virtual IList<IActionFilter> PublicGetActionFiltersForMember(MemberInfo memberInfo) {
-                return GetActionFiltersForMember(memberInfo);
+            protected override FilterInfo GetFiltersForActionMethod(MethodInfo methodInfo) {
+                return PublicGetFiltersForActionMethod(methodInfo);
             }
 
-            public virtual IList<IActionFilter> PublicGetAllActionFilters(MethodInfo methodInfo) {
-                return GetAllActionFilters(methodInfo);
+            public virtual FilterInfo PublicGetFiltersForActionMethod(MethodInfo methodInfo) {
+                return base.GetFiltersForActionMethod(methodInfo);
+            }
+
+            protected override object GetParameterValue(ParameterInfo parameterInfo, IDictionary<string, object> values) {
+                return PublicGetParameterValue(parameterInfo, values);
             }
 
             public virtual object PublicGetParameterValue(ParameterInfo parameterInfo, IDictionary<string, object> values) {
-                return GetParameterValue(parameterInfo, values);
+                return base.GetParameterValue(parameterInfo, values);
+            }
+
+            protected override IDictionary<string, object> GetParameterValues(MethodInfo methodInfo, IDictionary<string, object> values) {
+                return PublicGetParameterValues(methodInfo, values);
             }
 
             public virtual IDictionary<string, object> PublicGetParameterValues(MethodInfo methodInfo, IDictionary<string, object> values) {
-                return GetParameterValues(methodInfo, values);
+                return base.GetParameterValues(methodInfo, values);
+            }
+
+            protected override ActionResult InvokeActionMethod(MethodInfo methodInfo, IDictionary<string, object> parameters) {
+                return PublicInvokeActionMethod(methodInfo, parameters);
             }
 
             public virtual ActionResult PublicInvokeActionMethod(MethodInfo methodInfo, IDictionary<string, object> parameters) {
-                return InvokeActionMethod(methodInfo, parameters);
+                return base.InvokeActionMethod(methodInfo, parameters);
+            }
+
+            protected override ActionExecutedContext InvokeActionMethodWithFilters(MethodInfo methodInfo, IDictionary<string, object> parameters, IList<IActionFilter> filters) {
+                return PublicInvokeActionMethodWithFilters(methodInfo, parameters, filters);
             }
 
             public virtual ActionExecutedContext PublicInvokeActionMethodWithFilters(MethodInfo methodInfo, IDictionary<string, object> parameters, IList<IActionFilter> filters) {
-                return InvokeActionMethodWithFilters(methodInfo, parameters, filters);
+                return base.InvokeActionMethodWithFilters(methodInfo, parameters, filters);
+            }
+
+            protected override void InvokeActionResult(ActionResult actionResult) {
+                PublicInvokeActionResult(actionResult);
             }
 
             public virtual void PublicInvokeActionResult(ActionResult actionResult) {
-                InvokeActionResult(actionResult);
+                base.InvokeActionResult(actionResult);
             }
 
-            public virtual ResultExecutedContext PublicInvokeActionResultWithFilters(ActionResult actionResult, IList<IActionFilter> filters) {
-                return InvokeActionResultWithFilters(actionResult, filters);
+            protected override ResultExecutedContext InvokeActionResultWithFilters(ActionResult actionResult, IList<IResultFilter> filters) {
+                return PublicInvokeActionResultWithFilters(actionResult, filters);
             }
 
+            public virtual ResultExecutedContext PublicInvokeActionResultWithFilters(ActionResult actionResult, IList<IResultFilter> filters) {
+                return base.InvokeActionResultWithFilters(actionResult, filters);
+            }
+
+            protected override AuthorizationContext InvokeAuthorizationFilters(MethodInfo methodInfo, IList<IAuthorizationFilter> filters) {
+                return PublicInvokeAuthorizationFilters(methodInfo, filters);
+            }
+
+            public virtual AuthorizationContext PublicInvokeAuthorizationFilters(MethodInfo methodInfo, IList<IAuthorizationFilter> filters) {
+                return base.InvokeAuthorizationFilters(methodInfo, filters);
+            }
+
+            protected override ExceptionContext InvokeExceptionFilters(Exception exception, IList<IExceptionFilter> filters) {
+                return PublicInvokeExceptionFilters(exception, filters);
+            }
+
+            public virtual ExceptionContext PublicInvokeExceptionFilters(Exception exception, IList<IExceptionFilter> filters) {
+                return base.InvokeExceptionFilters(exception, filters);
+            }
+
+            public struct FilterInfoHelper {
+                public IList<IActionFilter> ActionFilters;
+                public IList<IAuthorizationFilter> AuthorizationFilters;
+                public IList<IExceptionFilter> ExceptionFilters;
+                public IList<IResultFilter> ResultFilters;
+            }
+
+        }
+
+        public class AuthorizationFilterHelper : IAuthorizationFilter {
+
+            private IList<AuthorizationFilterHelper> _callQueue;
+            public bool ShouldCancel;
+            public ActionResult ShortCircuitResult;
+
+            public AuthorizationFilterHelper(IList<AuthorizationFilterHelper> callQueue) {
+                _callQueue = callQueue;
+            }
+
+            public void OnAuthorization(AuthorizationContext filterContext) {
+                _callQueue.Add(this);
+                if (ShouldCancel) {
+                    filterContext.Cancel = true;
+                    filterContext.Result = ShortCircuitResult;
+                }
+            }
+        }
+
+        public class ExceptionFilterHelper : IExceptionFilter {
+
+            private IList<ExceptionFilterHelper> _callQueue;
+            public bool ShouldHandleException;
+            public ExceptionContext ContextPassed;
+
+            public ExceptionFilterHelper(IList<ExceptionFilterHelper> callQueue) {
+                _callQueue = callQueue;
+            }
+
+            public void OnException(ExceptionContext filterContext) {
+                _callQueue.Add(this);
+                if (ShouldHandleException) {
+                    filterContext.ExceptionHandled = true;
+                }
+                ContextPassed = filterContext;
+            }
         }
 
         public class Person {
         }
 
         public class Employee : Person {
-        }
-
-        private sealed class InvokerForFilters : ControllerActionInvoker {
-            public Queue<MemberInfo> Expectations = new Queue<MemberInfo>();
-
-            public InvokerForFilters(ControllerContext context)
-                : base(context) {
-            }
-
-            public IList<IActionFilter> PublicGetAllActionFilters(MethodInfo methodInfo) {
-                MemberInfo next = Expectations.Dequeue();
-                Assert.AreEqual(next, methodInfo);
-                return GetAllActionFilters(methodInfo);
-            }
-
-            protected override IList<IActionFilter> GetAllActionFilters(MethodInfo methodInfo) {
-                MemberInfo next = Expectations.Dequeue();
-                Assert.AreEqual(next, methodInfo);
-                return base.GetAllActionFilters(methodInfo);
-            }
-
-            protected override IList<IActionFilter> GetActionFiltersForMember(MemberInfo memberInfo) {
-                MemberInfo next = Expectations.Dequeue();
-                Assert.AreEqual(next, memberInfo);
-                return new List<IActionFilter>();
-            }
-        }
-
-        private sealed class InvokerForParameters : ControllerActionInvoker {
-            public InvokerForParameters(ControllerContext context)
-                : base(context) {
-            }
-
-            public IDictionary<string, object> PublicGetParameterValues(MethodInfo methodInfo, IDictionary<string, object> values) {
-                return base.GetParameterValues(methodInfo, values);
-            }
-
-            protected override object GetParameterValue(ParameterInfo parameterInfo, IDictionary<string, object> values) {
-                return "My" + parameterInfo.Name;
-            }
-        }
-
-        private sealed class InvokerForEverything : ControllerActionInvoker {
-            public MethodInfo ExpectedMethodInfo;
-            public IDictionary<string, object> ExpectedValues;
-            public IDictionary<string, object> ExpectedParameterValues;
-            public int ExpectationCount;
-
-            public InvokerForEverything(ControllerContext context)
-                : base(context) {
-            }
-
-            public override bool InvokeAction(string actionName, IDictionary<string, object> values) {
-                Assert.AreEqual(0, ExpectationCount);
-                ExpectationCount++;
-                Assert.AreEqual("ReturnsNull", actionName);
-                Assert.AreEqual(ExpectedValues, values);
-                return base.InvokeAction(actionName, values);
-            }
-
-            protected override MethodInfo FindActionMethod(string actionName, IDictionary<string, object> values) {
-                Assert.AreEqual(1, ExpectationCount);
-                ExpectationCount++;
-                Assert.AreEqual("ReturnsNull", actionName);
-                Assert.AreEqual(ExpectedValues, values);
-                return ExpectedMethodInfo;
-            }
-
-            protected override IDictionary<string, object> GetParameterValues(MethodInfo methodInfo, IDictionary<string, object> values) {
-                Assert.AreEqual(2, ExpectationCount);
-                ExpectationCount++;
-                Assert.AreEqual(ExpectedMethodInfo, methodInfo);
-                Assert.AreEqual(ExpectedValues, values);
-                return ExpectedParameterValues;
-            }
-
-            protected override IList<IActionFilter> GetAllActionFilters(MethodInfo methodInfo) {
-                Assert.AreEqual(3, ExpectationCount);
-                ExpectationCount++;
-                Assert.AreEqual(ExpectedMethodInfo, methodInfo);
-                return new List<IActionFilter>();
-            }
-
-            protected override ActionExecutedContext InvokeActionMethodWithFilters(MethodInfo methodInfo, IDictionary<string, object> parameters, IList<IActionFilter> filters) {
-                Assert.AreEqual(4, ExpectationCount);
-                ExpectationCount++;
-                Assert.AreEqual(ExpectedMethodInfo, methodInfo);
-                Assert.AreEqual(ExpectedParameterValues, parameters);
-                return base.InvokeActionMethodWithFilters(methodInfo, parameters, filters);
-            }
-
-            protected override ActionResult InvokeActionMethod(MethodInfo methodInfo, IDictionary<string, object> parameters) {
-                Assert.AreEqual(5, ExpectationCount);
-                ExpectationCount++;
-                Assert.AreEqual(ExpectedMethodInfo, methodInfo);
-                Assert.AreEqual(ExpectedParameterValues, parameters);
-                return null;
-            }
-
-            protected override ResultExecutedContext InvokeActionResultWithFilters(ActionResult actionResult, IList<IActionFilter> filters) {
-                Assert.AreEqual(6, ExpectationCount);
-                ExpectationCount++;
-                return base.InvokeActionResultWithFilters(actionResult, filters);
-            }
-
-            protected override void InvokeActionResult(ActionResult actionResult) {
-                Assert.AreEqual(7, ExpectationCount);
-                ExpectationCount++;
-                base.InvokeActionResult(actionResult);
-            }
         }
     }
 }

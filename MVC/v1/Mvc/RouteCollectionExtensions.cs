@@ -7,13 +7,13 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class RouteCollectionExtensions {
 
-        [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "2#",
+        [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "1#",
             Justification = "This is not a regular URL at it may contain special routing characters.")]
         public static void IgnoreRoute(this RouteCollection routes, string url) {
             IgnoreRoute(routes, url, null /* constraints */);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "2#",
+        [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "1#",
             Justification = "This is not a regular URL at it may contain special routing characters.")]
         public static void IgnoreRoute(this RouteCollection routes, string url, object constraints) {
             if (routes == null) {
@@ -57,13 +57,7 @@
                 Constraints = new RouteValueDictionary(constraints)
             };
 
-            if (String.IsNullOrEmpty(name)) {
-                // Add unnamed route if no name given
-                routes.Add(route);
-            }
-            else {
-                routes.Add(name, route);
-            }
+            routes.Add(name, route);
         }
     }
 }

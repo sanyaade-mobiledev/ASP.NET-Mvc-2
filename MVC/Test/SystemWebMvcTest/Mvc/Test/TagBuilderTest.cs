@@ -82,6 +82,7 @@
         public void ToStringWithNoInnerHtmlAndNoAttributes() {
             // Setup
             TagBuilder builder = new TagBuilder("SomeTag");
+            builder.TagRenderMode = TagRenderMode.SelfClosing;
 
             // Execute
             string element = builder.ToString();
@@ -94,7 +95,8 @@
         public void ToStringWithNoInnerHtmlAndSomeAttributes() {
             // Setup
             TagBuilder builder = new TagBuilder("SomeTag") {
-                Attributes = GetAttributesDictionary()
+                Attributes = GetAttributesDictionary(),
+                TagRenderMode = TagRenderMode.SelfClosing
             };
 
             // Execute
@@ -102,6 +104,38 @@
 
             // Verify
             Assert.AreEqual(@"<SomeTag a=""Foo"" b=""Bar&amp;Baz"" c=""&lt;&quot;Quux&quot;>"" />", element);
+        }
+
+        [TestMethod]
+        public void TryAddValueReturnsFalseIfKeyAlreadyExists() {
+            // Setup
+            Dictionary<string, string> dictionary = new Dictionary<string, string> { { "foo", "OldValue" } };
+            TagBuilder builder = new TagBuilder("SomeTag") {
+                Attributes = dictionary
+            };
+
+            // Execute
+            bool wasAdded = builder.TryAddValue("foo", "NewValue");
+
+            // Verify
+            Assert.IsFalse(wasAdded);
+            Assert.AreEqual("OldValue", dictionary["foo"]);
+        }
+
+        [TestMethod]
+        public void TryAddValueReturnsTrueIfKeyIsAdded() {
+            // Setup
+            Dictionary<string, string> dictionary = new Dictionary<string, string>();
+            TagBuilder builder = new TagBuilder("SomeTag") {
+                Attributes = dictionary
+            };
+
+            // Execute
+            bool wasAdded = builder.TryAddValue("foo", "NewValue");
+
+            // Verify
+            Assert.IsTrue(wasAdded);
+            Assert.AreEqual("NewValue", dictionary["foo"]);
         }
 
         private static IDictionary<string, string> GetAttributesDictionary() {

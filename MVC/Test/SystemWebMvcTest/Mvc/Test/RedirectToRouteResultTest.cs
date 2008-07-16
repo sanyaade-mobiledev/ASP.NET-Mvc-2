@@ -59,6 +59,31 @@
         }
 
         [TestMethod]
+        public void ExecuteResult() {
+            // Setup
+            Mock<HttpRequestBase> mockRequest = new Mock<HttpRequestBase>();
+            mockRequest.Expect(r => r.ApplicationPath).Returns("/somepath");
+            Mock<HttpResponseBase> mockResponse = new Mock<HttpResponseBase>();
+            mockResponse.Expect(r => r.ApplyAppPathModifier(It.IsAny<string>())).Returns((string s) => s);
+            mockResponse.Expect(r => r.Redirect("/somepath/c/a/i", false)).Verifiable();
+            Mock<HttpContextBase> mockHttpContext = new Mock<HttpContextBase>();
+            mockHttpContext.Expect(c => c.Request).Returns(mockRequest.Object);
+            mockHttpContext.Expect(c => c.Response).Returns(mockResponse.Object);
+
+            ControllerContext context = new ControllerContext(mockHttpContext.Object, new RouteData(), new Mock<IController>().Object);
+            var values = new { Controller = "c", Action = "a", Id = "i" };
+            RedirectToRouteResult result = new RedirectToRouteResult(new RouteValueDictionary(values)) {
+                Routes = new RouteCollection() { new Route("{controller}/{action}/{id}", null) },
+            };
+
+            // Execute
+            result.ExecuteResult(context);
+
+            // Verify
+            mockResponse.Verify();
+        }
+
+        [TestMethod]
         public void ExecuteResultThrowsIfVirtualPathDataIsNull() {
             // Setup
             ControllerContext context = new ControllerContext(new Mock<HttpContextBase>().Object, new RouteData(), new Mock<IController>().Object);

@@ -51,7 +51,7 @@
                 throw new InvalidOperationException(MvcResources.ActionRedirectResult_NoRouteMatched);
             }
             string target = vpd.VirtualPath;
-            context.HttpContext.Response.Redirect(target);
+            context.HttpContext.Response.Redirect(target, false /* endResponse */);
         }
     }
 }

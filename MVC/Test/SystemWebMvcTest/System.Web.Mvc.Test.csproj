@@ -50,11 +50,16 @@
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
     <Reference Include="System.Web.Routing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\ReferenceAssemblies\System.Web.Routing.dll</HintPath>
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Mvc\Test\AjaxHelperTest.cs" />
     <Compile Include="Mvc\Test\AspNetHostingPermissionAttributeTest.cs" />
+    <Compile Include="Mvc\Test\AuthorizationContextTest.cs" />
+    <Compile Include="Mvc\Test\AuthorizeAttributeTest.cs" />
     <Compile Include="Mvc\Test\ControllerActionInvokerTest.cs" />
     <Compile Include="Mvc\Test\ActionFilterAttributeTest.cs" />
     <Compile Include="Mvc\Test\ActionExecutingContextTest.cs" />
@@ -63,6 +68,16 @@
     <Compile Include="Mvc\Test\ControllerContextTest.cs" />
     <Compile Include="Mvc\Test\ControllerTest.cs" />
     <Compile Include="Mvc\Test\ContentResultTest.cs" />
+    <Compile Include="Mvc\Test\ConfigHelper.cs" />
+    <Compile Include="Mvc\Test\AjaxExtensionsTest.cs" />
+    <Compile Include="Mvc\Test\AjaxOptionsTest.cs" />
+    <Compile Include="Mvc\Test\MvcHttpHandlerTest.cs" />
+    <Compile Include="Mvc\Test\HandleErrorAttributeTest.cs" />
+    <Compile Include="Mvc\Test\HandleErrorInfoTest.cs" />
+    <Compile Include="Mvc\Test\HttpUnauthorizedResultTest.cs" />
+    <Compile Include="Mvc\Test\SessionStateTempDataProviderTest.cs" />
+    <Compile Include="Mvc\Test\OutputCacheAttributeTest.cs" />
+    <Compile Include="Mvc\Test\ExceptionContextTest.cs" />
     <Compile Include="Mvc\Test\JsonResultTest.cs" />
     <Compile Include="Mvc\Test\NameValueCollectionExtensionsTest.cs" />
     <Compile Include="Mvc\Test\HtmlHelperTest.Hidden.cs" />
@@ -84,6 +99,7 @@
     <Compile Include="Mvc\Test\RouteCollectionExtensionsTest.cs" />
     <Compile Include="Mvc\Test\SelectListTest.cs" />
     <Compile Include="Mvc\Test\TagBuilderTest.cs" />
+    <Compile Include="Mvc\Test\TempDataDictionaryTest.cs" />
     <Compile Include="Mvc\Test\TypeHelpersTest.cs" />
     <Compile Include="Mvc\Test\UrlHelperTest.cs" />
     <Compile Include="Mvc\Test\ViewContextTest.cs" />

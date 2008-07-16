@@ -124,7 +124,7 @@
 
             if (!String.IsNullOrEmpty(ViewDataKey)) {
                 ViewDataDictionary newMyViewData = new ViewDataDictionary();
-                newMyViewData.Model = myViewData[ViewDataKey];
+                newMyViewData.Model = myViewData.Eval(ViewDataKey);
                 myViewData = newMyViewData;
             }
 
