@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Specialized;
+using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Web;
@@ -10,6 +12,28 @@ using Microsoft.Web.DynamicData;
 
 namespace DynamicDataFuturesSample {
     public partial class DbImage_Edit : FieldTemplateUserControl {
+
+        protected void Page_Load(object sender, EventArgs e) {
+            CustomValidator1.ServerValidate += new ServerValidateEventHandler(CustomValidator1_ServerValidate);
+        }
+
+        void CustomValidator1_ServerValidate(object source, ServerValidateEventArgs args) {
+            if (FileUploadEdit.HasFile) {
+                var bytes = FileUploadEdit.FileBytes;
+                try {
+                    var a = System.Drawing.Image.FromStream(new MemoryStream(bytes));
+                } catch {
+                    args.IsValid = false;
+                    CustomValidator1.ErrorMessage = "Invalid image file.";
+                }
+            } else {
+                if (Column.IsRequired) {
+                    var attribute = MetadataAttributes.OfType<RequiredAttribute>().DefaultIfEmpty(new RequiredAttribute()).First();
+                    CustomValidator1.ErrorMessage = attribute.FormatErrorMessage(Column.GetDisplayName());
+                    args.IsValid = false;
+                }
+            }
+        }
 
         protected override void OnDataBinding(EventArgs e) {
             base.OnDataBinding(e);

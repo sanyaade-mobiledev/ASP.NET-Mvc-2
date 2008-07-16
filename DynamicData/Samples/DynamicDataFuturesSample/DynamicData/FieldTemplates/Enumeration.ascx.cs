@@ -1,23 +1,29 @@
 ﻿using System;
-using System.Data;
-using System.Configuration;
-using System.Collections;
-using System.Collections.Specialized;
 using System.Linq;
-using System.Web;
-using System.Web.Security;
 using System.Web.UI;
-using System.Web.UI.WebControls;
-using System.Web.UI.WebControls.WebParts;
-using System.Web.UI.HtmlControls;
-using System.Xml.Linq;
-using System.Web.DynamicData;
+using Microsoft.Web.DynamicData;
 
 namespace DynamicDataFuturesSample {
     public partial class Enumeration : System.Web.DynamicData.FieldTemplateUserControl {
         public override Control DataControl {
             get {
                 return Literal1;
+            }
+        }
+
+        public string EnumFieldValueString {
+            get {
+                if (FieldValue == null) {
+                    return FieldValueString;
+                }
+
+                var attrib = Column.Attributes.OfType<EnumDataTypeAttribute>().SingleOrDefault();
+                if (attrib != null) {
+                    object enumValue = Enum.ToObject(attrib.EnumType, FieldValue);
+                    return FormatFieldValue(enumValue);
+                }
+
+                return FieldValueString;
             }
         }
     }

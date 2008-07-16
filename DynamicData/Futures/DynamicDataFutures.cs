@@ -330,6 +330,44 @@ namespace Microsoft.Web.DynamicData {
 
         #endregion
 
+        #region Enumeration type helpers
+
+        public static Type GetEnumType(this MetaColumn column) {
+            var a = column.Attributes.OfType<EnumDataTypeAttribute>().FirstOrDefault();
+            if (a != null) {
+                return a.EnumType;
+            } else {
+                return column.ColumnType.IsEnum ? column.ColumnType : null;
+            }
+        }
+
+        public static string GetUnderlyingTypeValueString(Type enumType, object enumValue) {
+            return Convert.ChangeType(enumValue, Enum.GetUnderlyingType(enumType)).ToString();
+        }
+
+        private static IOrderedDictionary GetEnumNamesAndValues(Type enumType) {
+            OrderedDictionary result = new OrderedDictionary();
+            foreach (object enumValue in Enum.GetValues(enumType)) {
+                // TODO: add way to localize the displayed name
+                string name = Enum.GetName(enumType, enumValue);
+                string value = DynamicDataFutures.GetUnderlyingTypeValueString(enumType, enumValue);
+                result.Add(name, value);
+            }
+            return result;
+        }
+
+        public static void FillEnumListControl(ListControl list, Type enumType) {
+            foreach (DictionaryEntry entry in DynamicDataFutures.GetEnumNamesAndValues(enumType)) {
+                list.Items.Add(new ListItem((string)entry.Key, (string)entry.Value));
+            }
+        }
+
+        public static bool IsEnumTypeInFlagsMode(Type enumType) {
+            return enumType.GetCustomAttributes(typeof(FlagsAttribute), false).Length != 0;
+        }
+
+        #endregion
+
         private static T GetAttribute<T>(this MetaColumn column) where T : Attribute {
             return column.Attributes.OfType<T>().FirstOrDefault();
         }

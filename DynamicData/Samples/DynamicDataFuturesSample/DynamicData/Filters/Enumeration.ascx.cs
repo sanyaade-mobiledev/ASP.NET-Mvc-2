@@ -1,27 +1,77 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 using System.Web.DynamicData;
+using System.Web.UI.WebControls;
 using Microsoft.Web.DynamicData;
-using System.Collections.Specialized;
-using System.Globalization;
 
 namespace DynamicDataFuturesSample {
     public partial class Enumeration_Filter : FilterUserControlBase, ISelectionChangedAware {
+        private Type _enumType;
+        private bool? _flagsMode;
+
         protected void Page_Load(object sender, EventArgs e) {
-            if (DropDownList1.Items.Count < 2) {
-                foreach (object name in Enum.GetValues(Column.ColumnType)) {
-                    DropDownList1.Items.Add(new ListItem(Enum.GetName(Column.ColumnType, name), name.ToString()));
-                }
+            // need to turn on the active control
+            ActiveListControl.Enabled = true;
+            ActiveListControl.Visible = true;
+
+            // items count differs depending on the mode
+            bool needToFill = FlagsMode ? ActiveListControl.Items.Count == 0 : ActiveListControl.Items.Count == 1;
+
+            if (needToFill) {
+                DynamicDataFutures.FillEnumListControl(ActiveListControl, EnumType);
             }
         }
 
         public override string SelectedValue {
             get {
-                return DropDownList1.SelectedValue;
+                if (FlagsMode) {
+                    // in flags mode we need to enumerate over all selected values and build a compoud enumeration value out of it
+                    // use long as the type since it's the widest type
+                    // REVIEW: what if the underlying enum type is ulong?
+                    long value = 0;
+                    bool anythingSelected = false;
+                    foreach (ListItem item in CheckBoxList1.Items) {
+                        if (item.Selected) {
+                            value += long.Parse(item.Value);
+                            anythingSelected = true;
+                        }
+                    }
+                    if (anythingSelected) {
+                        object enumValue = Enum.ToObject(EnumType, value);
+                        return DynamicDataFutures.GetUnderlyingTypeValueString(EnumType, enumValue);
+                    } else {
+                        return String.Empty;
+                    }
+                } else {
+                    return DropDownList1.SelectedValue;
+                }
+            }
+        }
+
+        private Type EnumType {
+            get {
+                if (_enumType == null) {
+                    _enumType = Column.GetEnumType();
+                }
+                return _enumType;
+            }
+        }
+
+        private bool FlagsMode {
+            get {
+                if (_flagsMode == null) {
+                    _flagsMode = DynamicDataFutures.IsEnumTypeInFlagsMode(EnumType);
+                }
+                return _flagsMode.Value;
+            }
+        }
+
+        private ListControl ActiveListControl {
+            get {
+                if (FlagsMode) {
+                    return CheckBoxList1;
+                } else {
+                    return DropDownList1;
+                }
             }
         }
 

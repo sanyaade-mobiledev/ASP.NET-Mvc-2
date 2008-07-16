@@ -1,47 +1,23 @@
-Dynamic Data Futures 0.1.02 Changes (2008-07-02)
-------------------------------------------------
+- Added ImprovedDynamicValidator control that fixes issues with DynamicValidator
+correctly catching exceptions thrown off a validated data model object. A tag mapping
+in web.config is used to automatically replace all instance of DynamicValidator with
+ImprovedDynamicValidator. This validator is also now added to the ForeignKey_Edit
+template.
 
-- Modified ForeignKey_Edit field template to display a [Not Set] entry for required columns
-in insert mode. Added a RequiredFieldValidator to ensure that an entry is selected if the
-column is required.
+- Fixed a number of issues with the default Style.css stylesheet being to generic.
+Also added the AjaxToolkitFixes.css stylesheet to work around certain issues with using
+Ajax Control Toolkit controls embedded inside of field templates.
 
-- Added Url and EmailAddress field templates.
+- Added EnumDataTypeAttribute that can be used to mark integral columns as actually
+representing enumerated CLR types.
 
-- Added DynamicHyperLink control. It generates links to Dynamic Data tables for
-all actions and works both in data-binding and simple scenarios.
+- Modified the Enumeration field template and filter template to take
+EnumDataTypeAttribute into account.
 
-- Modified routes in Global.asax to generate pretty URLs using the new PrettyDynamicDataRoute.
+- Modified the Enumeration filter template to detect if an enum is in flags mode
+and display a CheckBoxList instead of a DropDownList.
 
-- Changed FilterAttribute.Order property to match the behavior of ColumnOrderAttribute.Order
-property. Now each filter has a default Order of 0; negative numbers can be used to push
-filters to the fron, while positive numbers can be used to push filters to the back.
+- Added validation to the DbImage_Edit template. It now verifies that the provided file
+is a valid image and also that a file is provided at all if the column is required.
 
-Dynamic Data Futures 0.1.01 Changes (2008-06-25)
-------------------------------------------------
-
-- Renamed project to Dynamic Data Futures.
-
-- Moved/renamed a number of library files for better logical organization. Classes
-are now organized what they generally do instead of how they apply to a particular
-sample.
-
-- Updated DbImage.ascx to better handle compound and GUID primary key tables. Also,
-page templates will disable AJAX partial rendering when editing an image column to
-allow the FileUpload control to work properly.
-
-- Added support for complex where parameters. This can be seen in the pages under
-ComplexWhereParameters in the sample app that already have a Where clause for
-LinqDataSource but also use the filters to contribute extra components.
-
-- Added automatic support for enumerated type columns. UIHint is no longer needed
-to reference Enumeration.ascx.
-
-- Moved a number of extension/utility methods to the DynamicDataFutures class. This
-includes localization helpers, metadata helpers, and default value helpers.
-
-- Consolidated IAutoFieldGenerator implementations into a single AdvancedFieldGenerator
-class. It now includes functionality enabling column ordering, programatically
-excluding a list of columns, and a workaround for issues with attribute localization.
-
-- Refactored common LINQ Expression generation code into the LinqExpressionHelper
-class.
+- Added constraints to routes to illustrate how to block invalid requests.

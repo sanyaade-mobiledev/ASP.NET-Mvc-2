@@ -10,6 +10,7 @@
 
     <asp:UpdatePanel ID="UpdatePanel1" runat="server">
         <ContentTemplate>
+            <div class="dynamicdata">
             <asp:ValidationSummary ID="ValidationSummary1" runat="server" EnableClientScript="true"
                 HeaderText="List of validation errors" />
             <asp:DynamicValidator runat="server" ID="GridViewValidator" ControlToValidate="GridView1" Display="None" />
@@ -28,6 +29,7 @@
                     </table>
                 </FooterTemplate>
             </asp:AdvancedFilterRepeater>
+            </div>
 
             <asp:GridView ID="GridView1" runat="server" DataSourceID="GridDataSource"
                 AllowPaging="True" AllowSorting="True" CssClass="gridview">

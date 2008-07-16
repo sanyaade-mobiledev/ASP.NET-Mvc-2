@@ -69,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\ColumnOrderAttribute.cs" />
+    <Compile Include="Attributes\EnumDataTypeAttribute.cs" />
     <Compile Include="Attributes\FilterAttribute.cs" />
     <Compile Include="Attributes\ImageFormatAttribute.cs" />
     <Compile Include="Attributes\ImageUrlAttribute.cs" />
@@ -81,7 +82,9 @@
     <Compile Include="Controls\DynamicHyperLink.cs" />
     <Compile Include="Controls\DynamicLabel.cs" />
     <Compile Include="Controls\DynamicReadonlyField.cs" />
+    <Compile Include="Controls\ImprovedDynamicValidator.cs" />
     <Compile Include="DataSources\DataServiceLinqDataSource.cs" />
+    <Compile Include="DataSources\DataSourceUtilities.cs" />
     <Compile Include="DataSources\DynamicObjectDataSource.cs" />
     <Compile Include="DataSources\SimpleDynamicDataSource.cs" />
     <Compile Include="DataSources\SimpleDynamicDataSourceCompleteEventArgs.cs" />
@@ -103,7 +106,8 @@
     <Compile Include="ModelProviders\SimpleModelProvider.cs" />
     <Compile Include="ModelProviders\SimpleTableProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Routing\PrettyDynamicDataRoute.cs" />
+    <Compile Include="Routing\PrettyDynamicDataRoute.cs">
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

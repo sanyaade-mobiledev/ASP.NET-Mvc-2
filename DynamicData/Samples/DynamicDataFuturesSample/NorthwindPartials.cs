@@ -38,6 +38,8 @@ namespace DynamicDataFuturesSample {
             public object UnitPrice { get; set; }
 
             [ColumnOrder(10)]
+            [UIHint("IntegerSlider")]
+            [Range(0, 150, ErrorMessage = "Wrong range for UnitsOnOrder")]
             public object UnitsOnOrder { get; set; }
 
             [Filter(FilterControl = "Enumeration")]
@@ -89,6 +91,14 @@ namespace DynamicDataFuturesSample {
         public class Employee_MD {
             [DataType(DataType.Url)]
             public object PhotoPath { get; set; }
+        }
+    }
+
+    [MetadataType(typeof(Order_MD))]
+    public partial class Order {
+        public class Order_MD {
+            [UIHint("DateAjaxCalendar")]
+            public object OrderDate { get; set; }
         }
     }
 }

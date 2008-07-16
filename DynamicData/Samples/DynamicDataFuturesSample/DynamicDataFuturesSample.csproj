@@ -459,6 +459,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="AjaxToolkitFixes.css" />
     <Content Include="App_GlobalResources\Resources.es.resx">
       <Generator>GlobalResourceProxyGenerator</Generator>
       <LastGenOutput>Resources.es.designer.cs</LastGenOutput>
@@ -471,6 +472,7 @@
     <Content Include="DynamicData\FieldTemplates\Enumeration.ascx" />
     <Content Include="DynamicData\FieldTemplates\Enumeration_Edit.ascx" />
     <Content Include="DynamicData\Filters\Enumeration.ascx" />
+    <Content Include="StartingPage.css" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Futures\DynamicDataFutures.csproj">

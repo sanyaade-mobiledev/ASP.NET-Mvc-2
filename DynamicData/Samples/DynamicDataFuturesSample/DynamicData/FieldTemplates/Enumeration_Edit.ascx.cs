@@ -1,21 +1,13 @@
 ﻿using System;
-using System.Data;
-using System.Configuration;
-using System.Collections;
 using System.Collections.Specialized;
-using System.Linq;
-using System.Web;
-using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Web.UI.WebControls.WebParts;
-using System.Web.UI.HtmlControls;
-using System.Xml.Linq;
-using System.Web.DynamicData;
 using Microsoft.Web.DynamicData;
 
 namespace DynamicDataFuturesSample {
     public partial class Enumeration_EditField : System.Web.DynamicData.FieldTemplateUserControl {
+        private Type _enumType;
+
         protected void Page_Load(object sender, EventArgs e) {
             DropDownList1.ToolTip = Column.GetDescription();
 
@@ -23,9 +15,8 @@ namespace DynamicDataFuturesSample {
                 if (Mode == DataBoundControlMode.Insert || !Column.IsRequired) {
                     DropDownList1.Items.Add(new ListItem("[Not Set]", String.Empty));
                 }
-                foreach (string name in Enum.GetNames(Column.ColumnType)) {
-                    DropDownList1.Items.Add(new ListItem(name));
-                }
+
+                DynamicDataFutures.FillEnumListControl(DropDownList1, EnumType);
             }
 
             SetUpValidator(RequiredFieldValidator1);
@@ -35,12 +26,21 @@ namespace DynamicDataFuturesSample {
         protected override void OnDataBinding(EventArgs e) {
             base.OnDataBinding(e);
 
-            if (Mode == DataBoundControlMode.Edit) {
-                string fieldValue = FieldValueString;
+            if (Mode == DataBoundControlMode.Edit && FieldValue != null) {
+                string fieldValue = DynamicDataFutures.GetUnderlyingTypeValueString(EnumType, FieldValue);
                 ListItem item = DropDownList1.Items.FindByValue(fieldValue);
                 if (item != null) {
                     DropDownList1.SelectedValue = fieldValue;
                 }
+            }
+        }
+
+        private Type EnumType {
+            get {
+                if (_enumType == null) {
+                    _enumType = Column.GetEnumType();
+                }
+                return _enumType;
             }
         }
 

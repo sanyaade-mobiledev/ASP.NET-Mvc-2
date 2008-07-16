@@ -1,0 +1,12 @@
+﻿/* Removes border and padding information that a calendar would inherit when embedded inside of a gridview table */
+div.ajax__calendar_days table td, div.ajax__calendar_months table td, div.ajax__calendar_years table td 
+{
+    padding: 0px;
+    border: none;
+}
+
+/* Ensures the calendar has a high stacking order so it appears on top of other ACT controls, like slider */
+div.ajax__calendar_container 
+{ 
+   z-index: 100;
+}

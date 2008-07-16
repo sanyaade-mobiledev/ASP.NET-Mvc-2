@@ -1,7 +1,7 @@
 <%@ Page Language="C#" MasterPageFile="~/Site.master" CodeBehind="Default.aspx.cs" Inherits="DynamicDataFuturesSample._Default" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" Runat="Server">
-
+<div class="starting_page">
     <h2>Dynamic Data Futures sample site</h2>
     
     <p>This site demonstrates the use of various features supported by the Dynamic Data 
@@ -13,7 +13,7 @@
     <p>Normally, when using Dynamic Data, you set declarative attributes on your model 
         using CLR attributes.&nbsp; But for more dynamic scenarios, you may want to set 
         those attributes via code.&nbsp; The InMemoryMetadataManager class supports this 
-        sceneario.</p>
+        scenario.</p>
     <p><asp:DynamicHyperLink runat="server" TableName="Products" Action="Edit" ProductID="1">Click here</asp:DynamicHyperLink> to see this being used 
         in the standard Edit Product page.&nbsp; A call is made in global.asax.cs to set 
         a range programmatically on the UnitsInStock column.&nbsp; Try setting a value 
@@ -54,7 +54,7 @@
     <p><asp:DynamicHyperLink runat="server" TableName="Order_Details">Click here</asp:DynamicHyperLink> to see a cascading drop-down filter used in the Order_Details List 
         scaffold page. First select an item from the Category dropdown. This populates 
         the second dropdown, which in turn filters the result list.</p>
-    <p><asp:DynamicHyperLink runat="server" TableName="Products">Click here</asp:DynamicHyperLink> to see a filter based on the ReoerderLevel column that is an 
+    <p><asp:DynamicHyperLink runat="server" TableName="Products">Click here</asp:DynamicHyperLink> to see a filter based on the ReorderLevel column that is an 
         enumerated type. The drop-down representing that filter contains all possible 
         values for the enumerated type ReorderLevelEnum.</p>
     
@@ -64,7 +64,7 @@
         way to reorder them is to create a custom page, but sometimes this is overkill.&nbsp; 
         This new feature gives you an alternative: add declarative ColumnOrder 
         attributes to the model to influence the ordering.&nbsp; The default 'order' is 
-        0, so use a negative number for fields you want to show first, and a postive 
+        0, so use a negative number for fields you want to show first, and a positive 
         number for fields you want to show last.</p>
     <p><asp:DynamicHyperLink runat="server" TableName="Products">Click here</asp:DynamicHyperLink>  to see this feature applied to the 
         Products list page using the standard scaffold.&nbsp; e.g. note how the 
@@ -105,7 +105,7 @@
         type.</p>
     <p><asp:DynamicHyperLink runat="server" TableName="Products" Action="Edit" ProductID="1">Click</asp:DynamicHyperLink> to see this in action. The 
         ReorderLevel column of the Products table has been mapped to a new enumerated 
-        type ReorderLevelEnum. The edit UI for the ReorderLevel column shows a drod-down 
+        type ReorderLevelEnum. The edit UI for the ReorderLevel column shows a drop-down 
         with a list of potential values from that type.</p>
                     
     <h3>Use custom Where clause with Dynamic Data filters</h3>
@@ -142,7 +142,7 @@
         see this route being used in global.asax.cs.</p>
     <p><a href="Products/Edit/5">Click here</a> to go to a product Edit page, and check 
         out what the URL looks like.</p>
-    
+</div>    
 </asp:Content>
 
 

@@ -14,6 +14,7 @@ namespace DynamicDataFuturesSample {
                 PopulateListControl(DropDownList1);
             }
 
+            SetUpValidator(DynamicValidator1);
             SetUpValidator(RequiredFieldValidator1);
             DynamicDataFutures.SetUpValidator(Column, RequiredFieldValidator1);
         }

@@ -7,6 +7,8 @@
     <title>Dynamic Data Site</title>
     <link href="~/Site.css" rel="stylesheet" type="text/css" />
     <link href="~/AutocompleteStyle.css" rel="stylesheet" type="text/css" />
+    <link href="~/StartingPage.css" rel="Stylesheet" type="text/css" />
+    <link href="~/AjaxToolkitFixes.css" rel="Stylesheet" type="text/css" />
 </head>
 <body class="template">
     <h1><span class="allcaps">Dynamic Data Site</span></h1>

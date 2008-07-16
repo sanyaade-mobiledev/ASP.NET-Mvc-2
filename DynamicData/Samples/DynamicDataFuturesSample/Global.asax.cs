@@ -23,16 +23,26 @@ namespace DynamicDataFuturesSample {
                 MetadataProviderFactory = (type => new InMemoryMetadataTypeDescriptionProvider(type, new AssociatedMetadataTypeTypeDescriptionProvider(type)))
             });
 
+            // Create a special escape route for handling resource requests. The this route will be evaluated
+            // for all requests but the contraint will only match requests with WebResource.axd on the end.
+            // The StopRoutingHandler will instruct the routing system to stop processing this request and pass
+            // it on to standard ASP.NET processing.
+            routes.Add(new Route("{*resource}", new StopRoutingHandler()) {
+                Constraints = new RouteValueDictionary(new  { resource = @".*WebResource\.axd" })
+            });
+
             // Create a single route override for the Edit action on the Products table
-            routes.Add(new DynamicDataRoute("MyProductsEditPage/{ProductID}.aspx") {
+            routes.Add(new DynamicDataRoute("MyProductsEditPage/{ProductID}") {
+                Constraints = new RouteValueDictionary(new { ProductID = "[1-9][0-9]*" }), // use constraints to limit which requests get matched
                 Model = model,
                 Table = "Products",
                 Action = PageAction.Edit,
             });
 
-            // Use a route to provide pretty URL, instead of having the Primary Key in the query string
+            // Use a route to provide pretty URLs, instead of having the Primary Key in the query string
             routes.Add(new PrettyDynamicDataRoute("{table}/{action}/{PK1}/{PK2}") {
                 Model = model,
+                Constraints = new RouteValueDictionary(new { action = "List|Details|Insert|Edit" }),
                 Defaults = new RouteValueDictionary(new { action = PageAction.List, PK1 = "", PK2 = "" })
             });
 
