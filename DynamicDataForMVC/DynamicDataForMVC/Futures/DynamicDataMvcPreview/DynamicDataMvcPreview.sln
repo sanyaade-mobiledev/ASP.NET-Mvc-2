@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scaffold", "samples\Scaffold\Scaffold.csproj", "{2B5BE059-524A-4AD5-8EF7-82467D6C6F41}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Web.DynamicData.Mvc", "src\Microsoft.Web.DynamicData.Mvc.csproj", "{60903DD4-BEFE-4203-AEFE-4B387814E0F7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2B5BE059-524A-4AD5-8EF7-82467D6C6F41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B5BE059-524A-4AD5-8EF7-82467D6C6F41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B5BE059-524A-4AD5-8EF7-82467D6C6F41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B5BE059-524A-4AD5-8EF7-82467D6C6F41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60903DD4-BEFE-4203-AEFE-4B387814E0F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60903DD4-BEFE-4203-AEFE-4B387814E0F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60903DD4-BEFE-4203-AEFE-4B387814E0F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60903DD4-BEFE-4203-AEFE-4B387814E0F7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
