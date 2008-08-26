@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtractResourcesFromAssembly", "ExtractResourcesFromAssembly.csproj", "{26BA737D-C7DF-4817-B6B3-D13E76DEFBE6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{26BA737D-C7DF-4817-B6B3-D13E76DEFBE6}.Debug|x86.ActiveCfg = Debug|x86
+		{26BA737D-C7DF-4817-B6B3-D13E76DEFBE6}.Debug|x86.Build.0 = Debug|x86
+		{26BA737D-C7DF-4817-B6B3-D13E76DEFBE6}.Release|x86.ActiveCfg = Release|x86
+		{26BA737D-C7DF-4817-B6B3-D13E76DEFBE6}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
