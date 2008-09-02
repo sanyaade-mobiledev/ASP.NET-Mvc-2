@@ -115,11 +115,11 @@ namespace System.Web.TestUtil {
         }
 
         public static void TestBooleanProperty(object instance, string propertyName, bool initialValue, bool testDefaultValue) {
-            // Verify initial value
+            // Assert initial value
             TestGetPropertyValue(instance, propertyName, initialValue);
 
             if (testDefaultValue) {
-                // Verify DefaultValue attribute matches inital value
+                // Assert DefaultValue attribute matches inital value
                 TestDefaultValue(instance, propertyName);
             }
 
@@ -137,14 +137,14 @@ namespace System.Web.TestUtil {
         public static void TestEvent<TEventArgs>(object instance, string eventName, TEventArgs eventArgs) where TEventArgs : EventArgs {
             EventInfo eventInfo = GetEventInfo(instance, eventName);
 
-            // Verify category "Action"
+            // Assert category "Action"
             TestAttribute(eventInfo, new CategoryAttribute("Action"));
 
-            //Call protected method with no event handlers, verify no error
+            // Call protected method with no event handlers, assert no error
             MethodInfo methodInfo = GetMethodInfo(instance, "On" + eventName, MethodAttributes.Family | MethodAttributes.Virtual);
             methodInfo.Invoke(instance, new object[] { eventArgs });
 
-            //Attach handler, call method, verify fires once
+            // Attach handler, call method, assert fires once
             List<object> eventHandlerArgs = new List<object>();
             EventHandler<TEventArgs> handler = new EventHandler<TEventArgs>(delegate(object sender, TEventArgs t) {
                 eventHandlerArgs.Add(sender);
@@ -155,7 +155,7 @@ namespace System.Web.TestUtil {
             CollectionAssert.AreEqual(new object[] { instance, eventArgs }, eventHandlerArgs,
                 "EventHandler called with incorrect arguments or incorrect number of times.");
 
-            // Detach handler, call method, verify not fired
+            // Detach handler, call method, assert not fired
             eventHandlerArgs = new List<object>();
             eventInfo.RemoveEventHandler(instance, handler);
             methodInfo.Invoke(instance, new object[] { eventArgs });
@@ -171,11 +171,11 @@ namespace System.Web.TestUtil {
         }
 
         public static void TestEnumProperty<TEnumValue>(object instance, string propertyName, TEnumValue initialValue, bool testDefaultValue) {
-            // Verify initial value
+            // Assert initial value
             TestGetPropertyValue(instance, propertyName, initialValue);
 
             if (testDefaultValue) {
-                // Verify DefaultValue attribute matches inital value
+                // Assert DefaultValue attribute matches inital value
                 TestDefaultValue(instance, propertyName);
             }
 
@@ -184,12 +184,12 @@ namespace System.Web.TestUtil {
             // Values are sorted numerically
             TEnumValue[] values = (TEnumValue[])Enum.GetValues(propInfo.PropertyType);
 
-            // Verify get/set works for all valid enum values
+            // Assert get/set works for all valid enum values
             foreach (TEnumValue value in values) {
                 TestPropertyValue(instance, propertyName, value);
             }
 
-            // Verify ArgumentOutOfRangeException is thrown for value one less than smallest
+            // Assert ArgumentOutOfRangeException is thrown for value one less than smallest
             // enum value, and one more than largest enum value
             try {
                 propInfo.SetValue(instance, Convert.ToInt32(values[0]) - 1, null);
@@ -211,6 +211,34 @@ namespace System.Web.TestUtil {
         public static void TestInt32Property(object instance, string propertyName, int value1, int value2) {
             TestPropertyValue(instance, propertyName, value1);
             TestPropertyValue(instance, propertyName, value2);
+        }
+
+        public static void TestPropertyWithDefaultInstance(object instance, string propertyName, object valueToSet) {
+            PropertyInfo propInfo = GetPropertyInfo(instance, propertyName);
+
+            // Set to explicit property
+            propInfo.SetValue(instance, valueToSet, null);
+            object value = propInfo.GetValue(instance, null);
+            Assert.AreEqual(valueToSet, value);
+
+            // Set to null
+            propInfo.SetValue(instance, null, null);
+            value = propInfo.GetValue(instance, null);
+            Assert.IsInstanceOfType(value, propInfo.PropertyType, "Property did not return a non-null default instance.");
+        }
+
+        public static void TestPropertyWithDefaultInstance(object instance, string propertyName, object valueToSet, object defaultValue) {
+            PropertyInfo propInfo = GetPropertyInfo(instance, propertyName);
+
+            // Set to explicit property
+            propInfo.SetValue(instance, valueToSet, null);
+            object value = propInfo.GetValue(instance, null);
+            Assert.AreSame(valueToSet, value);
+
+            // Set to null
+            propInfo.SetValue(instance, null, null);
+            value = propInfo.GetValue(instance, null);
+            Assert.AreEqual(defaultValue, value, "Property did not return the correct default value.");
         }
 
         public static void TestPropertyValue(object instance, string propertyName, object value) {
@@ -285,19 +313,19 @@ namespace System.Web.TestUtil {
         public static void TestStringProperty(object instance, string propertyName, string initialValue,
                                               bool testDefaultValue, bool allowNullAndEmpty,
                                               string nullAndEmptyReturnValue) {
-            // Verify initial value
+            // Assert initial value
             TestGetPropertyValue(instance, propertyName, initialValue);
 
             if (testDefaultValue) {
-                // Verify DefaultValue attribute matches inital value
+                // Assert DefaultValue attribute matches inital value
                 TestDefaultValue(instance, propertyName);
             }
 
             if (allowNullAndEmpty) {
-                // Verify get/set works for null
+                // Assert get/set works for null
                 TestPropertyValue(instance, propertyName, null, nullAndEmptyReturnValue);
 
-                // Verify get/set works for String.Empty
+                // Assert get/set works for String.Empty
                 TestPropertyValue(instance, propertyName, String.Empty, nullAndEmptyReturnValue);
             }
             else {
@@ -323,7 +351,7 @@ namespace System.Web.TestUtil {
                     "value");
             }
 
-            // Verify get/set works for arbitrary value
+            // Assert get/set works for arbitrary value
             TestPropertyValue(instance, propertyName, "TestValue");
         }
     }

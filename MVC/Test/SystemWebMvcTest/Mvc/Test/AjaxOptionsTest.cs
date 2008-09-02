@@ -1,5 +1,5 @@
 ﻿namespace System.Web.Mvc.Test {
-    using System.Web.Mvc;
+    using System.Web.Mvc.Ajax;
     using System.Web.TestUtil;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,103 +8,131 @@
 
         [TestMethod]
         public void InsertionModeProperty() {
-            // Setup
+            // Arrange
             AjaxOptions options = new AjaxOptions();
 
-            // Execute & verify
+            // Act & Assert
             MemberHelper.TestEnumProperty(options, "InsertionMode", InsertionMode.Replace, false);
         }
 
         [TestMethod]
         public void InsertionModePropertyExceptionText() {
-            // Setup
+            // Arrange
             AjaxOptions options = new AjaxOptions();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentOutOfRangeException(
                 delegate {
                     options.InsertionMode = (InsertionMode)4;
                 },
                 "value",
-                "The value '4' is outside the valid range of the enumeration type 'System.Web.Mvc.InsertionMode'.\r\nParameter name: value");
+                "The value '4' is outside the valid range of the enumeration type 'System.Web.Mvc.Ajax.InsertionMode'.\r\nParameter name: value");
+        }
+
+        [TestMethod]
+        public void HttpMethodProperty() {
+            // Arrange
+            AjaxOptions options = new AjaxOptions();
+
+            // Act & Assert
+            MemberHelper.TestStringProperty(options, "HttpMethod", String.Empty, false, true);
         }
 
         [TestMethod]
         public void OnBeginProperty() {
-            // Setup
+            // Arrange
             AjaxOptions options = new AjaxOptions();
 
-            // Execute & verify
+            // Act & Assert
             MemberHelper.TestStringProperty(options, "OnBegin", String.Empty, false, true);
         }
 
         [TestMethod]
         public void OnFailureProperty() {
-            // Setup
+            // Arrange
             AjaxOptions options = new AjaxOptions();
 
-            // Execute & verify
+            // Act & Assert
             MemberHelper.TestStringProperty(options, "OnFailure", String.Empty, false, true);
         }
 
         [TestMethod]
         public void OnSuccessProperty() {
-            // Setup
+            // Arrange
             AjaxOptions options = new AjaxOptions();
 
-            // Execute & verify
+            // Act & Assert
             MemberHelper.TestStringProperty(options, "OnSuccess", String.Empty, false, true);
         }
 
         [TestMethod]
+        public void ToJavascriptStringWithEmptyOptions() {
+            string s = (new AjaxOptions()).ToJavascriptString();
+            Assert.AreEqual("{ insertionMode: Sys.Mvc.InsertionMode.replace }", s);
+        }
+
+        [TestMethod]
         public void ToJavascriptString() {
-            // Setup
-            AjaxOptions options = new AjaxOptions { 
+            // Arrange
+            AjaxOptions options = new AjaxOptions {
                 InsertionMode = InsertionMode.InsertBefore,
-                OnBegin = "some_begin_code();",
-                OnFailure = "some_failure_code();",
-                OnSuccess = "some_success_code();",
-                UpdateTargetId = "someId" 
+                Confirm = "confirm",
+                HttpMethod = "POST",
+                LoadingElementId = "loadingElement",
+                UpdateTargetId = "someId",
+                Url = "http://someurl.com",
+                OnBegin = "some_begin_function",
+                OnComplete = "some_complete_function",
+                OnFailure = "some_failure_function",
+                OnSuccess = "some_success_function",
             };
 
-            // Execute
+            // Act
             string s = options.ToJavascriptString();
 
-            // Verify
-            Assert.AreEqual("{ insertionMode: 1, updateTargetId: 'someId', onBegin: function(request) { some_begin_code(); }, "
-                + "onFailure: function(request) { some_failure_code(); }, onSuccess: function(request) { some_success_code(); } }", s);
+            // Assert
+            Assert.AreEqual("{ insertionMode: Sys.Mvc.InsertionMode.insertBefore, " +
+                            "confirm: 'confirm', " +
+                            "httpMethod: 'POST', " +
+                            "loadingElementId: 'loadingElement', " +
+                            "updateTargetId: 'someId', " +
+                            "url: 'http://someurl.com', " + 
+                            "onBegin: Function.createDelegate(this, some_begin_function), " +
+                            "onComplete: Function.createDelegate(this, some_complete_function), " +
+                            "onFailure: Function.createDelegate(this, some_failure_function), " +
+                            "onSuccess: Function.createDelegate(this, some_success_function) }", s);
         }
 
         [TestMethod]
         public void ToDictionaryWithOnlyUpdateTargetId() {
-            // Setup
+            // Arrange
             AjaxOptions options = new AjaxOptions { UpdateTargetId = "someId" };
 
-            // Execute
+            // Act
             string s = options.ToJavascriptString();
 
-            // Verify
-            Assert.AreEqual("{ insertionMode: 0, updateTargetId: 'someId' }", s);
+            // Assert
+            Assert.AreEqual("{ insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'someId' }", s);
         }
 
         [TestMethod]
         public void ToDictionaryWithUpdateTargetIdAndExplicitInsertionMode() {
-            // Setup
+            // Arrange
             AjaxOptions options = new AjaxOptions { InsertionMode = InsertionMode.InsertAfter, UpdateTargetId = "someId" };
 
-            // Execute
+            // Act
             string s = options.ToJavascriptString();
 
-            // Verify
-            Assert.AreEqual("{ insertionMode: 2, updateTargetId: 'someId' }", s);
+            // Assert
+            Assert.AreEqual("{ insertionMode: Sys.Mvc.InsertionMode.insertAfter, updateTargetId: 'someId' }", s);
         }
 
         [TestMethod]
         public void UpdateTargetIdProperty() {
-            // Setup
+            // Arrange
             AjaxOptions options = new AjaxOptions();
 
-            // Execute & verify
+            // Act & Assert
             MemberHelper.TestStringProperty(options, "UpdateTargetId", String.Empty, false, true);
         }
 

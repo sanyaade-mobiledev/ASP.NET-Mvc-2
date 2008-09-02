@@ -23,6 +23,11 @@
         }
 
         [TestMethod]
+        public void TypeAllowsNullValueReturnsTrueForInterfaceType() {
+            Assert.IsTrue(TypeHelpers.TypeAllowsNullValue(typeof(IDisposable)));
+        }
+
+        [TestMethod]
         public void TypeAllowsNullValueReturnsTrueForNullableType() {
             Assert.IsTrue(TypeHelpers.TypeAllowsNullValue(typeof(int?)));
         }

@@ -11,25 +11,25 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void ExceptionTypeProperty() {
-            // Setup
+            // Arrange
             HandleErrorAttribute attr = new HandleErrorAttribute();
 
-            // Execute
+            // Act
             Type origType = attr.ExceptionType;
             attr.ExceptionType = typeof(SystemException);
             Type newType = attr.ExceptionType;
 
-            // Verify
+            // Assert
             Assert.AreEqual(typeof(Exception), origType);
             Assert.AreEqual(typeof(SystemException), attr.ExceptionType);
         }
 
         [TestMethod]
         public void ExceptionTypePropertyWithNonExceptionTypeThrows() {
-            // Setup
+            // Arrange
             HandleErrorAttribute attr = new HandleErrorAttribute();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentException(
                 delegate {
                     attr.ExceptionType = typeof(string);
@@ -39,10 +39,10 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void ExceptionTypePropertyWithNullValueThrows() {
-            // Setup
+            // Arrange
             HandleErrorAttribute attr = new HandleErrorAttribute();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     attr.ExceptionType = null;
@@ -50,12 +50,26 @@ namespace System.Web.Mvc.Test {
         }
 
         [TestMethod]
+        public void MasterProperty() {
+            // Arrange
+            HandleErrorAttribute attr = new HandleErrorAttribute();
+
+            // Act & Assert
+            MemberHelper.TestStringProperty(attr, "Master", String.Empty, false /* testDefaultValue */, true /* allowNullAndEmpty */);
+        }
+
+        [TestMethod]
         public void OnException() {
-            // Setup
-            HandleErrorAttribute attr = new HandleErrorAttribute() { View = "SomeView", ExceptionType = typeof(ArgumentException) };
+            // Arrange
+            HandleErrorAttribute attr = new HandleErrorAttribute() {
+                View = "SomeView",
+                Master = "SomeMaster",
+                ExceptionType = typeof(ArgumentException) 
+            };
             Exception exception = new ArgumentNullException();
 
-            Mock<HttpContextBase> mockHttpContext = new Mock<HttpContextBase>();
+            Mock<HttpContextBase> mockHttpContext = new Mock<HttpContextBase>(MockBehavior.Strict);
+            mockHttpContext.Expect(c => c.IsCustomErrorEnabled).Returns(true);
             mockHttpContext.Expect(c => c.Session).Returns((HttpSessionStateBase)null);
             Mock<HttpResponseBase> mockHttpResponse = new Mock<HttpResponseBase>();
             mockHttpResponse.Expect(r => r.Clear()).Verifiable();
@@ -65,20 +79,19 @@ namespace System.Web.Mvc.Test {
             IViewEngine viewEngine = new Mock<IViewEngine>().Object;
             Controller controller = new Mock<Controller>().Object;
             controller.TempData = tempData;
-            controller.ViewEngine = viewEngine;
 
             ExceptionContext context = GetFilterContext(mockHttpContext.Object, controller, exception);
 
             // Exception
             attr.OnException(context);
 
-            // Verify
+            // Assert
             mockHttpResponse.Verify();
             ViewResult viewResult = context.Result as ViewResult;
             Assert.IsNotNull(viewResult, "The Result property should have been set to an instance of ViewResult.");
-            Assert.AreEqual(viewEngine, viewResult.ViewEngine);
             Assert.AreEqual(tempData, viewResult.TempData);
             Assert.AreEqual("SomeView", viewResult.ViewName);
+            Assert.AreEqual("SomeMaster", viewResult.MasterName);
 
             HandleErrorInfo viewData = viewResult.ViewData.Model as HandleErrorInfo;
             Assert.IsNotNull(viewData, "The ViewData model should have been set to an instance of ExceptionViewData.");
@@ -88,96 +101,57 @@ namespace System.Web.Mvc.Test {
         }
 
         [TestMethod]
-        public void OnExceptionChecksInnerExceptionForTargetInvocationException() {
-            // Setup
-            HandleErrorAttribute attr = new HandleErrorAttribute() { View = "SomeView", ExceptionType = typeof(ArgumentException) };
-            Exception innerException = new ArgumentNullException();
-            Exception outerException = new TargetInvocationException(innerException);
-
-            Mock<HttpContextBase> mockHttpContext = new Mock<HttpContextBase>();
-            mockHttpContext.Expect(c => c.Session).Returns((HttpSessionStateBase)null);
-            Mock<HttpResponseBase> mockHttpResponse = new Mock<HttpResponseBase>();
-            mockHttpResponse.Expect(r => r.Clear()).Verifiable();
-            mockHttpResponse.ExpectSetProperty(r => r.StatusCode, 500).Verifiable();
-            mockHttpContext.Expect(c => c.Response).Returns(mockHttpResponse.Object);
-            TempDataDictionary tempData = new TempDataDictionary();
-            IViewEngine viewEngine = new Mock<IViewEngine>().Object;
-            Controller controller = new Mock<Controller>().Object;
-            controller.TempData = tempData;
-            controller.ViewEngine = viewEngine;
-
-            ExceptionContext context = GetFilterContext(mockHttpContext.Object, controller, outerException);
+        public void OnExceptionWithCustomErrorsDisabledDoesNothing() {
+            // Arrange
+            HandleErrorAttribute attr = new HandleErrorAttribute();
+            ActionResult result = new EmptyResult();
+            ExceptionContext context = GetFilterContext(GetHttpContext(false), new Mock<ControllerBase>().Object, new Exception());
+            context.Result = result;
 
             // Exception
             attr.OnException(context);
 
-            // Verify
-            mockHttpResponse.Verify();
-            ViewResult viewResult = context.Result as ViewResult;
-            Assert.IsNotNull(viewResult, "The Result property should have been set to an instance of ViewResult.");
-            Assert.AreEqual(viewEngine, viewResult.ViewEngine);
-            Assert.AreEqual(tempData, viewResult.TempData);
-            Assert.AreEqual("SomeView", viewResult.ViewName);
-
-            HandleErrorInfo viewData = viewResult.ViewData.Model as HandleErrorInfo;
-            Assert.IsNotNull(viewData, "The ViewData model should have been set to an instance of ExceptionViewData.");
-            Assert.AreSame(outerException, viewData.Exception);
-            Assert.AreEqual("SomeController", viewData.Controller);
-            Assert.AreEqual("SomeAction", viewData.Action);
+            // Assert
+            Assert.AreSame(result, context.Result, "The context's Result property should have remain unchanged.");
         }
 
         [TestMethod]
         public void OnExceptionWithExceptionHandledDoesNothing() {
-            // Setup
+            // Arrange
             HandleErrorAttribute attr = new HandleErrorAttribute();
             ActionResult result = new EmptyResult();
-            ExceptionContext context = GetFilterContext(new Mock<HttpContextBase>().Object, new Mock<Controller>().Object, new Exception());
+            ExceptionContext context = GetFilterContext(GetHttpContext(), new Mock<Controller>().Object, new Exception());
             context.Result = result;
             context.ExceptionHandled = true;
 
             // Exception
             attr.OnException(context);
 
-            // Verify
+            // Assert
             Assert.AreSame(result, context.Result, "The context's Result property should have remain unchanged.");
         }
 
         [TestMethod]
         public void OnExceptionWithNon404ExceptionDoesNothing() {
-            // Setup
+            // Arrange
             HandleErrorAttribute attr = new HandleErrorAttribute();
             ActionResult result = new EmptyResult();
-            ExceptionContext context = GetFilterContext(new Mock<HttpContextBase>().Object, new Mock<Controller>().Object, new HttpException(404, "Some Exception"));
+            ExceptionContext context = GetFilterContext(GetHttpContext(), new Mock<Controller>().Object, new HttpException(404, "Some Exception"));
             context.Result = result;
 
             // Exception
             attr.OnException(context);
 
-            // Verify
-            Assert.AreSame(result, context.Result, "The context's Result property should have remain unchanged.");
-        }
-
-        [TestMethod]
-        public void OnExceptionWithNonControllerDoesNothing() {
-            // Setup
-            HandleErrorAttribute attr = new HandleErrorAttribute();
-            ActionResult result = new EmptyResult();
-            ExceptionContext context = GetFilterContext(new Mock<HttpContextBase>().Object, new Mock<IController>().Object, new Exception());
-            context.Result = result;
-
-            // Exception
-            attr.OnException(context);
-
-            // Verify
+            // Assert
             Assert.AreSame(result, context.Result, "The context's Result property should have remain unchanged.");
         }
 
         [TestMethod]
         public void OnExceptionWithNullFilterContextThrows() {
-            // Setup
+            // Arrange
             HandleErrorAttribute attr = new HandleErrorAttribute();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     attr.OnException(null /* filterContext */);
@@ -186,34 +160,44 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void OnExceptionWithWrongExceptionTypeDoesNothing() {
-            // Setup
+            // Arrange
             HandleErrorAttribute attr = new HandleErrorAttribute() { ExceptionType = typeof(ArgumentException) };
             ActionResult result = new EmptyResult();
-            ExceptionContext context = GetFilterContext(new Mock<HttpContextBase>().Object, new Mock<Controller>().Object, new InvalidCastException());
+            ExceptionContext context = GetFilterContext(GetHttpContext(), new Mock<Controller>().Object, new InvalidCastException());
             context.Result = result;
 
             // Exception
             attr.OnException(context);
 
-            // Verify
+            // Assert
             Assert.AreSame(result, context.Result, "The context's Result property should have remain unchanged.");
         }
 
         [TestMethod]
         public void ViewProperty() {
-            // Setup
+            // Arrange
             HandleErrorAttribute attr = new HandleErrorAttribute();
 
-            // Execute & verify
+            // Act & Assert
             MemberHelper.TestStringProperty(attr, "View", "Error", false /* testDefaultValue */, true /* allowNullAndEmpty */, "Error");
         }
 
-        private static ExceptionContext GetFilterContext(HttpContextBase httpContext, IController controller, Exception exception) {
+        private static ExceptionContext GetFilterContext(HttpContextBase httpContext, ControllerBase controller, Exception exception) {
             RouteData rd = new RouteData();
             rd.Values["controller"] = "SomeController";
             rd.Values["action"] = "SomeAction";
             ControllerContext controllerContext = new ControllerContext(httpContext, rd, controller);
             return new ExceptionContext(controllerContext, exception);
+        }
+
+        private static HttpContextBase GetHttpContext() {
+            return GetHttpContext(true);
+        }
+
+        private static HttpContextBase GetHttpContext(bool isCustomErrorEnabled) {
+            Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>(MockBehavior.Strict);
+            mockContext.Expect(c => c.IsCustomErrorEnabled).Returns(isCustomErrorEnabled);
+            return mockContext.Object;
         }
 
     }

@@ -10,14 +10,14 @@
 
         [TestMethod]
         public void CopyTo() {
-            // Setup
+            // Arrange
             NameValueCollection collection = GetCollection();
             IDictionary<string, object> dictionary = GetDictionary();
 
-            // Execute
+            // Act
             collection.CopyTo(dictionary);
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, dictionary.Count);
             Assert.AreEqual("FooDictionary", dictionary["foo"]);
             Assert.AreEqual("BarDictionary", dictionary["bar"]);
@@ -25,14 +25,14 @@
         }
 
         public void CopyToReplaceExisting() {
-            // Setup
+            // Arrange
             NameValueCollection collection = GetCollection();
             IDictionary<string, object> dictionary = GetDictionary();
 
-            // Execute
+            // Act
             collection.CopyTo(dictionary, true /* replaceExisting */);
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, dictionary.Count);
             Assert.AreEqual("FooCollection", dictionary["foo"]);
             Assert.AreEqual("BarDictionary", dictionary["bar"]);
@@ -49,10 +49,10 @@
 
         [TestMethod]
         public void CopyToWithNullDestinationThrows() {
-            // Setup
+            // Arrange
             NameValueCollection collection = GetCollection();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     collection.CopyTo(null /* destination */);

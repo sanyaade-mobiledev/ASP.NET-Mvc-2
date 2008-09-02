@@ -16,12 +16,25 @@ namespace System.Web.Mvc.Test {
             return viewData;
         }
 
+        private static ViewDataDictionary GetTextBoxViewDataWithErrors() {
+            ViewDataDictionary viewData = new ViewDataDictionary { { "foo", "ViewDataFoo" } };
+            viewData.Model = new { foo = "ViewItemFoo", bar = "ViewItemBar" };
+
+            ModelState modelStateFoo = new ModelState();
+            modelStateFoo.Errors.Add(new ModelError("foo error 1"));
+            modelStateFoo.Errors.Add(new ModelError("foo error 2"));
+            viewData.ModelState["foo"] = modelStateFoo;
+            modelStateFoo.AttemptedValue = "AttemptedValueFoo";
+
+            return viewData;
+        }
+
         [TestMethod]
         public void TextBoxWithEmptyNameThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetTextBoxViewData());
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     helper.TextBox(String.Empty);
@@ -31,111 +44,135 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void TextBoxWithExplicitValue() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetTextBoxViewData());
 
-            // Execute
+            // Act
             string html = helper.TextBox("foo", "DefaultFoo");
 
-            // Verify
-            Assert.AreEqual(@"<input type=""text"" name=""foo"" id=""foo"" value=""DefaultFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input id=""foo"" name=""foo"" type=""text"" value=""DefaultFoo"" />", html);
         }
 
         [TestMethod]
         public void TextBoxWithExplicitValueAndAttributesDictionary() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetTextBoxViewData());
 
-            // Execute
+            // Act
             string html = helper.TextBox("foo", "DefaultFoo", _attributesDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazValue"" type=""text"" name=""foo"" id=""foo"" value=""DefaultFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazValue"" id=""foo"" name=""foo"" type=""text"" value=""DefaultFoo"" />", html);
         }
 
         [TestMethod]
         public void TextBoxWithExplicitValueAndAttributesObject() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetTextBoxViewData());
 
-            // Execute
+            // Act
             string html = helper.TextBox("foo", "DefaultFoo", _attributesObjectDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazObjValue"" type=""text"" name=""foo"" id=""foo"" value=""DefaultFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazObjValue"" id=""foo"" name=""foo"" type=""text"" value=""DefaultFoo"" />", html);
         }
 
         [TestMethod]
         public void TextBoxWithExplicitValueNull() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetTextBoxViewData());
 
-            // Execute
+            // Act
             string html = helper.TextBox("foo", (string)null /* value */);
 
-            // Verify
-            Assert.AreEqual(@"<input type=""text"" name=""foo"" id=""foo"" value="""" />", html);
+            // Assert
+            Assert.AreEqual(@"<input id=""foo"" name=""foo"" type=""text"" value="""" />", html);
         }
 
         [TestMethod]
         public void TextBoxWithImplicitValue() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetTextBoxViewData());
 
-            // Execute
+            // Act
             string html = helper.TextBox("foo");
 
-            // Verify
-            Assert.AreEqual(@"<input type=""text"" name=""foo"" id=""foo"" value=""ViewDataFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input id=""foo"" name=""foo"" type=""text"" value=""ViewDataFoo"" />", html);
         }
 
         [TestMethod]
         public void TextBoxWithImplicitValueAndAttributesDictionary() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetTextBoxViewData());
 
-            // Execute
+            // Act
             string html = helper.TextBox("foo", _attributesDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazValue"" type=""text"" name=""foo"" id=""foo"" value=""ViewDataFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazValue"" id=""foo"" name=""foo"" type=""text"" value=""ViewDataFoo"" />", html);
         }
 
         [TestMethod]
         public void TextBoxWithImplicitValueAndAttributesDictionaryReturnsEmptyValueIfNotFound() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetTextBoxViewData());
 
-            // Execute
+            // Act
             string html = helper.TextBox("keyNotFound", _attributesDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazValue"" type=""text"" name=""keyNotFound"" id=""keyNotFound"" value="""" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazValue"" id=""keyNotFound"" name=""keyNotFound"" type=""text"" value="""" />", html);
         }
 
         [TestMethod]
         public void TextBoxWithImplicitValueAndAttributesObject() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetTextBoxViewData());
 
-            // Execute
+            // Act
             string html = helper.TextBox("foo", _attributesObjectDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazObjValue"" type=""text"" name=""foo"" id=""foo"" value=""ViewDataFoo"" />", html);
-        }
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazObjValue"" id=""foo"" name=""foo"" type=""text"" value=""ViewDataFoo"" />", html);
+        }        
 
         [TestMethod]
         public void TextBoxWithNullNameThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetTextBoxViewData());
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     helper.TextBox(null /* name */);
                 },
                 "name");
+        }
+
+        [TestMethod]
+        public void TextBoxWithViewDataErrors() {
+            // Arrange
+            HtmlHelper helper = GetHtmlHelper(GetTextBoxViewDataWithErrors());
+
+            // Act
+            string html = helper.TextBox("foo", _attributesObjectDictionary);
+
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazObjValue"" class=""input-validation-error"" id=""foo"" name=""foo"" type=""text"" value=""AttemptedValueFoo"" />", html);
+        }
+
+        [TestMethod]
+        public void TextBoxWithViewDataErrorsAndCustomClass() {
+            // Arrange
+            HtmlHelper helper = GetHtmlHelper(GetTextBoxViewDataWithErrors());
+
+            // Act
+            string html = helper.TextBox("foo", new { @class = "foo-class" });
+
+            // Assert
+            Assert.AreEqual(@"<input class=""input-validation-error foo-class"" id=""foo"" name=""foo"" type=""text"" value=""AttemptedValueFoo"" />", html);
         }
     }
 }

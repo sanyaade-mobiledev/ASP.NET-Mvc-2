@@ -77,17 +77,19 @@ namespace System.Web.Mvc.Test {
 
         private static void CreateController(ModuleBuilder moduleBuilder, string typeName) {
             //namespace {namespace} {
-            //    public class {typename} : IController {
-            //        public virtual void Execute(ControllerContext controllerContext) {
+            //    public class {typename} : ControllerBase {
+            //        protected virtual void ExecuteCore() {
             //            return;
             //        }
             //    }
             //}
-            TypeBuilder controllerTypeBuilder = moduleBuilder.DefineType(typeName, TypeAttributes.Class | TypeAttributes.Public, null, new Type[] { typeof(IController) });
-            MethodBuilder executeMethodBuilder = controllerTypeBuilder.DefineMethod("Execute", MethodAttributes.Public | MethodAttributes.Virtual, typeof(void), new Type[] { typeof(ControllerContext) });
+
+            TypeBuilder controllerTypeBuilder = moduleBuilder.DefineType(typeName, TypeAttributes.Class | TypeAttributes.Public, typeof(ControllerBase));
+            MethodBuilder executeMethodBuilder = controllerTypeBuilder.DefineMethod("ExecuteCore", MethodAttributes.Family | MethodAttributes.Virtual, typeof(void), Type.EmptyTypes);
             executeMethodBuilder.GetILGenerator().Emit(OpCodes.Ret);
-            controllerTypeBuilder.DefineMethodOverride(executeMethodBuilder, typeof(IController).GetMethod("Execute"));
+            controllerTypeBuilder.DefineMethodOverride(executeMethodBuilder, typeof(ControllerBase).GetMethod("ExecuteCore", BindingFlags.Instance | BindingFlags.NonPublic));
             controllerTypeBuilder.CreateType();
         }
+
     }
 }

@@ -1,9 +1,12 @@
 namespace System.Web.Mvc.Test {
     using System;
+    using System.Web;
+    using System.Web.Mvc;
     using System.Web.Routing;
     using System.Web.TestUtil;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
+    using Moq.Protected;
 
     [TestClass]
     public class MvcHandlerTest {
@@ -18,12 +21,12 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void ProcessRequestWithRouteWithoutControllerThrows() {
-            // Setup
+            // Arrange
             Mock<HttpContextBase> contextMock = new Mock<HttpContextBase>();
             RouteData rd = new RouteData();
             MvcHandler mvcHandler = new MvcHandler(new RequestContext(contextMock.Object, rd));
 
-            // Execute
+            // Act
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     mvcHandler.ProcessRequest(contextMock.Object);
@@ -33,27 +36,99 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void ProcessRequestCallsExecute() {
-            // Setup
+            // Arrange
             Mock<HttpContextBase> contextMock = new Mock<HttpContextBase>();
             RouteData rd = new RouteData();
             rd.Values.Add("controller", "foo");
-            MvcHandler mvcHandler = new MvcHandler(new RequestContext(contextMock.Object, rd));
+            RequestContext requestContext = new RequestContext(contextMock.Object, rd);
+            MvcHandler mvcHandler = new MvcHandler(requestContext);
 
-            Mock<IController> controllerMock = new Mock<IController>();
-            controllerMock.Expect(o => o.Execute(It.IsAny<ControllerContext>())).Verifiable();
+            Mock<ControllerBase> controllerMock = new Mock<ControllerBase>();
+            controllerMock.Protected().Expect("Execute", requestContext).Verifiable();
 
             ControllerBuilder cb = new ControllerBuilder();
             Mock<IControllerFactory> controllerFactoryMock = new Mock<IControllerFactory>();
-            controllerFactoryMock.Expect(o => o.CreateController(It.IsAny<RequestContext>(), "foo")).Returns(controllerMock.Object);
+            controllerFactoryMock.Expect(o => o.CreateController(requestContext, "foo")).Returns(controllerMock.Object);
             controllerFactoryMock.Expect(o => o.DisposeController(controllerMock.Object));
             cb.SetControllerFactory(controllerFactoryMock.Object);
             mvcHandler.ControllerBuilder = cb;
 
-            // Execute
+            // Act
             mvcHandler.ProcessRequest(contextMock.Object);
 
-            // Verify
+            // Assert
             controllerMock.Verify();
         }
+
+        [TestMethod]
+        public void ProcessRequestDisposesControllerIfExecuteDoesNotThrowException() {
+            // Arrange
+            Mock<ControllerBase> mockController = new Mock<ControllerBase>();
+            mockController.Protected().Expect("Execute", ItExpr.IsAny<RequestContext>()).Verifiable();
+            mockController.As<IDisposable>().Expect(d => d.Dispose()).AtMostOnce().Verifiable();
+
+            ControllerBuilder builder = new ControllerBuilder();
+            builder.SetControllerFactory(new SimpleControllerFactory(mockController.Object));
+
+            RequestContext requestContext = new RequestContext(new Mock<HttpContextBase>().Object, new RouteData());
+            requestContext.RouteData.Values["controller"] = "fooController";
+            MvcHandler handler = new MvcHandler(requestContext) {
+                ControllerBuilder = builder
+            };
+
+            // Act
+            handler.ProcessRequest(requestContext.HttpContext);
+
+            // Assert
+            mockController.Verify();
+        }
+
+        [TestMethod]
+        public void ProcessRequestDisposesControllerIfExecuteThrowsException() {
+            // Arrange
+            Mock<ControllerBase> mockController = new Mock<ControllerBase>(MockBehavior.Strict);
+            mockController.Protected().Expect("Execute", ItExpr.IsAny<RequestContext>()).Throws(new Exception("some exception"));
+            mockController.As<IDisposable>().Expect(d => d.Dispose()).AtMostOnce().Verifiable();
+
+            ControllerBuilder builder = new ControllerBuilder();
+            builder.SetControllerFactory(new SimpleControllerFactory(mockController.Object));
+
+            RequestContext requestContext = new RequestContext(new Mock<HttpContextBase>().Object, new RouteData());
+            requestContext.RouteData.Values["controller"] = "fooController";
+            MvcHandler handler = new MvcHandler(requestContext) {
+                ControllerBuilder = builder
+            };
+
+            // Act
+            ExceptionHelper.ExpectException<Exception>(
+                delegate {
+                    handler.ProcessRequest(requestContext.HttpContext);
+                },
+                "some exception");
+
+            // Assert
+            mockController.Verify();
+        }
+
+        private class SimpleControllerFactory : IControllerFactory {
+
+            private IController _instance;
+
+            public SimpleControllerFactory(IController instance) {
+                _instance = instance;
+            }
+
+            public IController CreateController(RequestContext context, string controllerName) {
+                return _instance;
+            }
+
+            public void DisposeController(IController controller) {
+                IDisposable disposable = controller as IDisposable;
+                if (disposable != null) {
+                    disposable.Dispose();
+                }
+            }
+        }
+
     }
 }

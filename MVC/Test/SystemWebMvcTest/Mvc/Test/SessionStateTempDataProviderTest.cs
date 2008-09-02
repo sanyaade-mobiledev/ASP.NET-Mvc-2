@@ -1,57 +1,38 @@
 ﻿namespace System.Web.Mvc.Test {
-    using System;
-    using System.Text;
     using System.Collections.Generic;
     using System.Collections;
-    using System.Linq;
+    using System.Web.Routing;
     using System.Web.TestUtil;
-    using System.Web.Mvc.Resources;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Moq;
     
     [TestClass]
     public class SessionStateTempDataProviderTest {
 
         [TestMethod]
-        public void ConstructProviderThrowsOnNullHttpContext() {
-            ExceptionHelper.ExpectArgumentNullException(
-                delegate { 
-                    new SessionStateTempDataProvider(null); 
-                },
-                "httpContext");
-        }
-
-        [TestMethod]
         public void SessionProviderThrowsOnDisabledSessionState() {
-            // Setup
-            TestTempDataHttpContext mockContext = new TestTempDataHttpContext();
-            SessionStateTempDataProvider testProvider = new SessionStateTempDataProvider(mockContext);
+            // Arrange
+            SessionStateTempDataProvider testProvider = new SessionStateTempDataProvider();
 
-            // Execute & Verify
+            // Act & Assert
             ExceptionHelper.ExpectInvalidOperationException(
                 delegate { 
-                    TempDataDictionary tempDataDictionary = testProvider.LoadTempData(); 
+                    IDictionary<string, object> tempDataDictionary = testProvider.LoadTempData(GetControllerContext()); 
                 },
                 "The provider requires SessionState to be enabled.");
 
             ExceptionHelper.ExpectInvalidOperationException(
                 delegate { 
-                    testProvider.SaveTempData(new TempDataDictionary()); 
+                    testProvider.SaveTempData(GetControllerContext(), new Dictionary<string, object>()); 
                 },
                 "The provider requires SessionState to be enabled.");
         }
 
-        private sealed class TestTempDataHttpSessionState : HttpSessionStateBase {
- 
-        }
-
-        private sealed class TestTempDataHttpContext : HttpContextBase {
-            private TestTempDataHttpSessionState _sessionState = null;
-
-            public override HttpSessionStateBase Session {
-                get {
-                    return _sessionState;
-                }
-            }
+        private static ControllerContext GetControllerContext() {
+            Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
+            mockContext.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
+            RouteData rd = new RouteData();
+            return new ControllerContext(mockContext.Object, rd, new Mock<ControllerBase>().Object);
         }
     }
 }

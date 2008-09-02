@@ -10,10 +10,10 @@
 
         [TestMethod]
         public void ConstructorWithNullValuesDictionary() {
-            // Execute
+            // Act
             var result = new RedirectToRouteResult(null /* values */);
 
-            // Verify
+            // Assert
             Assert.IsNotNull(result.Values);
             Assert.AreEqual<int>(0, result.Values.Count);
             Assert.AreEqual<string>(String.Empty, result.RouteName);
@@ -21,46 +21,46 @@
 
         [TestMethod]
         public void ConstructorSetsValuesDictionary() {
-            // Setup
+            // Arrange
             RouteValueDictionary dict = new RouteValueDictionary();
 
-            // Execute
+            // Act
             var result = new RedirectToRouteResult(dict);
 
-            // Verify
+            // Assert
             Assert.AreSame(dict, result.Values);
             Assert.AreEqual<string>(String.Empty, result.RouteName);
         }
 
         [TestMethod]
         public void ConstructorSetsValuesDictionaryAndEmptyName() {
-            // Setup
+            // Arrange
             RouteValueDictionary dict = new RouteValueDictionary();
 
-            // Execute
+            // Act
             var result = new RedirectToRouteResult(null, dict);
 
-            // Verify
+            // Assert
             Assert.AreSame(dict, result.Values);
             Assert.AreEqual<string>(String.Empty, result.RouteName);
         }
 
         [TestMethod]
         public void ConstructorSetsValuesDictionaryAndName() {
-            // Setup
+            // Arrange
             RouteValueDictionary dict = new RouteValueDictionary();
 
-            // Execute
+            // Act
             var result = new RedirectToRouteResult("foo", dict);
 
-            // Verify
+            // Assert
             Assert.AreSame(dict, result.Values);
             Assert.AreEqual<string>("foo", result.RouteName);
         }
 
         [TestMethod]
         public void ExecuteResult() {
-            // Setup
+            // Arrange
             Mock<HttpRequestBase> mockRequest = new Mock<HttpRequestBase>();
             mockRequest.Expect(r => r.ApplicationPath).Returns("/somepath");
             Mock<HttpResponseBase> mockResponse = new Mock<HttpResponseBase>();
@@ -70,28 +70,28 @@
             mockHttpContext.Expect(c => c.Request).Returns(mockRequest.Object);
             mockHttpContext.Expect(c => c.Response).Returns(mockResponse.Object);
 
-            ControllerContext context = new ControllerContext(mockHttpContext.Object, new RouteData(), new Mock<IController>().Object);
+            ControllerContext context = new ControllerContext(mockHttpContext.Object, new RouteData(), new Mock<ControllerBase>().Object);
             var values = new { Controller = "c", Action = "a", Id = "i" };
             RedirectToRouteResult result = new RedirectToRouteResult(new RouteValueDictionary(values)) {
                 Routes = new RouteCollection() { new Route("{controller}/{action}/{id}", null) },
             };
 
-            // Execute
+            // Act
             result.ExecuteResult(context);
 
-            // Verify
+            // Assert
             mockResponse.Verify();
         }
 
         [TestMethod]
         public void ExecuteResultThrowsIfVirtualPathDataIsNull() {
-            // Setup
-            ControllerContext context = new ControllerContext(new Mock<HttpContextBase>().Object, new RouteData(), new Mock<IController>().Object);
+            // Arrange
+            ControllerContext context = new ControllerContext(new Mock<HttpContextBase>().Object, new RouteData(), new Mock<ControllerBase>().Object);
             var result = new RedirectToRouteResult(null) {
                 Routes = new RouteCollection()
             };
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     result.ExecuteResult(context);
@@ -101,10 +101,10 @@
 
         [TestMethod]
         public void ExecuteResultWithNullControllerContextThrows() {
-            // Setup
+            // Arrange
             var result = new RedirectToRouteResult(null);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     result.ExecuteResult(null /* context */);
@@ -114,10 +114,10 @@
 
         [TestMethod]
         public void RoutesPropertyDefaultsToGlobalRouteTable() {
-            // Execute
+            // Act
             var result = new RedirectToRouteResult(new RouteValueDictionary());
 
-            // Verify
+            // Assert
             Assert.AreSame(RouteTable.Routes, result.Routes);
         }
     }

@@ -11,53 +11,51 @@
         public void ConstructorWithNullControllerContextThrows() {
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    new ViewContext(null, "view", null, new ViewDataDictionary(), new TempDataDictionary());
+                    new ViewContext(null, "view", new ViewDataDictionary(), new TempDataDictionary());
                 },
                 "controllerContext");
         }
 
         [TestMethod]
         public void ConstructorSetsProperties() {
-            // Setup
+            // Arrange
             HttpContextBase httpContext = new Mock<HttpContextBase>().Object;
-            IController controller = new Mock<IController>().Object;
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             RouteData routeData = new RouteData();
             ViewDataDictionary viewData = new ViewDataDictionary();
             TempDataDictionary tempData = new TempDataDictionary();
 
-            // Execute
-            ViewContext vc = new ViewContext(httpContext, routeData, controller, "view", "master", viewData, tempData);
+            // Act
+            ViewContext vc = new ViewContext(httpContext, routeData, controller, "view", viewData, tempData);
 
-            // Verify
-            Assert.AreEqual<HttpContextBase>(httpContext, vc.HttpContext);
-            Assert.AreEqual<RouteData>(routeData, vc.RouteData);
-            Assert.AreEqual<IController>(controller, vc.Controller);
+            // Assert
+            Assert.AreEqual(httpContext, vc.HttpContext);
+            Assert.AreEqual(routeData, vc.RouteData);
+            Assert.AreEqual(controller, vc.Controller);
             Assert.AreEqual("view", vc.ViewName);
-            Assert.AreEqual("master", vc.MasterName);
             Assert.AreEqual(viewData, vc.ViewData);
-            Assert.AreEqual<TempDataDictionary>(tempData, vc.TempData);
+            Assert.AreEqual(tempData, vc.TempData);
         }
 
         [TestMethod]
         public void ConstructorSetsProperties2() {
-            // Setup
+            // Arrange
             HttpContextBase httpContext = new Mock<HttpContextBase>().Object;
-            IController controller = new Mock<IController>().Object;
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             RouteData routeData = new RouteData();
             ViewDataDictionary viewData = new ViewDataDictionary();
             TempDataDictionary tempData = new TempDataDictionary();
 
-            // Execute
-            ViewContext vc = new ViewContext(new ControllerContext(httpContext, routeData, controller), "view", "master", viewData, tempData);
+            // Act
+            ViewContext vc = new ViewContext(new ControllerContext(httpContext, routeData, controller), "view", viewData, tempData);
 
-            // Verify
-            Assert.AreEqual<HttpContextBase>(httpContext, vc.HttpContext);
-            Assert.AreEqual<RouteData>(routeData, vc.RouteData);
-            Assert.AreEqual<IController>(controller, vc.Controller);
+            // Assert
+            Assert.AreEqual(httpContext, vc.HttpContext);
+            Assert.AreEqual(routeData, vc.RouteData);
+            Assert.AreEqual(controller, vc.Controller);
             Assert.AreEqual("view", vc.ViewName);
-            Assert.AreEqual("master", vc.MasterName);
             Assert.AreEqual(viewData, vc.ViewData);
-            Assert.AreEqual<TempDataDictionary>(tempData, vc.TempData);
+            Assert.AreEqual(tempData, vc.TempData);
         }
     }
 }

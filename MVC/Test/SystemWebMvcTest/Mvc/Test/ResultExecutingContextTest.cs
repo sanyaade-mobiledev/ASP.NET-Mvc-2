@@ -6,7 +6,7 @@
     public class ResultExecutingContextTest {
         [TestMethod]
         public void ConstructorWithNullControllerContextThrows() {
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     new ResultExecutingContext(null /* controllerContext */, null /* result */);
@@ -16,7 +16,7 @@
 
         [TestMethod]
         public void ConstructorWithNullResultThrows() {
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     new ResultExecutingContext(ControllerContextTest.GetControllerContext(), null /* result */);
@@ -25,49 +25,29 @@
         }
 
         [TestMethod]
-        public void SetCancel() {
-            // Setup
+        public void GetResult() {
+            // Arrange
             ActionResult result = new EmptyResult();
             ResultExecutingContext context = new ResultExecutingContext(ControllerContextTest.GetControllerContext(), result);
 
-            // Execute
+            // Act & Assert
+            Assert.AreSame(result, context.Result);
+        }
+
+        [TestMethod]
+        public void SetCancel() {
+            // Arrange
+            ActionResult result = new EmptyResult();
+            ResultExecutingContext context = new ResultExecutingContext(ControllerContextTest.GetControllerContext(), result);
+
+            // Act
             bool origVal = context.Cancel;
             context.Cancel = true;
             bool newVal = context.Cancel;
 
-            // Verify
+            // Assert
             Assert.IsFalse(origVal);
             Assert.IsTrue(newVal);
-        }
-
-        [TestMethod]
-        public void SetResult() {
-            // Setup
-            ActionResult origResult1 = new EmptyResult();
-            ActionResult origResult2 = new EmptyResult();
-            ResultExecutingContext context = new ResultExecutingContext(ControllerContextTest.GetControllerContext(), origResult1);
-
-            // Execute
-            ActionResult result1 = context.Result;
-            context.Result = origResult2;
-            ActionResult result2 = context.Result;
-
-            // Verify
-            Assert.AreSame(origResult1, result1);
-            Assert.AreSame(origResult2, result2);
-        }
-
-        [TestMethod]
-        public void SetResultThrowsIfNull() {
-            // Setup
-            ResultExecutingContext context = new ResultExecutingContext(ControllerContextTest.GetControllerContext(), new EmptyResult());
-
-            // Execute & verify
-            ExceptionHelper.ExpectArgumentNullException(
-                delegate {
-                    context.Result = null;
-                },
-                "value");
         }
 
     }

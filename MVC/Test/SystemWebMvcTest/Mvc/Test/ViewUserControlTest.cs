@@ -10,59 +10,59 @@
 
         [TestMethod]
         public void SetViewItem() {
-            // Setup
+            // Arrange
             ViewUserControl vuc = new ViewUserControl();
             object viewItem = new object();
             vuc.ViewData = new ViewDataDictionary(viewItem);
 
-            // Execute
+            // Act
             vuc.ViewData.Model = viewItem;
             object newViewItem = vuc.ViewData.Model;
 
-            // Verify
+            // Assert
             Assert.AreSame(viewItem, newViewItem);
         }
 
         [TestMethod]
         public void SetViewItemOnBaseClassPropagatesToDerivedClass() {
-            // Setup
+            // Arrange
             ViewUserControl<object> vucInt = new ViewUserControl<object>();
             ViewUserControl vuc = vucInt;
             vuc.ViewData = new ViewDataDictionary();
             object o = new object();
 
-            // Execute
+            // Act
             vuc.ViewData.Model = o;
 
-            // Verify
+            // Assert
             Assert.AreEqual(o, vucInt.ViewData.Model);
             Assert.AreEqual(o, vuc.ViewData.Model);
         }
 
         [TestMethod]
         public void SetViewItemOnDerivedClassPropagatesToBaseClass() {
-            // Setup
+            // Arrange
             ViewUserControl<object> vucInt = new ViewUserControl<object>();
             ViewUserControl vuc = vucInt;
             vucInt.ViewData = new ViewDataDictionary<object>();
             object o = new object();
 
-            // Execute
+            // Act
             vucInt.ViewData.Model = o;
 
-            // Verify
+            // Assert
             Assert.AreEqual(o, vucInt.ViewData.Model);
             Assert.AreEqual(o, vuc.ViewData.Model);
         }
 
         [TestMethod]
         public void SetViewItemToWrongTypeThrows() {
-            // Setup
+            // Arrange
             ViewUserControl<string> vucString = new ViewUserControl<string>();
             vucString.ViewData = new ViewDataDictionary<string>();
             ViewUserControl vuc = vucString;
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     vuc.ViewData.Model = 50;
@@ -99,44 +99,80 @@
 
         [TestMethod]
         public void GetViewDataFromViewPage() {
-            // Setup
+            // Arrange
             ViewPage p = new ViewPage();
             p.Controls.Add(new Control());
             ViewUserControl vuc = new ViewUserControl();
             p.Controls[0].Controls.Add(vuc);
             p.ViewData = new ViewDataDictionary { { "FirstName", "Joe" }, { "LastName", "Schmoe" } };
 
-            // Execute
+            // Act
             object firstName = vuc.ViewData.Eval("FirstName");
             object lastName = vuc.ViewData.Eval("LastName");
 
-            // Verify
+            // Assert
             Assert.AreEqual("Joe", firstName);
             Assert.AreEqual("Schmoe", lastName);
         }
 
         [TestMethod]
-        public void GetViewDataFromViewPageWithViewDataKey() {
-            // Setup
+        public void GetViewDataFromViewPageWithViewDataKeyPointingToObject() {
+            // Arrange
+            ViewDataDictionary vdd = new ViewDataDictionary() {
+                { "Foo", "FooParent" },
+                { "Bar", "BarParent" },
+                { "Child", new object() }
+            };
+
             ViewPage p = new ViewPage();
             p.Controls.Add(new Control());
-            ViewUserControl vuc = new ViewUserControl() { SubDataKey = "SubData" };
+            ViewUserControl vuc = new ViewUserControl() { ViewDataKey = "Child" };
             p.Controls[0].Controls.Add(vuc);
-            p.ViewData = new ViewDataDictionary { { "FirstName", "Joe" }, { "LastName", "Schmoe" } };
-            p.ViewData.SubDataItems["SubData"] = new ViewDataDictionary { { "FirstName", "SubJoe" }, { "LastName", "SubSchmoe" } };
+            p.ViewData = vdd;
 
-            // Execute
-            object firstName = vuc.ViewData.Eval("FirstName");
-            object lastName = vuc.ViewData.Eval("LastName");
+            // Act
+            object oFoo = vuc.ViewData.Eval("Foo");
+            object oBar = vuc.ViewData.Eval("Bar");
 
-            // Verify
-            Assert.AreEqual("SubJoe", firstName);
-            Assert.AreEqual("SubSchmoe", lastName);
+            // Assert
+            Assert.AreEqual(vdd["Child"], vuc.ViewData.Model);
+            Assert.AreEqual("FooParent", oFoo);
+            Assert.AreEqual("BarParent", oBar);
+        }
+
+        [TestMethod]
+        public void GetViewDataFromViewPageWithViewDataKeyPointingToViewDataDictionary() {
+            // Arrange
+            ViewDataDictionary vdd = new ViewDataDictionary() {
+                { "Foo", "FooParent" },
+                { "Bar", "BarParent" },
+                { "Child",
+                    new ViewDataDictionary() {
+                        { "Foo", "FooChild" },
+                        { "Bar", "BarChild" }
+                    }
+                }
+            };
+
+            ViewPage p = new ViewPage();
+            p.Controls.Add(new Control());
+            ViewUserControl vuc = new ViewUserControl() { ViewDataKey = "Child" };
+            p.Controls[0].Controls.Add(vuc);
+            p.ViewData = vdd;
+
+            // Act
+            object oFoo = vuc.ViewData.Eval("Foo");
+            object oBar = vuc.ViewData.Eval("Bar");
+
+            // Assert
+            Assert.AreEqual(vdd["Child"], vuc.ViewData);
+            Assert.AreEqual("FooChild", oFoo);
+            Assert.AreEqual("BarChild", oBar);
         }
 
         [TestMethod]
         public void GetViewDataFromViewUserControl() {
-            // Setup
+            // Arrange
             ViewPage p = new ViewPage();
             p.Controls.Add(new Control());
             ViewUserControl outerVuc = new ViewUserControl();
@@ -147,57 +183,57 @@
 
             p.ViewData = new ViewDataDictionary { { "FirstName", "Joe" }, { "LastName", "Schmoe" } };
 
-            // Execute
+            // Act
             object firstName = vuc.ViewData.Eval("FirstName");
             object lastName = vuc.ViewData.Eval("LastName");
 
-            // Verify
+            // Assert
             Assert.AreEqual("Joe", firstName);
             Assert.AreEqual("Schmoe", lastName);
         }
 
         [TestMethod]
         public void GetViewDataFromViewUserControlWithViewDataKeyOnInnerControl() {
-            // Setup
+            // Arrange
             ViewPage p = new ViewPage();
             p.Controls.Add(new Control());
             ViewUserControl outerVuc = new ViewUserControl();
             p.Controls[0].Controls.Add(outerVuc);
             outerVuc.Controls.Add(new Control());
-            ViewUserControl vuc = new ViewUserControl() { SubDataKey = "SubData" };
+            ViewUserControl vuc = new ViewUserControl() { ViewDataKey = "SubData" };
             outerVuc.Controls[0].Controls.Add(vuc);
 
             p.ViewData = new ViewDataDictionary { { "FirstName", "Joe" }, { "LastName", "Schmoe" } };
-            p.ViewData.SubDataItems["SubData"] = new ViewDataDictionary { { "FirstName", "SubJoe" }, { "LastName", "SubSchmoe" } };
+            p.ViewData["SubData"] = new ViewDataDictionary { { "FirstName", "SubJoe" }, { "LastName", "SubSchmoe" } };
 
-            // Execute
+            // Act
             object firstName = vuc.ViewData.Eval("FirstName");
             object lastName = vuc.ViewData.Eval("LastName");
 
-            // Verify
+            // Assert
             Assert.AreEqual("SubJoe", firstName);
             Assert.AreEqual("SubSchmoe", lastName);
         }
 
         [TestMethod]
         public void GetViewDataFromViewUserControlWithViewDataKeyOnOuterControl() {
-            // Setup
+            // Arrange
             ViewPage p = new ViewPage();
             p.Controls.Add(new Control());
-            ViewUserControl outerVuc = new ViewUserControl() { SubDataKey = "SubData" };
+            ViewUserControl outerVuc = new ViewUserControl() { ViewDataKey = "SubData" };
             p.Controls[0].Controls.Add(outerVuc);
             outerVuc.Controls.Add(new Control());
             ViewUserControl vuc = new ViewUserControl();
             outerVuc.Controls[0].Controls.Add(vuc);
 
             p.ViewData = new ViewDataDictionary { { "FirstName", "Joe" }, { "LastName", "Schmoe" } };
-            p.ViewData.SubDataItems["SubData"] = new ViewDataDictionary { { "FirstName", "SubJoe" }, { "LastName", "SubSchmoe" } };
+            p.ViewData["SubData"] = new ViewDataDictionary { { "FirstName", "SubJoe" }, { "LastName", "SubSchmoe" } };
 
-            // Execute
+            // Act
             object firstName = vuc.ViewData.Eval("FirstName");
             object lastName = vuc.ViewData.Eval("LastName");
 
-            // Verify
+            // Assert
             Assert.AreEqual("SubJoe", firstName);
             Assert.AreEqual("SubSchmoe", lastName);
         }
@@ -209,7 +245,7 @@
 
         [TestMethod]
         public void GetWrongGenericViewItemTypeThrows() {
-            // Setup
+            // Arrange
             ViewPage p = new ViewPage();
             p.ViewData = new ViewDataDictionary();
             p.ViewData["Foo"] = new DummyViewData { MyInt = 123, MyString = "Whatever" };
@@ -219,7 +255,7 @@
             p.Controls.Add(new Control());
             p.Controls[0].Controls.Add(vuc);
 
-            // Execute
+            // Act
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     var foo = vuc.ViewData.Model.IntProp;
@@ -229,7 +265,7 @@
 
         [TestMethod]
         public void GetGenericViewItemType() {
-            // Setup
+            // Arrange
             ViewPage p = new ViewPage();
             p.Controls.Add(new Control());
             MockViewUserControl<MyViewData> vuc = new MockViewUserControl<MyViewData>() { ViewDataKey = "FOO" };
@@ -237,46 +273,45 @@
             p.ViewData = new ViewDataDictionary();
             p.ViewData["Foo"] = new MyViewData { IntProp = 123, StringProp = "miao" };
 
-            // Execute
+            // Act
             int intProp = vuc.ViewData.Model.IntProp;
             string stringProp = vuc.ViewData.Model.StringProp;
 
-            // Verify
+            // Assert
             Assert.AreEqual<int>(123, intProp);
             Assert.AreEqual<string>("miao", stringProp);
         }
 
         [TestMethod]
         public void GetHtmlHelperFromViewPage() {
-            // Setup
+            // Arrange
             ViewUserControl vuc = new ViewUserControl();
             ViewPage containerPage = new ViewPage();
             containerPage.Controls.Add(vuc);
-            ViewContext vc = new ViewContext(new Mock<HttpContextBase>().Object,
-                                                        new RouteData(),
-                                                        new Mock<IController>().Object,
-                                                        "view",
-                                                        null,
-                                                        new ViewDataDictionary(),
-                                                        new TempDataDictionary());
+            ViewContext vc = new ViewContext(new Mock<HttpContextBase>().Object, 
+                                             new RouteData(), 
+                                             new Mock<ControllerBase>().Object, 
+                                             "view", 
+                                             new ViewDataDictionary(), 
+                                             new TempDataDictionary());
             vuc.ViewContext = vc;
 
-            // Execute
+            // Act
             HtmlHelper htmlHelper = vuc.Html;
 
-            // Verify
+            // Assert
             Assert.AreEqual(vc, htmlHelper.ViewContext);
             Assert.AreEqual(vuc, htmlHelper.ViewDataContainer);
         }
 
         [TestMethod]
         public void GetHtmlHelperFromRegularPage() {
-            // Setup
+            // Arrange
             ViewUserControl vuc = new ViewUserControl();
             Page containerPage = new Page();
             containerPage.Controls.Add(vuc);
 
-            // Verify
+            // Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                  delegate {
                      HtmlHelper foo = vuc.Html;
@@ -286,32 +321,31 @@
 
         [TestMethod]
         public void GetUrlHelperFromViewPage() {
-            // Setup
+            // Arrange
             ViewUserControl vuc = new ViewUserControl();
             ViewPage containerPage = new ViewPage();
             containerPage.Controls.Add(vuc);
-            ViewContext vc = new ViewContext(new Mock<HttpContextBase>().Object,
-                                                        new RouteData(),
-                                                        new Mock<IController>().Object,
-                                                        "view",
-                                                        null,
-                                                        new ViewDataDictionary(),
-                                                        new TempDataDictionary());
+            ViewContext vc = new ViewContext(new Mock<HttpContextBase>().Object, 
+                                             new RouteData(),
+                                             new Mock<ControllerBase>().Object, 
+                                             "view", 
+                                             new ViewDataDictionary(), 
+                                             new TempDataDictionary());
             UrlHelper urlHelper = new UrlHelper(vc);
             containerPage.Url = urlHelper;
 
-            // Verify
+            // Assert
             Assert.AreEqual(vuc.Url, urlHelper);
         }
 
         [TestMethod]
         public void GetUrlHelperFromRegularPage() {
-            // Setup
+            // Arrange
             ViewUserControl vuc = new ViewUserControl();
             Page containerPage = new Page();
             containerPage.Controls.Add(vuc);
 
-            // Verify
+            // Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                  delegate {
                      UrlHelper foo = vuc.Url;
@@ -321,7 +355,7 @@
 
         [TestMethod]
         public void GetWriterFromViewPage() {
-            // Setup
+            // Arrange
             MockViewUserControl vuc = new MockViewUserControl();
             MockViewUserControlContainerPage containerPage = new MockViewUserControlContainerPage(vuc);
             bool triggered = false;
@@ -331,7 +365,7 @@
                 Assert.AreEqual(writer, vuc.Writer);
             };
 
-            // Execute & verify
+            // Act & Assert
             Assert.IsNull(vuc.Writer);
             containerPage.RenderControl(writer);
             Assert.IsNull(vuc.Writer);
@@ -340,12 +374,12 @@
 
         [TestMethod]
         public void GetWriterFromRegularPageThrows() {
-            // Setup
+            // Arrange
             MockViewUserControl vuc = new MockViewUserControl();
             Page containerPage = new Page();
             containerPage.Controls.Add(vuc);
 
-            // Execute
+            // Act
             ExceptionHelper.ExpectException<InvalidOperationException>(
                  delegate {
                      HtmlTextWriter writer = vuc.Writer;

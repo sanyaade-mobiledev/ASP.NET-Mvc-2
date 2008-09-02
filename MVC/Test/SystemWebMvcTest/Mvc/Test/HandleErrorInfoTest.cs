@@ -9,15 +9,15 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void ConstructorSetsProperties() {
-            // Setup
+            // Arrange
             Exception exception = new Exception();
             string controller = "SomeController";
             string action = "SomeAction";
 
-            // Execute
+            // Act
             HandleErrorInfo viewData = new HandleErrorInfo(exception, controller, action);
 
-            // Verify
+            // Assert
             Assert.AreSame(exception, viewData.Exception);
             Assert.AreEqual(controller, viewData.Controller);
             Assert.AreEqual(action, viewData.Action);

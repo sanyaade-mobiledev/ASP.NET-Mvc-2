@@ -20,13 +20,12 @@
 
         internal static ViewContext GetViewContext(string appPath) {
             HttpContextBase httpContext = HtmlHelperTest.GetHttpContext(appPath, "/request", "GET");
-            ViewContext viewContext = new ViewContext(httpContext,
-                new RouteData(),
-                new Mock<IController>().Object,
-                "view",
-                null,
-                new ViewDataDictionary(),
-                new TempDataDictionary());
+            ViewContext viewContext = new ViewContext(httpContext, 
+                                                      new RouteData(),
+                                                      new Mock<ControllerBase>().Object, 
+                                                      "view", 
+                                                      new ViewDataDictionary(), 
+                                                      new TempDataDictionary());
             return viewContext;
         }
 

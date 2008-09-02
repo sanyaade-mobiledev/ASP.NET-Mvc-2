@@ -1,5 +1,8 @@
 ﻿namespace System.Web.Mvc.Test {
     using System;
+    using System.IO;
+    using System.Web;
+    using System.Web.Mvc;
     using System.Web.Routing;
     using System.Web.TestUtil;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -8,113 +11,173 @@
     [TestClass]
     public class ViewResultTest {
 
-        private static string _viewName = "My cool view.";
-        private static string _masterName = "My cool master.";
-        private static ViewDataDictionary _viewData = new ViewDataDictionary();
+        private const string _viewName = "My cool view.";
+        private const string _masterName = "My cool master.";
 
         [TestMethod]
-        public void ExecuteResultCorrectlyPassesDataToViewEngine() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
-            ControllerContext context = new ControllerContext(new Mock<HttpContextBase>().Object, new RouteData(), controller);
-            TempDataDictionary tempData = GetTempDataDictionary();
-            Mock<IViewEngine> viewEngineMock = new Mock<IViewEngine>();
-            viewEngineMock.Expect(o => o.RenderView(It.IsAny<ViewContext>())).Callback<ViewContext>(delegate(ViewContext viewContext) {
-                Assert.AreSame(_viewName, viewContext.ViewName);
-                Assert.AreSame(_masterName, viewContext.MasterName);
-                Assert.AreSame(_viewData, viewContext.ViewData);
-                Assert.AreSame(tempData, viewContext.TempData);
-                Assert.AreSame(controller, viewContext.Controller);
-            });
-            ViewResult result = new ViewResult() {
-                ViewName = _viewName,
-                MasterName = _masterName,
-                ViewData = _viewData,
-                ViewEngine = viewEngineMock.Object,
-                TempData = tempData
-            };
+        public void EmptyViewNameUsesActionNameAsViewName() {
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
+            HttpContextBase httpContext = CreateHttpContext();
+            RouteData routeData = new RouteData();
+            routeData.Values["action"] = _viewName;
+            ControllerContext context = new ControllerContext(httpContext, routeData, controller);
+            Mock<IViewEngine> viewEngine = new Mock<IViewEngine>(MockBehavior.Strict);
+            Mock<IView> view = new Mock<IView>(MockBehavior.Strict);
+            ViewResult result = new ViewResultHelper { ViewEngine = viewEngine.Object };
+            viewEngine
+                .Expect(e => e.FindView(It.IsAny<ControllerContext>(), _viewName, _masterName))
+                .Callback<ControllerContext, string, string>(
+                    (controllerContext, viewName, masterName) => {
+                        Assert.AreSame(httpContext, controllerContext.HttpContext);
+                        Assert.AreSame(routeData, controllerContext.RouteData);
+                    })
+                .Returns(new ViewEngineResult(view.Object));
+            view
+                .Expect(o => o.Render(It.IsAny<ViewContext>(), httpContext.Response.Output))
+                .Callback<ViewContext, TextWriter>(
+                    (viewContext, writer) => {
+                        Assert.AreEqual(_viewName, viewContext.ViewName);
+                        Assert.AreSame(result.ViewData, viewContext.ViewData);
+                        Assert.AreSame(result.TempData, viewContext.TempData);
+                        Assert.AreSame(controller, viewContext.Controller);
+                    });
 
-            // Execute
+            // Act
             result.ExecuteResult(context);
 
-            // Verify
-            viewEngineMock.Verify();
+            // Assert
+            viewEngine.Verify();
+            view.Verify();
+        }
+
+        [TestMethod]
+        public void EngineLookupFailureThrows() {
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
+            HttpContextBase httpContext = CreateHttpContext();
+            RouteData routeData = new RouteData();
+            routeData.Values["action"] = _viewName;
+            ControllerContext context = new ControllerContext(httpContext, routeData, controller);
+            Mock<IViewEngine> viewEngine = new Mock<IViewEngine>(MockBehavior.Strict);
+            ViewResult result = new ViewResultHelper { ViewEngine = viewEngine.Object };
+            viewEngine
+                .Expect(e => e.FindView(It.IsAny<ControllerContext>(), _viewName, _masterName))
+                .Callback<ControllerContext, string, string>(
+                    (controllerContext, viewName, masterName) => {
+                        Assert.AreSame(httpContext, controllerContext.HttpContext);
+                        Assert.AreSame(routeData, controllerContext.RouteData);
+                    })
+                .Returns(new ViewEngineResult(new[] { "location1", "location2" }));
+
+            // Act & Assert
+            ExceptionHelper.ExpectInvalidOperationException(
+                () => result.ExecuteResult(context),
+                "The view '" + _viewName + "' or its master could not be found. The following locations were searched:\r\nlocation1\r\nlocation2");
+
+            viewEngine.Verify();
+        }
+
+        [TestMethod]
+        public void EngineLookupSuccessRendersView() {
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
+            HttpContextBase httpContext = CreateHttpContext();
+            RouteData routeData = new RouteData();
+            ControllerContext context = new ControllerContext(httpContext, routeData, controller);
+            Mock<IViewEngine> viewEngine = new Mock<IViewEngine>(MockBehavior.Strict);
+            Mock<IView> view = new Mock<IView>(MockBehavior.Strict);
+            ViewResult result = new ViewResultHelper { ViewName = _viewName, ViewEngine = viewEngine.Object };
+            view
+                .Expect(o => o.Render(It.IsAny<ViewContext>(), httpContext.Response.Output))
+                .Callback<ViewContext, TextWriter>(
+                    (viewContext, writer) => {
+                        Assert.AreEqual(_viewName, viewContext.ViewName);
+                        Assert.AreSame(result.ViewData, viewContext.ViewData);
+                        Assert.AreSame(result.TempData, viewContext.TempData);
+                        Assert.AreSame(controller, viewContext.Controller);
+                    });
+            viewEngine
+                .Expect(e => e.FindView(It.IsAny<ControllerContext>(), _viewName, _masterName))
+                .Callback<ControllerContext, string, string>(
+                    (controllerContext, viewName, masterName) => {
+                        Assert.AreSame(httpContext, controllerContext.HttpContext);
+                        Assert.AreSame(routeData, controllerContext.RouteData);
+                    })
+                .Returns(new ViewEngineResult(view.Object));
+
+            // Act
+            result.ExecuteResult(context);
+
+            // Assert
+            viewEngine.Verify();
+            view.Verify();
+        }
+
+        [TestMethod]
+        public void ExecuteResultWithExplicitViewObject() {
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
+            HttpContextBase httpContext = CreateHttpContext();
+            RouteData routeData = new RouteData();
+            routeData.Values["action"] = _viewName;
+            ControllerContext context = new ControllerContext(httpContext, routeData, controller);
+            Mock<IView> view = new Mock<IView>(MockBehavior.Strict);
+            ViewResult result = new ViewResultHelper { View = view.Object };
+            view
+                .Expect(o => o.Render(It.IsAny<ViewContext>(), httpContext.Response.Output))
+                .Callback<ViewContext, TextWriter>(
+                    (viewContext, writer) => {
+                        Assert.AreSame(_viewName, viewContext.ViewName);
+                        Assert.AreSame(result.ViewData, viewContext.ViewData);
+                        Assert.AreSame(result.TempData, viewContext.TempData);
+                        Assert.AreSame(controller, viewContext.Controller);
+                    });
+
+            // Act
+            result.ExecuteResult(context);
+
+            // Assert
+            view.Verify();
         }
 
         [TestMethod]
         public void ExecuteResultWithNullControllerContextThrows() {
-            // Setup
-            IViewEngine viewEngine = new Mock<IViewEngine>().Object;
-            TempDataDictionary tempData = GetTempDataDictionary();
-            ViewResult result = new ViewResult();
+            // Arrange
+            ViewResult result = new ViewResultHelper();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
-                delegate {
-                    result.ExecuteResult(null /* context */);
-                },
+                () => result.ExecuteResult(null),
                 "context");
         }
 
         [TestMethod]
-        public void ExecuteResultWithNullViewEngineThrows() {
-            // Setup
+        public void MasterNameProperty() {
+            // Arrange
             ViewResult result = new ViewResult();
-            IController controller = new Mock<IController>().Object;
-            ControllerContext context = new ControllerContext(new Mock<HttpContextBase>().Object, new RouteData(), controller);
 
-            // Execute & verify
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    result.ExecuteResult(context);
-                },
-                "The property 'ViewEngine' cannot be null or empty.");
+            // Act & Assert
+            MemberHelper.TestStringProperty(result, "MasterName", String.Empty, false /* testDefaultValue */, true /* allowNullAndEmpty */);
         }
 
-        [TestMethod]
-        public void ViewNameComesFromControllerContextIfEmptyViewName() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
-            RouteData rd = new RouteData();
-            rd.Values["action"] = "FooAction";
-            ControllerContext context = new ControllerContext(new Mock<HttpContextBase>().Object, rd, controller);
-            Mock<IViewEngine> viewEngineMock = new Mock<IViewEngine>();
-            viewEngineMock.Expect(o => o.RenderView(It.IsAny<ViewContext>())).Callback<ViewContext>(delegate(ViewContext viewContext) {
-                Assert.AreSame("FooAction", viewContext.ViewName);
-            });
-            ViewResult result = new ViewResult() { ViewName = "", ViewEngine = viewEngineMock.Object };
-
-            // Execute
-            result.ExecuteResult(context);
-
-            // Verify
-            viewEngineMock.Verify();
+        private static HttpContextBase CreateHttpContext() {
+            TextWriter writer = new Mock<TextWriter>().Object;
+            Mock<HttpResponseBase> httpResponse = new Mock<HttpResponseBase>();
+            httpResponse.Expect(r => r.Output).Returns(writer);
+            Mock<HttpContextBase> result = new Mock<HttpContextBase>();
+            result.Expect(c => c.Response).Returns(httpResponse.Object);
+            return result.Object;
         }
 
-        [TestMethod]
-        public void ViewNameComesFromControllerContextIfNullViewName() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
-            RouteData rd = new RouteData();
-            rd.Values["action"] = "FooAction";
-            ControllerContext context = new ControllerContext(new Mock<HttpContextBase>().Object, rd, controller);
-            Mock<IViewEngine> viewEngineMock = new Mock<IViewEngine>();
-            viewEngineMock.Expect(o => o.RenderView(It.IsAny<ViewContext>())).Callback<ViewContext>(delegate(ViewContext viewContext) {
-                Assert.AreSame("FooAction", viewContext.ViewName);
-            });
-            ViewResult result = new ViewResult() { ViewEngine = viewEngineMock.Object };
 
-            // Execute
-            result.ExecuteResult(context);
+        private class ViewResultHelper : ViewResult {
 
-            // Verify
-            viewEngineMock.Verify();
+            public ViewResultHelper() {
+                ViewEngine = new CompositeViewEngine(new ViewEngineCollection());
+                MasterName = _masterName;
+            }
         }
 
-        private static TempDataDictionary GetTempDataDictionary() {
-            Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
-            mockContext.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
-            return new TempDataDictionary();
-        }
     }
 }

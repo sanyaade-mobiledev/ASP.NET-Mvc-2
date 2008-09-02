@@ -7,25 +7,25 @@
 
         [TestMethod]
         public void DefaultOrderIsNegativeOne() {
-            // Execute
+            // Act
             var attr = new EmptyActionFilterAttribute();
 
-            // Verify
+            // Assert
             Assert.AreEqual(-1, attr.Order);
         }
 
         [TestMethod]
         public void OrderIsSetCorrectly() {
-            // Execute
+            // Act
             var attr = new EmptyActionFilterAttribute() { Order = 98052 };
 
-            // Verify
+            // Assert
             Assert.AreEqual(98052, attr.Order);
         }
 
         [TestMethod]
         public void SpecifyingInvalidOrderThrows() {
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentOutOfRangeException(
                 delegate {
                     new EmptyActionFilterAttribute() { Order = -2 };

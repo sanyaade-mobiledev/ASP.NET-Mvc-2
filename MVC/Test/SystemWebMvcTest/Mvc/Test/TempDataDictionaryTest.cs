@@ -11,7 +11,7 @@
         
         [TestMethod]
         public void TempDataCanBeSerialized() {
-            // Setup
+            // Arrange
             TempDataDictionary tempData = new TempDataDictionary();
             MemoryStream memStream = new MemoryStream();
             BinaryFormatter binFormatter = new BinaryFormatter();
@@ -20,14 +20,14 @@
             tempData["Key2"] = "Value2";
             tempData["Key3"] = "Value3";
 
-            // Execute            
+            // Act            
             memStream.Seek(0, SeekOrigin.Begin);
             binFormatter.Serialize(memStream, tempData);
             memStream.Seek(0, SeekOrigin.Begin);
             TempDataDictionary deserializedTempData = binFormatter.Deserialize(memStream, null) as TempDataDictionary;
             object value = deserializedTempData["KEY3"];
 
-            // Verify
+            // Assert
             Assert.AreEqual(deserializedTempData["Key1"], "Value1");
             Assert.AreEqual(deserializedTempData["Key2"], "Value2");
             Assert.AreEqual(deserializedTempData["Key3"], "Value3");
@@ -36,29 +36,29 @@
 
         [TestMethod]
         public void CompareIsOrdinalIgnoreCase() {
-            // Setup
+            // Arrange
             TempDataDictionary tempData = new TempDataDictionary();
             object item = new object();
 
-            // Execute
+            // Act
             tempData["Foo"] = item;
             object value = tempData["FOO"];
 
-            // Verify
+            // Assert
             Assert.AreSame(item, value);
         }
 
         [TestMethod]
         public void TempDataIsADictionary() {
-            // Setup
+            // Arrange
             TempDataDictionary tempData = new TempDataDictionary();
 
-            // Execute
+            // Act
             tempData["Key1"] = "Value1";
             tempData.Add("Key2", "Value2");
             ((ICollection<KeyValuePair<string, object>>)tempData).Add(new KeyValuePair<string,object>("Key3", "Value3"));
 
-            // Verify (IDictionary)
+            // Assert (IDictionary)
             Assert.AreEqual(3, tempData.Count, "tempData should contain 3 items");
             Assert.IsTrue(tempData.Remove("Key1"), "The key should be present");
             Assert.IsFalse(tempData.Remove("Key4"), "The key should not be present");
@@ -73,7 +73,7 @@
                 Assert.IsTrue(((ICollection<KeyValuePair<string, object>>)tempData).Contains(pair), "The key/value pair should be present");
             }
             
-            // Verify (ICollection)
+            // Assert (ICollection)
             foreach (string key in tempData.Keys) {
                 Assert.IsTrue(((ICollection<KeyValuePair<string, object>>)tempData).Contains(new KeyValuePair<string, object>(key, tempData[key])), "The key/value pair should be present");
             }
@@ -104,15 +104,37 @@
                 Assert.IsTrue(((ICollection<KeyValuePair<string, object>>)tempData).Contains(pair), "The key/value pair should be present");
             }
 
-            // Execute
+            // Act
             tempData.Clear();
 
-            // Verify
+            // Assert
             Assert.AreEqual(0, tempData.Count, "tempData should not contain any items");
 
             IEnumerator y = ((IEnumerable)tempData).GetEnumerator();
             while (y.MoveNext()) {
                 Assert.Fail("There should not be any elements in tempData");
+            }
+        }
+
+        [TestMethod]
+        public void TempDataDictionaryCreatesEmptyDictionaryIfProviderReturnsNull() {
+            // Arrange
+            TempDataDictionary tempDataDictionary = new TempDataDictionary();
+            NullTempDataProvider provider = new NullTempDataProvider();
+
+            // Act
+            tempDataDictionary.Load(null /* controllerContext */, provider);
+
+            // Assert
+            Assert.AreEqual(tempDataDictionary.Count, 0);
+        }
+
+        internal class NullTempDataProvider : ITempDataProvider {
+            public void SaveTempData(ControllerContext controllerContext, IDictionary<string, object> values) {
+            }
+
+            public IDictionary<string, object> LoadTempData(ControllerContext controllerContext) {
+                return null;
             }
         }
     }

@@ -10,12 +10,24 @@
             return new ViewDataDictionary { { "foo", "ViewDataFoo" } };
         }
 
+        private static ViewDataDictionary GetPasswordViewDataWithErrors() {
+            ViewDataDictionary viewData = new ViewDataDictionary { { "foo", "ViewDataFoo" } };
+
+            ModelState modelStateFoo = new ModelState();
+            modelStateFoo.Errors.Add(new ModelError("foo error 1"));
+            modelStateFoo.Errors.Add(new ModelError("foo error 2"));
+            viewData.ModelState["foo"] = modelStateFoo;
+            modelStateFoo.AttemptedValue = "AttemptedValueFoo";
+
+            return viewData;
+        }
+
         [TestMethod]
         public void PasswordWithEmptyNameThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetPasswordViewData());
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     helper.Password(String.Empty);
@@ -25,111 +37,135 @@
 
         [TestMethod]
         public void PasswordWithExplicitValue() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetPasswordViewData());
 
-            // Execute
+            // Act
             string html = helper.Password("foo", "DefaultFoo");
 
-            // Verify
-            Assert.AreEqual(@"<input type=""password"" name=""foo"" id=""foo"" value=""DefaultFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input id=""foo"" name=""foo"" type=""password"" value=""DefaultFoo"" />", html);
         }
 
         [TestMethod]
         public void PasswordWithExplicitValueAndAttributesDictionary() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetPasswordViewData());
 
-            // Execute
+            // Act
             string html = helper.Password("foo", "DefaultFoo", _attributesDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazValue"" type=""password"" name=""foo"" id=""foo"" value=""DefaultFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazValue"" id=""foo"" name=""foo"" type=""password"" value=""DefaultFoo"" />", html);
         }
 
         [TestMethod]
         public void PasswordWithExplicitValueAndAttributesObject() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetPasswordViewData());
 
-            // Execute
+            // Act
             string html = helper.Password("foo", "DefaultFoo", _attributesObjectDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazObjValue"" type=""password"" name=""foo"" id=""foo"" value=""DefaultFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazObjValue"" id=""foo"" name=""foo"" type=""password"" value=""DefaultFoo"" />", html);
         }
 
         [TestMethod]
         public void PasswordWithExplicitValueNull() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetPasswordViewData());
 
-            // Execute
+            // Act
             string html = helper.Password("foo", (string)null /* value */);
 
-            // Verify
-            Assert.AreEqual(@"<input type=""password"" name=""foo"" id=""foo"" value="""" />", html);
+            // Assert
+            Assert.AreEqual(@"<input id=""foo"" name=""foo"" type=""password"" value="""" />", html);
         }
 
         [TestMethod]
         public void PasswordWithImplicitValue() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetPasswordViewData());
 
-            // Execute
+            // Act
             string html = helper.Password("foo");
 
-            // Verify
-            Assert.AreEqual(@"<input type=""password"" name=""foo"" id=""foo"" value=""ViewDataFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input id=""foo"" name=""foo"" type=""password"" value=""ViewDataFoo"" />", html);
         }
 
         [TestMethod]
         public void PasswordWithImplicitValueAndAttributesDictionary() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetPasswordViewData());
 
-            // Execute
+            // Act
             string html = helper.Password("foo", _attributesDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazValue"" type=""password"" name=""foo"" id=""foo"" value=""ViewDataFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazValue"" id=""foo"" name=""foo"" type=""password"" value=""ViewDataFoo"" />", html);
         }
 
         [TestMethod]
         public void PasswordWithImplicitValueAndAttributesDictionaryReturnsEmptyValueIfNotFound() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetPasswordViewData());
 
-            // Execute
+            // Act
             string html = helper.Password("keyNotFound", _attributesDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazValue"" type=""password"" name=""keyNotFound"" id=""keyNotFound"" value="""" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazValue"" id=""keyNotFound"" name=""keyNotFound"" type=""password"" value="""" />", html);
         }
 
         [TestMethod]
         public void PasswordWithImplicitValueAndAttributesObject() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetPasswordViewData());
 
-            // Execute
+            // Act
             string html = helper.Password("foo", _attributesObjectDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazObjValue"" type=""password"" name=""foo"" id=""foo"" value=""ViewDataFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazObjValue"" id=""foo"" name=""foo"" type=""password"" value=""ViewDataFoo"" />", html);
         }
 
         [TestMethod]
         public void PasswordWithNullNameThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetPasswordViewData());
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     helper.Password(null /* name */);
                 },
                 "name");
+        }
+
+        [TestMethod]
+        public void PasswordWithViewDataErrors() {
+            // Arrange
+            HtmlHelper helper = GetHtmlHelper(GetPasswordViewDataWithErrors());
+
+            // Act
+            string html = helper.Password("foo", _attributesObjectDictionary);
+
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazObjValue"" class=""input-validation-error"" id=""foo"" name=""foo"" type=""password"" value=""AttemptedValueFoo"" />", html);
+        }
+
+        [TestMethod]
+        public void PasswordWithViewDataErrorsAndCustomClass() {
+            // Arrange
+            HtmlHelper helper = GetHtmlHelper(GetPasswordViewDataWithErrors());
+
+            // Act
+            string html = helper.Password("foo", new { @class = "foo-class" });
+
+            // Assert
+            Assert.AreEqual(@"<input class=""input-validation-error foo-class"" id=""foo"" name=""foo"" type=""password"" value=""AttemptedValueFoo"" />", html);
         }
     }
 }

@@ -5,19 +5,66 @@
 
     [TestClass]
     public class RouteCollectionExtensionsTest {
+        private static string[] _nameSpaces = new string[] {"nsA.nsB.nsC", "ns1.ns2.ns3" };
 
         [TestMethod]
         public void MapRoute3() {
-            // Setup
+            // Arrange
             RouteCollection routes = new RouteCollection();
 
-            // Execute
+            // Act
             routes.MapRoute("RouteName", "SomeUrl");
 
-            // Verify
+            // Assert
             Assert.AreEqual(1, routes.Count);
             Route route = routes[0] as Route;
             Assert.IsNotNull(route);
+            Assert.IsNull(route.DataTokens);
+            Assert.AreSame(route, routes["RouteName"]);
+            Assert.AreEqual("SomeUrl", route.Url);
+            Assert.IsInstanceOfType(route.RouteHandler, typeof(MvcRouteHandler));
+            Assert.AreEqual(0, route.Defaults.Count);
+            Assert.AreEqual(0, route.Constraints.Count);
+        }
+
+        [TestMethod]
+        public void MapRoute3WithNameSpaces() {
+            // Arrange
+            RouteCollection routes = new RouteCollection();
+            //string[] namespaces = new string[] { "nsA.nsB.nsC", "ns1.ns2.ns3" };
+
+            // Act
+            routes.MapRoute("RouteName", "SomeUrl", _nameSpaces);
+
+            // Assert
+            Assert.AreEqual(1, routes.Count);
+            Route route = routes[0] as Route;
+            Assert.IsNotNull(route);
+            Assert.IsNotNull(route.DataTokens);
+            Assert.IsNotNull(route.DataTokens["Namespaces"]);
+            string[] routeNameSpaces = route.DataTokens["Namespaces"] as string[];
+            Assert.AreEqual(routeNameSpaces.Length, 2);
+            Assert.AreSame(route, routes["RouteName"]);
+            Assert.AreSame(routeNameSpaces, _nameSpaces);
+            Assert.AreEqual("SomeUrl", route.Url);
+            Assert.IsInstanceOfType(route.RouteHandler, typeof(MvcRouteHandler));
+            Assert.AreEqual(0, route.Defaults.Count);
+            Assert.AreEqual(0, route.Constraints.Count);
+        }
+
+        [TestMethod]
+        public void MapRoute3WithEmptyNameSpaces() {
+            // Arrange
+            RouteCollection routes = new RouteCollection();
+
+            // Act
+            routes.MapRoute("RouteName", "SomeUrl", new string[] {});
+
+            // Assert
+            Assert.AreEqual(1, routes.Count);
+            Route route = routes[0] as Route;
+            Assert.IsNotNull(route);
+            Assert.IsNull(route.DataTokens);
             Assert.AreSame(route, routes["RouteName"]);
             Assert.AreEqual("SomeUrl", route.Url);
             Assert.IsInstanceOfType(route.RouteHandler, typeof(MvcRouteHandler));
@@ -27,17 +74,18 @@
 
         [TestMethod]
         public void MapRoute4() {
-            // Setup
+            // Arrange
             RouteCollection routes = new RouteCollection();
             var defaults = new { Foo = "DefaultFoo" };
 
-            // Execute
+            // Act
             routes.MapRoute("RouteName", "SomeUrl", defaults);
 
-            // Verify
+            // Assert
             Assert.AreEqual(1, routes.Count);
             Route route = routes[0] as Route;
             Assert.IsNotNull(route);
+            Assert.IsNull(route.DataTokens);
             Assert.AreSame(route, routes["RouteName"]);
             Assert.AreEqual("SomeUrl", route.Url);
             Assert.IsInstanceOfType(route.RouteHandler, typeof(MvcRouteHandler));
@@ -46,19 +94,45 @@
         }
 
         [TestMethod]
+        public void MapRoute4WithNameSpaces() {
+            // Arrange
+            RouteCollection routes = new RouteCollection();
+            var defaults = new { Foo = "DefaultFoo" };
+
+            // Act
+            routes.MapRoute("RouteName", "SomeUrl", defaults, _nameSpaces);
+
+            // Assert
+            Assert.AreEqual(1, routes.Count);
+            Route route = routes[0] as Route;
+            Assert.IsNotNull(route);
+            Assert.IsNotNull(route.DataTokens);
+            Assert.IsNotNull(route.DataTokens["Namespaces"]);
+            string[] routeNameSpaces = route.DataTokens["Namespaces"] as string[];
+            Assert.AreEqual(routeNameSpaces.Length, 2);
+            Assert.AreSame(route, routes["RouteName"]);
+            Assert.AreSame(routeNameSpaces, _nameSpaces);
+            Assert.AreEqual("SomeUrl", route.Url);
+            Assert.IsInstanceOfType(route.RouteHandler, typeof(MvcRouteHandler));
+            Assert.AreEqual("DefaultFoo", route.Defaults["Foo"]);
+            Assert.AreEqual(0, route.Constraints.Count);
+        }
+
+        [TestMethod]
         public void MapRoute5() {
-            // Setup
+            // Arrange
             RouteCollection routes = new RouteCollection();
             var defaults = new { Foo = "DefaultFoo" };
             var constraints = new { Foo = "ConstraintFoo" };
 
-            // Execute
+            // Act
             routes.MapRoute("RouteName", "SomeUrl", defaults, constraints);
 
-            // Verify
+            // Assert
             Assert.AreEqual(1, routes.Count);
             Route route = routes[0] as Route;
             Assert.IsNotNull(route);
+            Assert.IsNull(route.DataTokens);
             Assert.AreSame(route, routes["RouteName"]);
             Assert.AreEqual("SomeUrl", route.Url);
             Assert.IsInstanceOfType(route.RouteHandler, typeof(MvcRouteHandler));
@@ -77,10 +151,10 @@
 
         [TestMethod]
         public void MapRoute5WithNullUrlThrows() {
-            // Setup
+            // Arrange
             RouteCollection routes = new RouteCollection();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     routes.MapRoute(null, null /* url */, null, null);
@@ -99,10 +173,10 @@
 
         [TestMethod]
         public void IgnoreRoute1WithNullUrlThrows() {
-            // Setup
+            // Arrange
             RouteCollection routes = new RouteCollection();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     routes.IgnoreRoute(null);
@@ -112,13 +186,13 @@
 
         [TestMethod]
         public void IgnoreRoute3() {
-            // Setup
+            // Arrange
             RouteCollection routes = new RouteCollection();
 
-            // Execute
+            // Act
             routes.IgnoreRoute("SomeUrl");
 
-            // Verify
+            // Assert
             Assert.AreEqual(1, routes.Count);
             Route route = routes[0] as Route;
             Assert.IsNotNull(route);
@@ -130,14 +204,14 @@
 
         [TestMethod]
         public void IgnoreRoute4() {
-            // Setup
+            // Arrange
             RouteCollection routes = new RouteCollection();
             var constraints = new { Foo = "DefaultFoo" };
 
-            // Execute
+            // Act
             routes.IgnoreRoute("SomeUrl", constraints);
 
-            // Verify
+            // Assert
             Assert.AreEqual(1, routes.Count);
             Route route = routes[0] as Route;
             Assert.IsNotNull(route);

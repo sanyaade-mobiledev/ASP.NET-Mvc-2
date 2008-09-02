@@ -9,27 +9,40 @@
     public class TagBuilderTest {
 
         [TestMethod]
+        public void AddCssClassPrepends() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag");
+            builder.MergeAttribute("class", "oldA");
+
+            // Act
+            builder.AddCssClass("newA");
+
+            // Assert
+            Assert.AreEqual("newA oldA", builder.Attributes["class"]);
+        }
+
+        [TestMethod]
         public void AttributesProperty() {
-            // Setup
+            // Arrange
             TagBuilder builder = new TagBuilder("SomeTag");
 
-            // Execute
-            Dictionary<string, string> attributes = builder.Attributes as Dictionary<string, string>;
+            // Act
+            SortedDictionary<string, string> attributes = builder.Attributes as SortedDictionary<string, string>;
 
-            // Verify
-            Assert.IsNotNull(attributes);
-            Assert.AreEqual(StringComparer.OrdinalIgnoreCase, attributes.Comparer);
+            // Assert
+            Assert.IsNotNull(attributes, "Attributes was not a SortedDictionary<string, string>.");
+            Assert.AreEqual(StringComparer.Ordinal, attributes.Comparer, "Attributes was not Ordinal case-sensitive.");
         }
 
         [TestMethod]
         public void ConstructorSetsTagNameProperty() {
-            // Setup
+            // Arrange
             TagBuilder builder = new TagBuilder("SomeTag");
 
-            // Execute
+            // Act
             string tagName = builder.TagName;
 
-            // Verify
+            // Assert
             Assert.AreEqual("SomeTag", tagName);
         }
 
@@ -50,92 +63,201 @@
         }
 
         [TestMethod]
-        public void ToStringWithInnerHtmlAndNoAttributes() {
-            // Setup
-            TagBuilder builder = new TagBuilder("SomeTag") {
-                InnerHtml = @"<br />"
-            };
-
-            // Execute
-            string element = builder.ToString();
-
-            // Verify
-            Assert.AreEqual(@"<SomeTag><br /></SomeTag>", element);
-        }
-
-        [TestMethod]
-        public void ToStringWithInnerHtmlAndSomeAttributes() {
-            // Setup
-            TagBuilder builder = new TagBuilder("SomeTag") {
-                Attributes = GetAttributesDictionary(),
-                InnerHtml = @"<br />"
-            };
-
-            // Execute
-            string element = builder.ToString();
-
-            // Verify
-            Assert.AreEqual(@"<SomeTag a=""Foo"" b=""Bar&amp;Baz"" c=""&lt;&quot;Quux&quot;>""><br /></SomeTag>", element);
-        }
-
-        [TestMethod]
-        public void ToStringWithNoInnerHtmlAndNoAttributes() {
-            // Setup
+        public void InnerHtmlProperty() {
+            // Arrange
             TagBuilder builder = new TagBuilder("SomeTag");
-            builder.TagRenderMode = TagRenderMode.SelfClosing;
 
-            // Execute
-            string element = builder.ToString();
-
-            // Verify
-            Assert.AreEqual("<SomeTag />", element);
+            // Act & Assert
+            MemberHelper.TestStringProperty(builder, "InnerHtml", String.Empty, false /* testDefaultValue */, true /* allowNullAndEmpty */);
         }
 
         [TestMethod]
-        public void ToStringWithNoInnerHtmlAndSomeAttributes() {
-            // Setup
-            TagBuilder builder = new TagBuilder("SomeTag") {
-                Attributes = GetAttributesDictionary(),
-                TagRenderMode = TagRenderMode.SelfClosing
-            };
+        public void MergeAttributeDoesNotOverwriteExistingValuesByDefault() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag");
+            builder.MergeAttribute("a", "oldA");
 
-            // Execute
-            string element = builder.ToString();
+            // Act
+            builder.MergeAttribute("a", "newA");
 
-            // Verify
-            Assert.AreEqual(@"<SomeTag a=""Foo"" b=""Bar&amp;Baz"" c=""&lt;&quot;Quux&quot;>"" />", element);
+            // Assert
+            Assert.AreEqual("oldA", builder.Attributes["a"]);
         }
 
         [TestMethod]
-        public void TryAddValueReturnsFalseIfKeyAlreadyExists() {
-            // Setup
-            Dictionary<string, string> dictionary = new Dictionary<string, string> { { "foo", "OldValue" } };
-            TagBuilder builder = new TagBuilder("SomeTag") {
-                Attributes = dictionary
-            };
+        public void MergeAttributeOverwritesExistingValueIfAsked() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag");
+            builder.MergeAttribute("a", "oldA");
 
-            // Execute
-            bool wasAdded = builder.TryAddValue("foo", "NewValue");
+            // Act
+            builder.MergeAttribute("a", "newA", true);
 
-            // Verify
-            Assert.IsFalse(wasAdded);
-            Assert.AreEqual("OldValue", dictionary["foo"]);
+            // Assert
+            Assert.AreEqual("newA", builder.Attributes["a"]);
         }
 
         [TestMethod]
-        public void TryAddValueReturnsTrueIfKeyIsAdded() {
-            // Setup
-            Dictionary<string, string> dictionary = new Dictionary<string, string>();
-            TagBuilder builder = new TagBuilder("SomeTag") {
-                Attributes = dictionary
+        public void MergeAttributeWithEmptyKeyThrows() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag");
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
+                delegate {
+                    builder.MergeAttribute(String.Empty, "value");
+                }, "key");
+        }
+
+        [TestMethod]
+        public void MergeAttributeWithNullKeyThrows() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag");
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
+                delegate {
+                    builder.MergeAttribute(null, "value");
+                }, "key");
+        }
+
+        [TestMethod]
+        public void MergeAttributesDoesNotOverwriteExistingValuesByDefault() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag");
+            builder.Attributes["a"] = "oldA";
+
+            Dictionary<string, string> newAttrs = new Dictionary<string, string> {
+                { "a", "newA" },
+                { "b", "newB" }
             };
 
-            // Execute
-            bool wasAdded = builder.TryAddValue("foo", "NewValue");
+            // Act
+            builder.MergeAttributes(newAttrs);
 
-            // Verify
-            Assert.IsTrue(wasAdded);
-            Assert.AreEqual("NewValue", dictionary["foo"]);
+            // Assert
+            Assert.AreEqual(2, builder.Attributes.Count);
+            Assert.AreEqual("oldA", builder.Attributes["a"]);
+            Assert.AreEqual("newB", builder.Attributes["b"]);
+        }
+
+        [TestMethod]
+        public void MergeAttributesOverwritesExistingValueIfAsked() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag");
+            builder.Attributes["a"] = "oldA";
+
+            Dictionary<string, string> newAttrs = new Dictionary<string, string> {
+                { "a", "newA" },
+                { "b", "newB" }
+            };
+
+            // Act
+            builder.MergeAttributes(newAttrs, true);
+
+            // Assert
+            Assert.AreEqual(2, builder.Attributes.Count);
+            Assert.AreEqual("newA", builder.Attributes["a"]);
+            Assert.AreEqual("newB", builder.Attributes["b"]);
+        }
+
+        [TestMethod]
+        public void MergeAttributesWithNullAttributesDoesNothing() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag");
+
+            // Act
+            builder.MergeAttributes<string, string>(null);
+
+            // Assert
+            Assert.AreEqual(0, builder.Attributes.Count);
+        }
+
+        [TestMethod]
+        public void SetInnerTextEncodes() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag");
+
+            // Act
+            builder.SetInnerText("<>");
+
+            // Assert
+            Assert.AreEqual("&lt;&gt;", builder.InnerHtml);
+        }
+
+        [TestMethod]
+        public void ToStringDefaultsToNormal() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag") {
+                InnerHtml = "<x&y>"
+            };
+            builder.MergeAttributes(GetAttributesDictionary());
+
+            // Act
+            string output = builder.ToString();
+
+            // Assert
+            Assert.AreEqual(@"<SomeTag a=""Foo"" b=""Bar&amp;Baz"" c=""&lt;&quot;Quux&quot;>""><x&y></SomeTag>", output);
+        }
+
+        [TestMethod]
+        public void ToStringEndTag() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag") {
+                InnerHtml = "<x&y>"
+            };
+            builder.MergeAttributes(GetAttributesDictionary());
+
+            // Act
+            string output = builder.ToString(TagRenderMode.EndTag);
+
+            // Assert
+            Assert.AreEqual(@"</SomeTag>", output);
+        }
+
+        [TestMethod]
+        public void ToStringNormal() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag") {
+                InnerHtml = "<x&y>"
+            };
+            builder.MergeAttributes(GetAttributesDictionary());
+
+            // Act
+            string output = builder.ToString(TagRenderMode.Normal);
+
+            // Assert
+            Assert.AreEqual(@"<SomeTag a=""Foo"" b=""Bar&amp;Baz"" c=""&lt;&quot;Quux&quot;>""><x&y></SomeTag>", output);
+        }
+
+        [TestMethod]
+        public void ToStringSelfClosing() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag") {
+                InnerHtml = "<x&y>"
+            };
+            builder.MergeAttributes(GetAttributesDictionary());
+
+            // Act
+            string output = builder.ToString(TagRenderMode.SelfClosing);
+
+            // Assert
+            Assert.AreEqual(@"<SomeTag a=""Foo"" b=""Bar&amp;Baz"" c=""&lt;&quot;Quux&quot;>"" />", output);
+        }
+
+        [TestMethod]
+        public void ToStringStartTag() {
+            // Arrange
+            TagBuilder builder = new TagBuilder("SomeTag") {
+                InnerHtml = "<x&y>"
+            };
+            builder.MergeAttributes(GetAttributesDictionary());
+
+            // Act
+            string output = builder.ToString(TagRenderMode.StartTag);
+
+            // Assert
+            Assert.AreEqual(@"<SomeTag a=""Foo"" b=""Bar&amp;Baz"" c=""&lt;&quot;Quux&quot;>"">", output);
         }
 
         private static IDictionary<string, string> GetAttributesDictionary() {

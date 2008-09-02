@@ -1,6 +1,7 @@
 namespace System.Web.TestUtil {
     using System;
     using System.Reflection;
+    using System.Web;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     public static class ExceptionHelper {
@@ -92,6 +93,15 @@ namespace System.Web.TestUtil {
             if (exceptionMessage != null && UnitTestHelper.EnglishBuildAndOS) {
                 Assert.AreEqual(exceptionMessage, e.Message, "Incorrect exception message.");
             }
+            return e;
+        }
+
+        public static HttpException ExpectHttpException(GenericDelegate del, string exceptionMessage, int httpCode) {
+            HttpException e = ExpectExceptionHelper<HttpException>(del);
+            if (UnitTestHelper.EnglishBuildAndOS) {
+                Assert.AreEqual(exceptionMessage, e.Message, "Incorrect exception message.");
+            }
+            Assert.AreEqual(httpCode, e.GetHttpCode());
             return e;
         }
 

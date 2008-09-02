@@ -12,16 +12,16 @@
 
         [TestMethod]
         public void ConstructorSetsUrl() {
-            // Execute
+            // Act
             var result = new RedirectResult(_baseUrl);
 
-            // Verify
+            // Assert
             Assert.AreSame(_baseUrl, result.Url);
         }
 
         [TestMethod]
         public void ConstructorWithEmptyUrlThrows() {
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     new RedirectResult(String.Empty);
@@ -31,7 +31,7 @@
 
         [TestMethod]
         public void ConstructorWithNullUrlThrows() {
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     new RedirectResult(null /* url */);
@@ -41,27 +41,27 @@
 
         [TestMethod]
         public void ExecuteResultCallsResponseRedirect() {
-            // Setup
+            // Arrange
             Mock<HttpResponseBase> mockResponse = new Mock<HttpResponseBase>();
             mockResponse.Expect(o => o.Redirect(_baseUrl, false /* endResponse */));
             Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
             mockContext.Expect(o => o.Response).Returns(mockResponse.Object);
-            ControllerContext context = new ControllerContext(mockContext.Object, new RouteData(), new Mock<IController>().Object);
+            ControllerContext context = new ControllerContext(mockContext.Object, new RouteData(), new Mock<ControllerBase>().Object);
             var result = new RedirectResult(_baseUrl);
 
-            // Execute
+            // Act
             result.ExecuteResult(context);
 
-            // Verify
+            // Assert
             mockResponse.Verify();
         }
 
         [TestMethod]
         public void ExecuteResultWithNullControllerContextThrows() {
-            // Setup
+            // Arrange
             var result = new RedirectResult(_baseUrl);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     result.ExecuteResult(null /* context */);

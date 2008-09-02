@@ -2,10 +2,9 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Globalization;
     using System.Reflection;
     using System.Threading;
+    using System.Web.Mvc;
     using System.Web.Routing;
     using System.Web.TestUtil;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -15,115 +14,18 @@
     public class ControllerActionInvokerTest {
 
         [TestMethod]
-        public void ConstructorSetsProperties() {
-            // Setup
-            var controller = new FindMethodController();
-            ControllerContext context = GetControllerContext(controller);
-
-            // Execute
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-
-            // Verify
-            Assert.AreSame(context, helper.ControllerContext);
-        }
-
-        [TestMethod]
-        public void ConstructorWithNullControllerContextThrows() {
-            // Execute & verify
-            ExceptionHelper.ExpectArgumentNullException(
-                delegate {
-                    new ControllerActionInvoker(null /* controllerContext */);
-                },
-                "controllerContext");
-        }
-
-        [TestMethod]
-        public void ConvertParameterCanConvertDerivedTypeToBaseType() {
-            // Setup
-            Employee employee = new Employee();
-
-            // Execute
-            object person = ControllerActionInvoker.ConvertParameterType(employee, typeof(Person), "parameterName", "actionName");
-
-            // Verify
-            Assert.IsInstanceOfType(person, typeof(Person));
-        }
-
-        [TestMethod]
-        public void ConvertParameterTypeUsesInvariantCultureForCanConvertFrom() {
-            // DevDiv Bugs 197107: ControllerActionInvoker should use the invariant
-            // culture to do parameter conversion
-
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "id", "2/1/2001" } // February 1, 2001
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesDateTime");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            CultureInfo savedCulture = Thread.CurrentThread.CurrentCulture;
-            object oValue;
-            try {
-                // In the en-GB culture, '2/1/2001' is shorthand for January 2, 2001
-                Thread.CurrentThread.CurrentCulture = new CultureInfo("en-GB");
-                oValue = helper.PublicGetParameterValue(pis[0], dict);
-            }
-            finally {
-                Thread.CurrentThread.CurrentCulture = savedCulture;
-            }
-
-            // Verify
-            Assert.AreEqual(new DateTime(2001, 2, 1), oValue);
-        }
-
-        [TestMethod]
-        public void ConvertParameterTypeUsesInvariantCultureForCanConvertTo() {
-            // DevDiv Bugs 197107: ControllerActionInvoker should use the invariant
-            // culture to do parameter conversion
-
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "id", new DateTime(2001, 2, 1) } // February 1, 2001
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesString");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            CultureInfo savedCulture = Thread.CurrentThread.CurrentCulture;
-            object oValue;
-            try {
-                // In the en-GB culture, February 2, 2001 is written shorthand as '01/02/2001'.
-                Thread.CurrentThread.CurrentCulture = new CultureInfo("en-GB");
-                oValue = helper.PublicGetParameterValue(pis[0], dict);
-            }
-            finally {
-                Thread.CurrentThread.CurrentCulture = savedCulture;
-            }
-
-            // Verify
-            Assert.AreEqual("2001-02-01", oValue);
-        }
-
-        [TestMethod]
         public void FindActionMethodDoesNotMatchConstructor() {
             // FindActionMethod() shouldn't match special-named methods like type constructors.
 
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
-            MethodInfo mi = helper.PublicFindActionMethod(".ctor", null /* values */);
+            // Act
+            MethodInfo mi = helper.PublicFindActionMethod(".ctor");
 
-            // Verify
+            // Assert
             Assert.IsNull(mi);
         }
 
@@ -131,15 +33,15 @@
         public void FindActionMethodDoesNotMatchEvent() {
             // FindActionMethod() should skip methods that aren't publicly visible.
 
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
-            MethodInfo mi = helper.PublicFindActionMethod("add_Event", null /* values */);
+            // Act
+            MethodInfo mi = helper.PublicFindActionMethod("add_Event");
 
-            // Verify
+            // Assert
             Assert.IsNull(mi);
         }
 
@@ -147,15 +49,15 @@
         public void FindActionMethodDoesNotMatchInternalMethod() {
             // FindActionMethod() should skip methods that aren't publicly visible.
 
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
-            MethodInfo mi = helper.PublicFindActionMethod("InternalMethod", null /* values */);
+            // Act
+            MethodInfo mi = helper.PublicFindActionMethod("InternalMethod");
 
-            // Verify
+            // Assert
             Assert.IsNull(mi);
         }
 
@@ -163,17 +65,17 @@
         public void FindActionMethodDoesNotMatchMethodsDefinedOnControllerType() {
             // FindActionMethod() shouldn't match methods originally defined on the Controller type, e.g. Dispose().
 
-            // Setup
+            // Arrange
             var controller = new BlankController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             var methods = typeof(Controller).GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
 
-            // Execute & verify
+            // Act & Assert
             foreach (var method in methods) {
                 bool wasFound = true;
                 try {
-                    MethodInfo mi = helper.PublicFindActionMethod(method.Name, null /* values */);
+                    MethodInfo mi = helper.PublicFindActionMethod(method.Name);
                     wasFound = (mi != null);
                 }
                 finally {
@@ -186,15 +88,15 @@
         public void FindActionMethodDoesNotMatchMethodsDefinedOnObjectType() {
             // FindActionMethod() shouldn't match methods originally defined on the Object type, e.g. ToString().
 
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
-            MethodInfo mi = helper.PublicFindActionMethod("ToString", null /* values */);
+            // Act
+            MethodInfo mi = helper.PublicFindActionMethod("ToString");
 
-            // Verify
+            // Assert
             Assert.IsNull(mi);
         }
 
@@ -202,15 +104,15 @@
         public void FindActionMethodDoesNotMatchNonActionMethod() {
             // FindActionMethod() should respect the [NonAction] attribute.
 
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
-            MethodInfo mi = helper.PublicFindActionMethod("NonActionMethod", null /* values */);
+            // Act
+            MethodInfo mi = helper.PublicFindActionMethod("NonActionMethod");
 
-            // Verify
+            // Assert
             Assert.IsNull(mi);
         }
 
@@ -218,15 +120,15 @@
         public void FindActionMethodDoesNotMatchOverriddenNonActionMethod() {
             // FindActionMethod() should trace the method's inheritance chain looking for the [NonAction] attribute.
 
-            // Setup
+            // Arrange
             var controller = new DerivedFindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
-            MethodInfo mi = helper.PublicFindActionMethod("NonActionMethod", null /* values */);
+            // Act
+            MethodInfo mi = helper.PublicFindActionMethod("NonActionMethod");
 
-            // Verify
+            // Assert
             Assert.IsNull(mi);
         }
 
@@ -234,15 +136,15 @@
         public void FindActionMethodDoesNotMatchPrivateMethod() {
             // FindActionMethod() should skip methods that aren't publicly visible.
 
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
-            MethodInfo mi = helper.PublicFindActionMethod("PrivateMethod", null /* values */);
+            // Act
+            MethodInfo mi = helper.PublicFindActionMethod("PrivateMethod");
 
-            // Verify
+            // Assert
             Assert.IsNull(mi);
         }
 
@@ -250,15 +152,15 @@
         public void FindActionMethodDoesNotMatchProperty() {
             // FindActionMethod() shouldn't match special-named methods like property getters.
 
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
-            MethodInfo mi = helper.PublicFindActionMethod("get_Property", null /* values */);
+            // Act
+            MethodInfo mi = helper.PublicFindActionMethod("get_Property");
 
-            // Verify
+            // Assert
             Assert.IsNull(mi);
         }
 
@@ -266,31 +168,31 @@
         public void FindActionMethodDoesNotMatchProtectedMethod() {
             // FindActionMethod() should skip methods that aren't publicly visible.
 
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
-            MethodInfo mi = helper.PublicFindActionMethod("ProtectedMethod", null /* values */);
+            // Act
+            MethodInfo mi = helper.PublicFindActionMethod("ProtectedMethod");
 
-            // Verify
+            // Assert
             Assert.IsNull(mi);
         }
 
         [TestMethod]
         public void FindActionMethodIsCaseInsensitive() {
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo expected = typeof(FindMethodController).GetMethod("ValidActionMethod");
 
-            // Execute
-            MethodInfo mi1 = helper.PublicFindActionMethod("validactionmethod", null /* values */);
-            MethodInfo mi2 = helper.PublicFindActionMethod("VALIDACTIONMETHOD", null /* values */);
+            // Act
+            MethodInfo mi1 = helper.PublicFindActionMethod("validactionmethod");
+            MethodInfo mi2 = helper.PublicFindActionMethod("VALIDACTIONMETHOD");
 
-            // Verify
+            // Assert
             Assert.AreEqual(expected, mi1);
             Assert.AreEqual(expected, mi2);
         }
@@ -300,16 +202,16 @@
             // FindActionMethod() should stop looking for [NonAction] in the method's inheritance chain when it sees
             // that a method in a derived class hides the a method in the base class.
 
-            // Setup
+            // Arrange
             var controller = new DerivedFindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo expected = typeof(DerivedFindMethodController).GetMethod("DerivedIsActionMethod");
 
-            // Execute
-            MethodInfo mi = helper.PublicFindActionMethod("DerivedIsActionMethod", null /* values */);
+            // Act
+            MethodInfo mi = helper.PublicFindActionMethod("DerivedIsActionMethod");
 
-            // Verify
+            // Assert
             Assert.AreEqual(expected, mi);
         }
 
@@ -317,45 +219,45 @@
         public void FindActionMethodWithClosedGenerics() {
             // FindActionMethod() should work with generic methods as long as there are no open types.
 
-            // Setup
+            // Arrange
             var controller = new GenericFindMethodController<int>();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo expected = typeof(GenericFindMethodController<int>).GetMethod("ClosedGenericMethod");
 
-            // Execute
-            MethodInfo mi = helper.PublicFindActionMethod("ClosedGenericMethod", null /* values */);
+            // Act
+            MethodInfo mi = helper.PublicFindActionMethod("ClosedGenericMethod");
 
-            // Verify
+            // Assert
             Assert.AreEqual(expected, mi);
         }
 
         [TestMethod]
         public void FindActionMethodWithEmptyActionNameThrows() {
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
-                    helper.PublicFindActionMethod(String.Empty, null /* values */);
+                    helper.PublicFindActionMethod(String.Empty);
                 },
                 "actionName");
         }
 
         [TestMethod]
         public void FindActionMethodWithNullActionNameThrows() {
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
-                    helper.PublicFindActionMethod(null /* actionName */, null /* values */);
+                    helper.PublicFindActionMethod(null /* actionName */);
                 },
                 "actionName");
         }
@@ -364,65 +266,67 @@
         public void FindActionMethodWithOpenGenericsThrows() {
             // FindActionMethod() should throw if matching on a generic method with open types.
 
-            // Setup
+            // Arrange
             var controller = new GenericFindMethodController<int>();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    helper.PublicFindActionMethod("OpenGenericMethod", null /* values */);
+                    helper.PublicFindActionMethod("OpenGenericMethod");
                 },
-                "Cannot call action 'OpenGenericMethod' since it is a generic method.");
+                "Cannot call action method 'System.Web.Mvc.ActionResult OpenGenericMethod[U](U)' since it is a generic method.");
         }
 
         [TestMethod]
         public void FindActionMethodWithOverloadsThrows() {
             // FindActionMethod() should throw if it encounters an overloaded method.
 
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    helper.PublicFindActionMethod("MethodOverloaded", null /* values */);
+                    helper.PublicFindActionMethod("MethodOverloaded");
                 },
-                "More than one action named 'MethodOverloaded' was found on controller 'System.Web.Mvc.Test.ControllerActionInvokerTest+FindMethodController'.");
+                @"The current request for action 'MethodOverloaded' on controller type 'System.Web.Mvc.Test.ControllerActionInvokerTest+FindMethodController' is ambiguous between the following action methods:
+System.Web.Mvc.ActionResult MethodOverloaded()
+System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
         }
 
         [TestMethod]
         public void FindActionMethodWithValidMethod() {
             // Test basic functionality of FindActionMethod() by giving it a known good case.
 
-            // Setup
+            // Arrange
             var controller = new FindMethodController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo expected = typeof(FindMethodController).GetMethod("ValidActionMethod");
 
-            // Execute
-            MethodInfo mi = helper.PublicFindActionMethod("ValidActionMethod", null /* values */);
+            // Act
+            MethodInfo mi = helper.PublicFindActionMethod("ValidActionMethod");
 
-            // Verify
+            // Assert
             Assert.AreEqual(expected, mi);
         }
 
         [TestMethod]
         public void GetFiltersForActionMethod() {
-            // Setup
-            IController controller = new GetMemberChainSubderivedController();
+            // Arrange
+            ControllerBase controller = new GetMemberChainSubderivedController();
             ControllerContext context = GetControllerContext(controller);
             MethodInfo methodInfo = typeof(GetMemberChainSubderivedController).GetMethod("SomeVirtual");
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
+            // Act
             var filters = helper.PublicGetFiltersForActionMethod(methodInfo);
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, filters.AuthorizationFilters.Count, "Wrong number of authorization filters.");
             Assert.AreSame(controller, filters.AuthorizationFilters[0]);
             Assert.AreEqual("BaseClass", ((KeyedFilterAttribute)filters.AuthorizationFilters[1]).Key);
@@ -452,16 +356,16 @@
         public void GetFiltersForActionMethodGetsDerivedClassFiltersForBaseClassMethod() {
             // DevDiv 208062: Action filters specified on derived class won't run if the action method is on a base class
 
-            // Setup
-            IController controller = new GetMemberChainDerivedController();
+            // Arrange
+            ControllerBase controller = new GetMemberChainDerivedController();
             ControllerContext context = GetControllerContext(controller);
             MethodInfo methodInfo = typeof(GetMemberChainDerivedController).GetMethod("SomeVirtual");
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
+            // Act
             var filters = helper.PublicGetFiltersForActionMethod(methodInfo);
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, filters.AuthorizationFilters.Count, "Wrong number of authorization filters.");
             Assert.AreSame(controller, filters.AuthorizationFilters[0]);
             Assert.AreEqual("BaseClass", ((KeyedFilterAttribute)filters.AuthorizationFilters[1]).Key);
@@ -485,12 +389,12 @@
 
         [TestMethod]
         public void GetFiltersForActionMethodWithNullMethodInfoThrows() {
-            // Setup
-            IController controller = new GetMemberChainSubderivedController();
+            // Arrange
+            ControllerBase controller = new GetMemberChainSubderivedController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicGetFiltersForActionMethod(null /* methodInfo */);
@@ -498,372 +402,32 @@
         }
 
         [TestMethod]
-        public void GetParameterValueCanConvertDateTimeToString() {
-            // String's TypeConverter can't convert from DateTime, but DateTime's converter can convert to String.
-            // This tests that we call the "to" converter if the "from" converter reports failure.
-
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "id", new DateTime(2001, 2, 1) } // February 1, 2001
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesString");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            object oValue = helper.PublicGetParameterValue(pis[0], dict);
-
-            // Verify
-            Assert.AreEqual("2001-02-01", oValue);
-        }
-
-        [TestMethod]
-        public void GetParameterValueCanConvertStringToDateTime() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "id", "2001-02-01" } // February 1, 2001
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesDateTime");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            object oValue = helper.PublicGetParameterValue(pis[0], dict);
-
-            // Verify
-            Assert.AreEqual(new DateTime(2001, 2, 1), oValue);
-        }
-
-        [TestMethod]
-        public void GetParameterValueCanHandleNullHttpContext() {
-            // GetParameterValue() should give up if HttpContext is null.
-
-            // Setup
-            Mock<HttpContextBase> baseMock = new Mock<HttpContextBase>();
-            baseMock.Expect(o => o.Request).Returns((HttpRequestBase)null);
-            baseMock.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
-
-            var controller = new ParameterTestingController();
-            ControllerContext context = new ControllerContext(baseMock.Object, new RouteData(), controller);
-            typeof(ControllerContext).GetProperty("HttpContext").SetValue(context, null /* value */, null /* index */);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("Foo");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            object oFoo = helper.PublicGetParameterValue(pis[0], null /* values */);
-
-            // Verify
-            Assert.IsNull(oFoo);
-        }
-
-        [TestMethod]
-        public void GetParameterValueCanHandleNullRouteData() {
-            // GetParameterValue() should fall back to the Request if RouteData is null.
-
-            // Setup
-            Mock<HttpRequestBase> requestMock = new Mock<HttpRequestBase>();
-            ControllerTest.AddRequestParams(requestMock, new { foo = "RequestFoo" });
-            Mock<HttpContextBase> baseMock = new Mock<HttpContextBase>();
-            baseMock.Expect(o => o.Request).Returns(requestMock.Object);
-            baseMock.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
-
-            var controller = new ParameterTestingController();
-            ControllerContext context = new ControllerContext(baseMock.Object, new RouteData(), controller);
-            typeof(ControllerContext).GetProperty("RouteData").SetValue(context, null /* value */, null /* index */);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("Foo");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            object oFoo = helper.PublicGetParameterValue(pis[0], null /* values */);
-
-            // Verify
-            Assert.AreEqual("RequestFoo", oFoo);
-        }
-
-        [TestMethod]
-        public void GetParameterValueCanHandleNullValuesDictionary() {
-            // GetParameterValue() should fall back to the RouteData if the values dictionary is null.
-
-            // Setup
-            Dictionary<string, object> explicitValues = null;
-            RouteData routeData = new RouteData();
-            routeData.Values["foo"] = "RouteDataFoo";
-            Mock<HttpRequestBase> requestMock = new Mock<HttpRequestBase>();
-            Mock<HttpContextBase> baseMock = new Mock<HttpContextBase>();
-            baseMock.Expect(o => o.Request).Returns(requestMock.Object);
-            baseMock.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
-
-            var controller = new ParameterTestingController();
-            ControllerContext context = new ControllerContext(baseMock.Object, routeData, controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("Foo");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            object oFoo = helper.PublicGetParameterValue(pis[0], explicitValues);
-
-            // Verify
-            Assert.AreEqual("RouteDataFoo", oFoo);
-        }
-
-        [TestMethod]
-        public void GetParameterValueForCustomClassWithInvalidParamsReturnsNull() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "mp", "z" }
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("CustomClassConverter");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            object oValue = helper.PublicGetParameterValue(pis[0], dict);
-
-            // Verify
-            Assert.IsNull(oValue);
-        }
-
-        [TestMethod]
-        public void GetParameterValueForCustomClassWithNoParamsReturnsNull() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("CustomClassConverter");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            object oValue = helper.PublicGetParameterValue(pis[0], dict);
-
-            // Verify
-            Assert.IsNull(oValue);
-        }
-
-        [TestMethod]
-        public void GetParameterValueForCustomClassWithValidParamsReturnsValue() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "mp", "c123" }
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("CustomClassConverter");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            MyParameterClass mpValue = (MyParameterClass)helper.PublicGetParameterValue(pis[0], dict);
-
-            // Verify
-            Assert.AreEqual('c', mpValue.Char);
-            Assert.AreEqual(123, mpValue.Number);
-        }
-
-        [TestMethod]
-        public void GetParameterValueForCustomNullableStructWithBadTypeConverterReturnsNull() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "mp", "z" }
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("CustomNullableStructConverterFromString");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            object oValue = helper.PublicGetParameterValue(pis[0], dict);
-
-            // Verify
-            Assert.IsNull(oValue);
-        }
-
-        [TestMethod]
-        public void GetParameterValueForCustomNullableStructWithInvalidParamsReturnsNull() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "mp", "z" }
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("CustomNullableStructConverter");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            object oValue = helper.PublicGetParameterValue(pis[0], dict);
-
-            // Verify
-            Assert.IsNull(oValue);
-        }
-
-        [TestMethod]
-        public void GetParameterValueForCustomStructWithNoParamsReturnsNull() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("CustomNullableStructConverter");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            object oValue = helper.PublicGetParameterValue(pis[0], dict);
-
-            // Verify
-            Assert.IsNull(oValue);
-        }
-
-        [TestMethod]
-        public void GetParameterValueForCustomNullableStructWithValidParamsReturnsValue() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "mp", "c123" }
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("CustomNullableStructConverter");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            MyParameterStruct mpValue = (MyParameterStruct)helper.PublicGetParameterValue(pis[0], dict);
-
-            // Verify
-            Assert.AreEqual('c', mpValue.Char);
-            Assert.AreEqual(123, mpValue.Number);
-        }
-
-        [TestMethod]
-        public void GetParameterValueForCustomStructWithBadTypeConverterThrows() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "mp", "z" }
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("CustomStructConverterFromString");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute & verify
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    helper.PublicGetParameterValue(pis[0], dict);
-                },
-               "A value is required for parameter 'mp' in action 'CustomStructConverterFromString'. The parameter either has no value "
-                    + "or its value could not be converted. To make a parameter optional its type should either be a reference type or a Nullable type.");
-        }
-
-        [TestMethod]
-        public void GetParameterValueForCustomStructWithInvalidParamsThrows() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "mp", "z" }
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("CustomStructConverter");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute & verify
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    helper.PublicGetParameterValue(pis[0], dict);
-                },
-               "A value is required for parameter 'mp' in action 'CustomStructConverter'. The parameter either has no value or its value "
-                    + "could not be converted. To make a parameter optional its type should either be a reference type or a Nullable type.");
-        }
-
-        [TestMethod]
-        public void GetParameterValueForCustomStructWithNoParamsThrows() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("CustomStructConverter");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute & verify
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    helper.PublicGetParameterValue(pis[0], dict);
-                },
-                "A value is required for parameter 'mp' in action 'CustomStructConverter'. The parameter either has no value or its "
-                    + "value could not be converted. To make a parameter optional its type should either be a reference type or a Nullable type.");
-        }
-
-        [TestMethod]
-        public void GetParameterValueForCustomStructWithValidParamsReturnsValue() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "mp", "c123" }
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("CustomStructConverter");
-            ParameterInfo[] pis = mi.GetParameters();
-
-            // Execute
-            MyParameterStruct mpValue = (MyParameterStruct)helper.PublicGetParameterValue(pis[0], dict);
-
-            // Verify
-            Assert.AreEqual('c', mpValue.Char);
-            Assert.AreEqual(123, mpValue.Number);
-        }
-
-        [TestMethod]
-        public void GetParameterValueHasCorrectOrderOfPrecedence() {
+        public void GetParameterValueResolvesConvertersInCorrectOrderOfPrecedence() {
             // Order of precedence:
-            //   1. Explicitly-provided extra parameters in the call to InvokeAction()
-            //   2. Values from the RouteData (could be from the typed-in URL or from the route's default values)
-            //   3. Request values (query string, form post data, cookie)
+            //   1. Attributes on the parameter itself
+            //   2. Query the global converter provider
 
-            // Setup
-            Dictionary<string, object> explicitValues = new Dictionary<string, object>() {
-                { "foo", "ExplicitFoo" }
-            };
-            RouteData routeData = new RouteData();
-            routeData.Values["foo"] = "RouteDataFoo";
-            routeData.Values["bar"] = "RouteDataBar";
-            Mock<HttpRequestBase> requestMock = new Mock<HttpRequestBase>();
-            ControllerTest.AddRequestParams(requestMock, new { foo = "RequestFoo", bar = "RequestBar", baz = "RequestBaz" });
-            Mock<HttpContextBase> baseMock = new Mock<HttpContextBase>();
-            baseMock.Expect(o => o.Request).Returns(requestMock.Object);
-            baseMock.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
+            // Arrange
+            CustomConverterController controller = new CustomConverterController();
+            Dictionary<string, object> values = new Dictionary<string, object> { { "foo", "fooValue" } };
+            ControllerContext controllerContext = GetControllerContext(controller, values);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
 
-            var controller = new ParameterTestingController();
-            ControllerContext context = new ControllerContext(baseMock.Object, routeData, controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("Foo");
-            ParameterInfo[] pis = mi.GetParameters();
+            ParameterInfo paramWithOneConverter = typeof(CustomConverterController).GetMethod("ParameterHasOneConverter").GetParameters()[0];
+            ParameterInfo paramWithNoConverters = typeof(CustomConverterController).GetMethod("ParameterHasNoConverters").GetParameters()[0];
 
-            // Execute
-            object oFoo = helper.PublicGetParameterValue(pis[0], explicitValues);
-            object oBar = helper.PublicGetParameterValue(pis[1], explicitValues);
-            object oBaz = helper.PublicGetParameterValue(pis[2], explicitValues);
+            // Act
+            object valueWithOneConverter = helper.PublicGetParameterValue(paramWithOneConverter);
+            object valueWithNoConverters = helper.PublicGetParameterValue(paramWithNoConverters);
 
-            // Verify
-            Assert.AreEqual("ExplicitFoo", oFoo);
-            Assert.AreEqual("RouteDataBar", oBar);
-            Assert.AreEqual("RequestBaz", oBaz);
+            // Assert
+            Assert.AreEqual("foo_String", valueWithOneConverter);
+            Assert.AreEqual("fooValue", valueWithNoConverters);
         }
 
         [TestMethod]
         public void GetParameterValueReturnsNullIfCannotConvertNonRequiredParameter() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             Dictionary<string, object> dict = new Dictionary<string, object>() {
@@ -873,64 +437,65 @@
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesNullableInt");
             ParameterInfo[] pis = mi.GetParameters();
 
-            // Execute
-            object oValue = helper.PublicGetParameterValue(pis[0], dict);
+            // Act
+            object oValue = helper.PublicGetParameterValue(pis[0]);
 
-            // Verify
+            // Assert
             Assert.IsNull(oValue);
         }
 
         [TestMethod]
         public void GetParameterValueReturnsNullIfNullableTypeValueNotFound() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesNullableInt");
             ParameterInfo[] pis = mi.GetParameters();
 
-            // Execute
-            object oValue = helper.PublicGetParameterValue(pis[0], null /* values */);
+            // Act
+            object oValue = helper.PublicGetParameterValue(pis[0]);
 
-            // Verify
+            // Assert
             Assert.IsNull(oValue);
         }
 
         [TestMethod]
         public void GetParameterValueReturnsNullIfReferenceTypeValueNotFound() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("Foo");
             ParameterInfo[] pis = mi.GetParameters();
 
-            // Execute
-            object oValue = helper.PublicGetParameterValue(pis[0], null /* values */);
+            // Act
+            object oValue = helper.PublicGetParameterValue(pis[0]);
 
-            // Verify
+            // Assert
             Assert.IsNull(oValue);
         }
 
         [TestMethod]
         public void GetParameterValuesCallsGetParameterValue() {
-            // Setup
-            IController controller = new ParameterTestingController();
+            // Arrange
+            ControllerBase controller = new ParameterTestingController();
             IDictionary<string, object> dict = new Dictionary<string, object>();
             ControllerContext context = GetControllerContext(controller);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("Foo");
             ParameterInfo[] pis = mi.GetParameters();
 
             Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
-            mockHelper.Expect(h => h.PublicGetParameterValue(pis[0], dict)).Returns("Myfoo").Verifiable();
-            mockHelper.Expect(h => h.PublicGetParameterValue(pis[1], dict)).Returns("Mybar").Verifiable();
-            mockHelper.Expect(h => h.PublicGetParameterValue(pis[2], dict)).Returns("Mybaz").Verifiable();
+            mockHelper.CallBase = true;
+            mockHelper.Expect(h => h.PublicGetParameterValue(pis[0])).Returns("Myfoo").Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValue(pis[1])).Returns("Mybar").Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValue(pis[2])).Returns("Mybaz").Verifiable();
             ControllerActionInvokerHelper helper = mockHelper.Object;
 
-            // Execute
-            IDictionary<string, object> parameters = helper.PublicGetParameterValues(mi, dict);
+            // Act
+            IDictionary<string, object> parameters = helper.PublicGetParameterValues(mi);
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, parameters.Count);
             Assert.AreEqual("Myfoo", parameters["foo"]);
             Assert.AreEqual("Mybar", parameters["bar"]);
@@ -940,16 +505,16 @@
 
         [TestMethod]
         public void GetParameterValuesReturnsEmptyArrayForParameterlessMethod() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("Parameterless");
 
-            // Execute
-            IDictionary<string, object> parameters = helper.PublicGetParameterValues(mi, null /* values */);
+            // Act
+            IDictionary<string, object> parameters = helper.PublicGetParameterValues(mi);
 
-            // Verify
+            // Assert
             Assert.AreEqual(0, parameters.Count);
         }
 
@@ -957,21 +522,21 @@
         public void GetParameterValuesReturnsValuesForParametersInOrder() {
             // We need to hook into GetParameterValue() to make sure that GetParameterValues() is calling it.
 
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
             Dictionary<string, object> dict = new Dictionary<string, object>() {
                 { "foo", "MyFoo" },
                 { "bar", "MyBar" },
                 { "baz", "MyBaz" }
             };
+            ControllerContext context = GetControllerContext(controller, dict);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("Foo");
 
-            // Execute
-            IDictionary<string, object> parameters = helper.PublicGetParameterValues(mi, dict);
+            // Act
+            IDictionary<string, object> parameters = helper.PublicGetParameterValues(mi);
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, parameters.Count);
             Assert.AreEqual("MyFoo", parameters["foo"]);
             Assert.AreEqual("MyBar", parameters["bar"]);
@@ -980,146 +545,136 @@
 
         [TestMethod]
         public void GetParameterValuesWithNullMethodInfoThrows() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    helper.PublicGetParameterValues(null /* methodInfo */, null /* values */);
+                    helper.PublicGetParameterValues(null /* methodInfo */);
                 },
                 "methodInfo");
         }
 
         [TestMethod]
         public void GetParameterValuesWithOutParamThrows() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("HasOutParam");
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    helper.PublicGetParameterValues(mi, null /* values */);
+                    helper.PublicGetParameterValues(mi);
                 },
                 "Cannot set value for parameter 'foo' in action 'HasOutParam'. Parameters passed by reference are not supported in action methods.");
         }
 
         [TestMethod]
         public void GetParameterValuesWithRefParamThrows() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("HasRefParam");
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    helper.PublicGetParameterValues(mi, null /* values */);
+                    helper.PublicGetParameterValues(mi);
                 },
                 "Cannot set value for parameter 'foo' in action 'HasRefParam'. Parameters passed by reference are not supported in action methods.");
         }
 
-        [TestMethod]
+        // TODO: This test is temporarily disabled now that converters can update ModelState. We should consider reenabling
+        // this if invalid inputs to action methods become problematic.
         public void GetParameterValueThrowsIfCannotConvertRequiredParameter() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
-            Dictionary<string, object> dict = new Dictionary<string, object>() {
-                { "id", new DateTime(2001, 1, 1) } // cannot convert DateTime to int
-            };
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesInt");
             ParameterInfo[] pis = mi.GetParameters();
 
-            // Execute & verify - use a manual try/catch so we can examine inner exception
-            try {
-                helper.PublicGetParameterValue(pis[0], dict);
-            }
-            catch (InvalidOperationException e) {
-                Assert.AreEqual("A value is required for parameter 'id' in action 'TakesInt'. The parameter either has no value or its value could "
-                    + "not be converted. To make a parameter optional its type should either be a reference type or a Nullable type.",
-                    e.Message);
-                Assert.IsInstanceOfType(e.InnerException, typeof(InvalidOperationException));
-                Assert.AreEqual("Cannot convert parameter 'id' in action 'TakesInt' with value '1/1/2001 12:00:00 AM' to type 'System.Int32'.",
-                    e.InnerException.Message);
-
-                return; // success!
-            }
-            Assert.Fail("Should have thrown an InvalidOperationException.");
+            // Act & Assert
+            ExceptionHelper.ExpectInvalidOperationException(
+                delegate {
+                    helper.PublicGetParameterValue(pis[0]);
+                },
+                "A value is required for parameter 'id' in action 'TakesInt'. The parameter either has no value or its value could"
+                + " not be converted. To make a parameter optional its type should either be a reference type or a Nullable type.");
         }
 
         [TestMethod]
-        public void GetParameterValueThrowsIfValueTypeValueNotFound() {
-            // Setup
-            var controller = new ParameterTestingController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesInt");
-            ParameterInfo[] pis = mi.GetParameters();
+        public void GetParameterValueThrowsIfParameterHasMultipleConverters() {
+            // Arrange
+            CustomConverterController controller = new CustomConverterController();
+            ControllerContext controllerContext = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
 
-            // Execute & verify
-            ExceptionHelper.ExpectException<InvalidOperationException>(
+            ParameterInfo paramWithTwoConverters = typeof(CustomConverterController).GetMethod("ParameterHasTwoConverters").GetParameters()[0];
+
+            // Act & Assert
+            ExceptionHelper.ExpectInvalidOperationException(
                 delegate {
-                    helper.PublicGetParameterValue(pis[0], null /* values */);
+                    helper.PublicGetParameterValue(paramWithTwoConverters);
                 },
-                "A value is required for parameter 'id' in action 'TakesInt'. The parameter either has no value or its value could "
-                    + "not be converted. To make a parameter optional its type should either be a reference type or a Nullable type.");
+                "The parameter 'foo' on method 'ParameterHasTwoConverters' contains multiple attributes inheriting from CustomModelBinderAttribute.");
         }
 
         [TestMethod]
         public void GetParameterValueWithNullParameterInfoThrows() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    helper.PublicGetParameterValue(null /* parameterInfo */, null /* values */);
+                    helper.PublicGetParameterValue(null /* parameterInfo */);
                 },
                 "parameterInfo");
         }
 
         [TestMethod]
         public void InvokeAction() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
-            IDictionary<string, object> values = new Dictionary<string, object>();
             IDictionary<string, object> paramValues = new Dictionary<string, object>();
             MethodInfo methodInfo = typeof(object).GetMethod("ToString");
             var filterInfo = new FilterInfo();
             ActionResult actionResult = new EmptyResult();
-            ActionExecutedContext postContext = new ActionExecutedContext(context, methodInfo, false /* canceled */, null /* exception */) {
+            ActionExecutedContext postContext = new ActionExecutedContext(context, false /* canceled */, null /* exception */) {
                 Result = actionResult
             };
-            AuthorizationContext authContext = new AuthorizationContext(context, methodInfo);
+            AuthorizationContext authContext = new AuthorizationContext(context);
 
-            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
-            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod", values)).Returns(methodInfo).Verifiable();
-            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo, values)).Returns(paramValues).Verifiable();
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>();
+            mockHelper.CallBase = true;
+            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod")).Returns(methodInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo)).Returns(paramValues).Verifiable();
             mockHelper.Expect(h => h.PublicGetFiltersForActionMethod(methodInfo)).Returns(filterInfo).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters)).Returns(authContext).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeActionMethodWithFilters(methodInfo, paramValues, filterInfo.ActionFilters)).Returns(postContext).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeActionResultWithFilters(actionResult, filterInfo.ResultFilters)).Returns((ResultExecutedContext)null).Verifiable();
             ControllerActionInvokerHelper helper = mockHelper.Object;
 
-            // Execute
-            bool retVal = helper.InvokeAction("SomeMethod", values);
+            // Act
+            bool retVal = helper.InvokeAction(context, "SomeMethod");
             Assert.IsTrue(retVal, "InvokeAction() should return True on success.");
+            Assert.AreSame(context, helper.ControllerContext, "ControllerContext property should have been set by InvokeAction");
             mockHelper.Verify();
         }
 
         [TestMethod]
         public void InvokeActionFiltersOrdersFiltersCorrectly() {
-            // Setup
+            // Arrange
             List<string> actions = new List<string>();
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             ActionResult actionResult = new EmptyResult();
@@ -1143,15 +698,15 @@
                 actions.Add("Continuation");
                 return new EmptyResult();
             };
-            IController controller = new ContinuationController(continuation);
+            ControllerBase controller = new ContinuationController(continuation);
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
+            // Act
             helper.PublicInvokeActionMethodWithFilters(ContinuationController.GoMethod, parameters,
                 new List<IActionFilter>() { filter1, filter2 });
 
-            // Verify
+            // Assert
             Assert.AreEqual(5, actions.Count);
             Assert.AreEqual("OnActionExecuting1", actions[0]);
             Assert.AreEqual("OnActionExecuting2", actions[1]);
@@ -1162,18 +717,16 @@
 
         [TestMethod]
         public void InvokeActionFiltersPassesArgumentsCorrectly() {
-            // Setup
+            // Arrange
             bool wasCalled = false;
             MethodInfo mi = ContinuationController.GoMethod;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             ActionResult actionResult = new EmptyResult();
             ActionFilterImpl filter = new ActionFilterImpl() {
                 OnActionExecutingImpl = delegate(ActionExecutingContext filterContext) {
-                    Assert.AreSame(mi, filterContext.ActionMethod);
                     Assert.AreSame(parameters, filterContext.ActionParameters);
                     Assert.IsFalse(wasCalled);
                     wasCalled = true;
-                    filterContext.Cancel = true;
                     filterContext.Result = actionResult;
                 }
             };
@@ -1181,17 +734,16 @@
                 Assert.Fail("Continuation should not be called.");
                 return null;
             };
-            IController controller = new ContinuationController(continuation);
+            ControllerBase controller = new ContinuationController(continuation);
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
+            // Act
             ActionExecutedContext result = helper.PublicInvokeActionMethodWithFilters(mi, parameters,
                 new List<IActionFilter>() { filter });
 
-            // Verify
+            // Assert
             Assert.IsTrue(wasCalled);
-            Assert.AreSame(mi, result.ActionMethod);
             Assert.IsNull(result.Exception);
             Assert.IsFalse(result.ExceptionHandled);
             Assert.AreSame(actionResult, result.Result);
@@ -1199,7 +751,7 @@
 
         [TestMethod]
         public void InvokeActionFilterWhereContinuationThrowsExceptionAndIsHandled() {
-            // Setup
+            // Arrange
             List<string> actions = new List<string>();
             MethodInfo mi = typeof(object).GetMethod("ToString");
             Dictionary<string, object> parameters = new Dictionary<string, object>();
@@ -1210,7 +762,6 @@
                 },
                 OnActionExecutedImpl = delegate(ActionExecutedContext filterContext) {
                     actions.Add("OnActionExecuted");
-                    Assert.AreSame(mi, filterContext.ActionMethod);
                     Assert.AreSame(exception, filterContext.Exception);
                     Assert.IsFalse(filterContext.ExceptionHandled);
                     filterContext.ExceptionHandled = true;
@@ -1221,24 +772,22 @@
                 throw exception;
             };
 
-            // Execute
-            ActionExecutedContext result = ControllerActionInvoker.InvokeActionMethodFilter(filter, new ActionExecutingContext(ControllerContextTest.GetControllerContext(), mi, parameters), continuation);
+            // Act
+            ActionExecutedContext result = ControllerActionInvoker.InvokeActionMethodFilter(filter, new ActionExecutingContext(ControllerContextTest.GetControllerContext(), parameters), continuation);
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, actions.Count);
             Assert.AreEqual("OnActionExecuting", actions[0]);
             Assert.AreEqual("Continuation", actions[1]);
             Assert.AreEqual("OnActionExecuted", actions[2]);
-            Assert.AreSame(mi, result.ActionMethod);
             Assert.AreSame(exception, result.Exception);
             Assert.IsTrue(result.ExceptionHandled);
         }
 
         [TestMethod]
         public void InvokeActionFilterWhereContinuationThrowsExceptionAndIsNotHandled() {
-            // Setup
+            // Arrange
             List<string> actions = new List<string>();
-            MethodInfo mi = typeof(object).GetMethod("ToString");
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             ActionFilterImpl filter = new ActionFilterImpl() {
                 OnActionExecutingImpl = delegate(ActionExecutingContext filterContext) {
@@ -1253,10 +802,10 @@
                 throw new Exception("Some exception message.");
             };
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<Exception>(
                 delegate {
-                    ControllerActionInvoker.InvokeActionMethodFilter(filter, new ActionExecutingContext(ControllerContextTest.GetControllerContext(), mi, parameters), continuation);
+                    ControllerActionInvoker.InvokeActionMethodFilter(filter, new ActionExecutingContext(ControllerContextTest.GetControllerContext(), parameters), continuation);
                 },
                "Some exception message.");
             Assert.AreEqual(3, actions.Count);
@@ -1267,17 +816,15 @@
 
         [TestMethod]
         public void InvokeActionFilterWhereOnActionExecutingCancels() {
-            // Setup
+            // Arrange
             bool wasCalled = false;
-            MethodInfo mi = typeof(object).GetMethod("ToString");
             Dictionary<string, object> parameters = new Dictionary<string, object>();
-            ActionExecutedContext postContext = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), mi, false /* canceled */, null /* exception */);
+            ActionExecutedContext postContext = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), false /* canceled */, null /* exception */);
             ActionResult actionResult = new EmptyResult();
             ActionFilterImpl filter = new ActionFilterImpl() {
                 OnActionExecutingImpl = delegate(ActionExecutingContext filterContext) {
                     Assert.IsFalse(wasCalled);
                     wasCalled = true;
-                    filterContext.Cancel = true;
                     filterContext.Result = actionResult;
                 },
             };
@@ -1286,12 +833,11 @@
                 return null;
             };
 
-            // Execute
-            ActionExecutedContext result = ControllerActionInvoker.InvokeActionMethodFilter(filter, new ActionExecutingContext(ControllerContextTest.GetControllerContext(), mi, parameters), continuation);
+            // Act
+            ActionExecutedContext result = ControllerActionInvoker.InvokeActionMethodFilter(filter, new ActionExecutingContext(ControllerContextTest.GetControllerContext(), parameters), continuation);
 
-            // Verify
+            // Assert
             Assert.IsTrue(wasCalled);
-            Assert.AreSame(mi, result.ActionMethod);
             Assert.IsNull(result.Exception);
             Assert.IsTrue(result.Canceled);
             Assert.AreSame(actionResult, result.Result);
@@ -1299,16 +845,13 @@
 
         [TestMethod]
         public void InvokeActionFilterWithNormalControlFlow() {
-            // Setup
+            // Arrange
             List<string> actions = new List<string>();
-            MethodInfo mi = typeof(object).GetMethod("ToString");
             Dictionary<string, object> parameters = new Dictionary<string, object>();
-            ActionExecutedContext postContext = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), mi, false /* canceled */, null /* exception */);
+            ActionExecutedContext postContext = new ActionExecutedContext(ControllerContextTest.GetControllerContext(), false /* canceled */, null /* exception */);
             ActionFilterImpl filter = new ActionFilterImpl() {
                 OnActionExecutingImpl = delegate(ActionExecutingContext filterContext) {
-                    Assert.AreSame(mi, filterContext.ActionMethod);
                     Assert.AreSame(parameters, filterContext.ActionParameters);
-                    Assert.IsFalse(filterContext.Cancel);
                     Assert.IsNull(filterContext.Result);
                     actions.Add("OnActionExecuting");
                 },
@@ -1322,10 +865,10 @@
                 return postContext;
             };
 
-            // Execute
-            ActionExecutedContext result = ControllerActionInvoker.InvokeActionMethodFilter(filter, new ActionExecutingContext(ControllerContextTest.GetControllerContext(), mi, parameters), continuation);
+            // Act
+            ActionExecutedContext result = ControllerActionInvoker.InvokeActionMethodFilter(filter, new ActionExecutingContext(ControllerContextTest.GetControllerContext(), parameters), continuation);
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, actions.Count);
             Assert.AreEqual("OnActionExecuting", actions[0]);
             Assert.AreEqual("Continuation", actions[1]);
@@ -1335,37 +878,38 @@
 
         [TestMethod]
         public void InvokeActionInvokesEmptyResultIfAuthorizationFailsAndNoResultSpecified() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             IDictionary<string, object> values = new Dictionary<string, object>();
             IDictionary<string, object> paramValues = new Dictionary<string, object>();
             MethodInfo methodInfo = typeof(object).GetMethod("ToString");
             var filterInfo = new FilterInfo();
             ActionResult actionResult = new EmptyResult();
-            ActionExecutedContext postContext = new ActionExecutedContext(context, methodInfo, false /* canceled */, null /* exception */) {
+            ActionExecutedContext postContext = new ActionExecutedContext(context, false /* canceled */, null /* exception */) {
                 Result = actionResult
             };
-            AuthorizationContext authContext = new AuthorizationContext(context, methodInfo) { Cancel = true };
+            AuthorizationContext authContext = new AuthorizationContext(context) { Cancel = true };
 
-            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
-            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod", values)).Returns(methodInfo).Verifiable();
-            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo, values)).Returns(paramValues).Verifiable();
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>();
+            mockHelper.CallBase = true;
+            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod")).Returns(methodInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo)).Returns(paramValues).Verifiable();
             mockHelper.Expect(h => h.PublicGetFiltersForActionMethod(methodInfo)).Returns(filterInfo).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters)).Returns(authContext).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeActionResult(EmptyResult.Instance)).Verifiable();
             ControllerActionInvokerHelper helper = mockHelper.Object;
 
-            // Execute
-            bool retVal = helper.InvokeAction("SomeMethod", values);
+            // Act
+            bool retVal = helper.InvokeAction(context, "SomeMethod");
             Assert.IsTrue(retVal, "InvokeAction() should return True on success.");
             mockHelper.Verify();
         }
 
         [TestMethod]
         public void InvokeActionInvokesExceptionFiltersAndExecutesResultIfExceptionHandled() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             IDictionary<string, object> values = new Dictionary<string, object>();
             IDictionary<string, object> paramValues = new Dictionary<string, object>();
@@ -1378,25 +922,28 @@
                 Result = actionResult
             };
 
-            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
-            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod", values)).Returns(methodInfo).Verifiable();
-            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo, values)).Returns(paramValues).Verifiable();
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>();
+            mockHelper.CallBase = true;
+            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod")).Returns(methodInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo)).Returns(paramValues).Verifiable();
             mockHelper.Expect(h => h.PublicGetFiltersForActionMethod(methodInfo)).Returns(filterInfo).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters)).Throws(exception).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeExceptionFilters(exception, filterInfo.ExceptionFilters)).Returns(exContext).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeActionResult(actionResult)).Verifiable();
             ControllerActionInvokerHelper helper = mockHelper.Object;
 
-            // Execute
-            bool retVal = helper.InvokeAction("SomeMethod", values);
+            // Act
+            bool retVal = helper.InvokeAction(context, "SomeMethod");
             Assert.IsTrue(retVal, "InvokeAction() should return True on success.");
             mockHelper.Verify();
         }
 
         [TestMethod]
         public void InvokeActionInvokesExceptionFiltersAndRethrowsExceptionIfNotHandled() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            var controllerMock = new Mock<ControllerBase>();
+            controllerMock.CallBase = true;
+            ControllerBase controller = controllerMock.Object;
             ControllerContext context = GetControllerContext(controller);
             IDictionary<string, object> values = new Dictionary<string, object>();
             IDictionary<string, object> paramValues = new Dictionary<string, object>();
@@ -1405,9 +952,10 @@
             Exception exception = new Exception();
             ExceptionContext exContext = new ExceptionContext(context, exception);
 
-            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
-            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod", values)).Returns(methodInfo).Verifiable();
-            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo, values)).Returns(paramValues).Verifiable();
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>();
+            mockHelper.CallBase = true;
+            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod")).Returns(methodInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo)).Returns(paramValues).Verifiable();
             mockHelper.Expect(h => h.PublicGetFiltersForActionMethod(methodInfo)).Returns(filterInfo).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters)).Throws(exception).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeExceptionFilters(exception, filterInfo.ExceptionFilters)).Returns(exContext).Verifiable();
@@ -1416,49 +964,51 @@
             });
             ControllerActionInvokerHelper helper = mockHelper.Object;
 
-            // Execute
+            // Act
             Exception thrownException = ExceptionHelper.ExpectException<Exception>(
                 delegate {
-                    helper.InvokeAction("SomeMethod", values);
+                    helper.InvokeAction(context, "SomeMethod");
                 });
 
-            // Verify
+            // Assert
             Assert.AreSame(exception, thrownException);
             mockHelper.Verify();
         }
 
         [TestMethod]
         public void InvokeActionInvokesResultIfAuthorizationFails() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            var controllerMock = new Mock<ControllerBase> { CallBase = true };
+            ControllerBase controller = controllerMock.Object;
             ControllerContext context = GetControllerContext(controller);
             IDictionary<string, object> values = new Dictionary<string, object>();
             IDictionary<string, object> paramValues = new Dictionary<string, object>();
             MethodInfo methodInfo = typeof(object).GetMethod("ToString");
             var filterInfo = new FilterInfo();
             ActionResult actionResult = new EmptyResult();
-            ActionExecutedContext postContext = new ActionExecutedContext(context, methodInfo, false /* canceled */, null /* exception */) {
+            ActionExecutedContext postContext = new ActionExecutedContext(context, false /* canceled */, null /* exception */) {
                 Result = actionResult
             };
-            AuthorizationContext authContext = new AuthorizationContext(context, methodInfo) { Cancel = true, Result = actionResult };
+            AuthorizationContext authContext = new AuthorizationContext(context) { Cancel = true, Result = actionResult };
 
-            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
-            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod", values)).Returns(methodInfo).Verifiable();
-            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo, values)).Returns(paramValues).Verifiable();
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>();
+            mockHelper.CallBase = true;
+            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod")).Returns(methodInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo)).Returns(paramValues).Verifiable();
             mockHelper.Expect(h => h.PublicGetFiltersForActionMethod(methodInfo)).Returns(filterInfo).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters)).Returns(authContext).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeActionResult(actionResult)).Verifiable();
             ControllerActionInvokerHelper helper = mockHelper.Object;
 
-            // Execute
-            bool retVal = helper.InvokeAction("SomeMethod", values);
+            // Act
+            bool retVal = helper.InvokeAction(context, "SomeMethod");
             Assert.IsTrue(retVal, "InvokeAction() should return True on success.");
             mockHelper.Verify();
         }
 
         [TestMethod]
-        public void InvokeActionMethodWithActionResultReturnValue() {
-            // Setup
+        public void InvokeActionMethod() {
+            // Arrange
             var controller = new BasicMethodInvokeController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
@@ -1468,22 +1018,22 @@
                 { "viewItem", viewItem }
             };
 
-            // Execute
+            // Act
             ViewResult result = helper.PublicInvokeActionMethod(mi, parameters) as ViewResult;
 
-            // Verify (arg got passed to method + back correctly)
+            // Assert (arg got passed to method + back correctly)
             Assert.AreEqual("ReturnsRenderView", result.ViewName);
             Assert.AreSame(viewItem, result.ViewData.Model);
         }
 
         [TestMethod]
         public void InvokeActionMethodWithFiltersWithNullFilterListThrows() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicInvokeActionMethodWithFilters(typeof(object).GetMethod("ToString"), new Dictionary<string, object>(), null /* filters */);
@@ -1493,12 +1043,12 @@
 
         [TestMethod]
         public void InvokeActionMethodWithFiltersWithNullMethodInfoThrows() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicInvokeActionMethodWithFilters(null /* methodInfo */, null /* parameters */, null /* filters */);
@@ -1508,12 +1058,12 @@
 
         [TestMethod]
         public void InvokeActionMethodWithFiltersWithNullParametersDictionaryThrows() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicInvokeActionMethodWithFilters(typeof(object).GetMethod("ToString"), null /* parameters */, null /* filters */);
@@ -1523,12 +1073,12 @@
 
         [TestMethod]
         public void InvokeActionMethodWithNullMethodInfoThrows() {
-            // Setup
+            // Arrange
             var controller = new BasicMethodInvokeController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicInvokeActionMethod(null /* methodInfo */, null);
@@ -1538,13 +1088,13 @@
 
         [TestMethod]
         public void InvokeActionMethodWithNullParametersDictionaryThrows() {
-            // Setup
+            // Arrange
             var controller = new BasicMethodInvokeController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(BasicMethodInvokeController).GetMethod("ReturnsNull");
+            MethodInfo mi = typeof(BasicMethodInvokeController).GetMethod("ReturnsRenderView");
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicInvokeActionMethod(mi, null /* parameters */);
@@ -1553,45 +1103,8 @@
         }
 
         [TestMethod]
-        public void InvokeActionMethodWithNullReturnValue() {
-            // InvokeActionMethod() should convert null return values to EmptyResult.
-
-            // Setup
-            var controller = new BasicMethodInvokeController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(BasicMethodInvokeController).GetMethod("ReturnsNull");
-
-            // Execute
-            ActionResult result = helper.PublicInvokeActionMethod(mi, new Dictionary<string, object>());
-
-            // Verify
-            Assert.IsInstanceOfType(result, typeof(EmptyResult));
-        }
-
-        [TestMethod]
-        public void InvokeActionMethodWithObjectReturnType() {
-            // InvokeActionMethod() should call Convert.ToString() on non-ActionResult return values.
-
-            // Setup
-            var controller = new BasicMethodInvokeController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(BasicMethodInvokeController).GetMethod("ReturnsInteger");
-
-            // Execute
-            ContentResult result = helper.PublicInvokeActionMethod(mi, new Dictionary<string, object>()) as ContentResult;
-
-            // Verify
-            Assert.IsNotNull(result, "Non-ActionResult return values should be converted to ContentResult.");
-            Assert.AreEqual("42", result.Content);
-            Assert.IsNull(result.ContentEncoding);
-            Assert.IsNull(result.ContentType);
-        }
-
-        [TestMethod]
         public void InvokeActionMethodWithParametersDictionaryContainingNullableType() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
@@ -1600,17 +1113,17 @@
                 { "id", null }
             };
 
-            // Execute
+            // Act
             ActionResult result = helper.PublicInvokeActionMethod(mi, parameters);
 
-            // Verify
+            // Assert
             Assert.IsTrue(controller.Values.ContainsKey("id"));
             Assert.IsNull(controller.Values["id"]);
         }
 
         [TestMethod]
         public void InvokeActionMethodWithParametersDictionaryContainingNullValueTypeThrows() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
@@ -1619,17 +1132,18 @@
                 { "id", null }
             };
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     helper.PublicInvokeActionMethod(mi, parameters);
                 },
-                "The parameters specified in the dictionary do not match those of the method 'TakesInt'.");
+                "The parameters dictionary does not contain a valid value of type 'System.Int32' for parameter 'id'. To"
+                + " make a parameter optional its type should either be a reference type or a Nullable type.");
         }
 
         [TestMethod]
         public void InvokeActionMethodWithParametersDictionaryContainingWrongTypesThrows() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
@@ -1638,17 +1152,18 @@
                 { "id", new object() }
             };
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     helper.PublicInvokeActionMethod(mi, parameters);
                 },
-                "The parameters specified in the dictionary do not match those of the method 'TakesInt'.");
+                "The parameters dictionary does not contain a valid value of type 'System.Int32' for parameter 'id'. To"
+                + " make a parameter optional its type should either be a reference type or a Nullable type.");
         }
 
         [TestMethod]
         public void InvokeActionMethodWithParametersDictionaryMissingEntriesThrows() {
-            // Setup
+            // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
@@ -1657,53 +1172,38 @@
                 { "foo", "bar" }
             };
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     helper.PublicInvokeActionMethod(mi, parameters);
                 },
-                "The parameters specified in the dictionary do not match those of the method 'TakesInt'.");
+                "The parameters dictionary does not contain a valid value of type 'System.Int32' for parameter 'id'. To"
+                + " make a parameter optional its type should either be a reference type or a Nullable type.");
         }
 
         [TestMethod]
         public void InvokeActionMethodWithParametersDictionaryWrongLengthThrows() {
-            // Setup
+            // Arrange
             var controller = new BasicMethodInvokeController();
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(BasicMethodInvokeController).GetMethod("ReturnsNull");
+            MethodInfo mi = typeof(BasicMethodInvokeController).GetMethod("ReturnsRenderView");
             Dictionary<string, object> parameters = new Dictionary<string, object>() {
-                { "foo", "bar" }
+                { "foo", "bar" },
+                { "baz", "quux" }
             };
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     helper.PublicInvokeActionMethod(mi, parameters);
                 },
-                "The parameters specified in the dictionary do not match those of the method 'ReturnsNull'.");
-        }
-
-        [TestMethod]
-        public void InvokeActionMethodWithVoidReturnType() {
-            // InvokeActionMethod() should return an EmptyResult for void action methods.
-
-            // Setup
-            var controller = new BasicMethodInvokeController();
-            ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
-            MethodInfo mi = typeof(BasicMethodInvokeController).GetMethod("VoidMethod");
-
-            // Execute
-            ActionResult result = helper.PublicInvokeActionMethod(mi, new Dictionary<string, object>());
-
-            // Verify
-            Assert.IsInstanceOfType(result, typeof(EmptyResult));
+                "The parameter dictionary contains an incorrect number of entries for method 'System.Web.Mvc.ActionResult ReturnsRenderView(System.Object)'.");
         }
 
         [TestMethod]
         public void InvokeActionResultWithFiltersPassesSameContextObjectToInnerFilters() {
-            // Setup
+            // Arrange
             ResultExecutingContext storedContext = null;
             ActionResult result = new EmptyResult();
             List<IResultFilter> filters = new List<IResultFilter>() {
@@ -1720,110 +1220,23 @@
                     OnResultExecutedImpl = delegate { }
                 },
             };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(GetControllerContext(new Mock<IController>().Object));
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(GetControllerContext(new Mock<ControllerBase>().Object));
 
-            // Execute
+            // Act
             ResultExecutedContext postContext = helper.PublicInvokeActionResultWithFilters(result, filters);
 
-            // Verify
+            // Assert
             Assert.AreSame(result, postContext.Result);
         }
 
         [TestMethod]
-        public void InvokeActionResultWithFiltersTracksChangesToActionResult() {
-            // Setup
-            ActionResult newResult = new EmptyResult();
-            List<IResultFilter> filters = new List<IResultFilter>() {
-                new ActionFilterImpl() {
-                    OnResultExecutingImpl = delegate { },
-                    OnResultExecutedImpl = delegate(ResultExecutedContext ctx) {
-                        Assert.AreSame(newResult, ctx.Result);
-                    }
-                },
-                new ActionFilterImpl() {
-                    OnResultExecutingImpl = delegate(ResultExecutingContext ctx) {
-                        ctx.Result = newResult;
-                    },
-                    OnResultExecutedImpl = delegate(ResultExecutedContext ctx) {
-                        Assert.AreSame(newResult, ctx.Result);
-                    }
-                },
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(GetControllerContext(new Mock<IController>().Object));
-
-            // Execute
-            ResultExecutedContext postContext = helper.PublicInvokeActionResultWithFilters(new EmptyResult(), filters);
-
-            // Verify
-            Assert.AreSame(newResult, postContext.Result);
-        }
-
-        [TestMethod]
-        public void InvokeActionResultWithFiltersTracksChangesToActionResultWithException() {
-            // Setup
-            ActionResult newResult = new EmptyResult();
-            List<IResultFilter> filters = new List<IResultFilter>() {
-                new ActionFilterImpl() {
-                    OnResultExecutingImpl = delegate { },
-                    OnResultExecutedImpl = delegate(ResultExecutedContext ctx) {
-                        Assert.AreSame(newResult, ctx.Result);
-                        ctx.ExceptionHandled = true;
-                    }
-                },
-                new ActionFilterImpl() {
-                    OnResultExecutingImpl = delegate (ResultExecutingContext ctx) {
-                        ctx.Result = newResult;
-                        throw new Exception();
-                    }
-                },
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(GetControllerContext(new Mock<IController>().Object));
-
-            // Execute
-            ResultExecutedContext postContext = helper.PublicInvokeActionResultWithFilters(new EmptyResult(), filters);
-
-            // Verify
-            Assert.AreSame(newResult, postContext.Result);
-        }
-
-        [TestMethod]
-        public void InvokeActionResultWithFiltersTracksChangesToActionResultWithThreadAbortException() {
-            // Setup
-            ActionResult newResult = new EmptyResult();
-            List<IResultFilter> filters = new List<IResultFilter>() {
-                new ActionFilterImpl() {
-                    OnResultExecutingImpl = delegate { },
-                    OnResultExecutedImpl = delegate(ResultExecutedContext ctx) {
-                        Thread.ResetAbort();
-                        Assert.AreSame(newResult, ctx.Result);
-                        ctx.ExceptionHandled = true;
-                    }
-                },
-                new ActionFilterImpl() {
-                    OnResultExecutingImpl = delegate (ResultExecutingContext ctx) {
-                        ctx.Result = newResult;
-                        Thread.CurrentThread.Abort();
-                    }
-                },
-            };
-            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(GetControllerContext(new Mock<IController>().Object));
-
-            // Execute & verify
-            ExceptionHelper.ExpectException<ThreadAbortException>(
-                delegate {
-                    helper.PublicInvokeActionResultWithFilters(new EmptyResult(), filters);
-                },
-                "Thread was being aborted.");
-        }
-
-        [TestMethod]
         public void InvokeActionResultWithFiltersWithNullActionResultThrows() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicInvokeActionResultWithFilters(null /* actionResult */, null /* filters */);
@@ -1833,12 +1246,12 @@
 
         [TestMethod]
         public void InvokeActionResultWithFiltersWithNullFilterListThrows() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicInvokeActionResultWithFilters(new EmptyResult(), null /* filters */);
@@ -1848,12 +1261,12 @@
 
         [TestMethod]
         public void InvokeActionResultWithNullActionResultThrows() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicInvokeActionResult(null /* actionResult */);
@@ -1863,52 +1276,64 @@
 
         [TestMethod]
         public void InvokeActionReturnsFalseIfMethodNotFound() {
-            // Setup
+            // Arrange
             var controller = new BlankController();
             ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvoker invoker = new ControllerActionInvoker(context);
+            ControllerActionInvoker invoker = new ControllerActionInvoker();
 
-            // Execute
-            bool retVal = invoker.InvokeAction("foo", null /* values */);
+            // Act
+            bool retVal = invoker.InvokeAction(context, "foo");
 
-            // Verify
+            // Assert
             Assert.IsFalse(retVal);
         }
 
         [TestMethod]
+        public void InvokeActionThrowsIfControllerContextIsNull() {
+            // Arrange
+            ControllerActionInvoker invoker = new ControllerActionInvoker();
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentNullException(
+                delegate {
+                    invoker.InvokeAction(null, "actionName");
+                }, "controllerContext");
+        }
+
+        [TestMethod]
         public void InvokeActionWithEmptyActionNameThrows() {
-            // Setup
+            // Arrange
             var controller = new BasicMethodInvokeController();
             ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvoker invoker = new ControllerActionInvoker(context);
+            ControllerActionInvoker invoker = new ControllerActionInvoker();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
-                    invoker.InvokeAction(String.Empty, null /* values */);
+                    invoker.InvokeAction(context, String.Empty);
                 },
                 "actionName");
         }
 
         [TestMethod]
         public void InvokeActionWithNullActionNameThrows() {
-            // Setup
+            // Arrange
             var controller = new BasicMethodInvokeController();
             ControllerContext context = GetControllerContext(controller);
-            ControllerActionInvoker invoker = new ControllerActionInvoker(context);
+            ControllerActionInvoker invoker = new ControllerActionInvoker();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
-                    invoker.InvokeAction(null /* actionName */, null /* values */);
+                    invoker.InvokeAction(context, null /* actionName */);
                 },
                 "actionName");
         }
 
         [TestMethod]
         public void InvokeActionWithResultExceptionInvokesExceptionFiltersAndExecutesResultIfExceptionHandled() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             IDictionary<string, object> values = new Dictionary<string, object>();
             IDictionary<string, object> paramValues = new Dictionary<string, object>();
@@ -1916,18 +1341,19 @@
             var filterInfo = new FilterInfo();
             Exception exception = new Exception();
             ActionResult actionResult = new EmptyResult();
-            ActionExecutedContext postContext = new ActionExecutedContext(context, methodInfo, false /* canceled */, null /* exception */) {
+            ActionExecutedContext postContext = new ActionExecutedContext(context, false /* canceled */, null /* exception */) {
                 Result = actionResult
             };
             ExceptionContext exContext = new ExceptionContext(context, exception) {
                 ExceptionHandled = true,
                 Result = actionResult
             };
-            AuthorizationContext authContext = new AuthorizationContext(context, methodInfo);
+            AuthorizationContext authContext = new AuthorizationContext(context);
 
-            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>(context);
-            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod", values)).Returns(methodInfo).Verifiable();
-            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo, values)).Returns(paramValues).Verifiable();
+            Mock<ControllerActionInvokerHelper> mockHelper = new Mock<ControllerActionInvokerHelper>();
+            mockHelper.CallBase = true;
+            mockHelper.Expect(h => h.PublicFindActionMethod("SomeMethod")).Returns(methodInfo).Verifiable();
+            mockHelper.Expect(h => h.PublicGetParameterValues(methodInfo)).Returns(paramValues).Verifiable();
             mockHelper.Expect(h => h.PublicGetFiltersForActionMethod(methodInfo)).Returns(filterInfo).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters)).Returns(authContext).Verifiable();
             mockHelper.Expect(h => h.PublicInvokeActionMethodWithFilters(methodInfo, paramValues, filterInfo.ActionFilters)).Returns(postContext).Verifiable();
@@ -1936,16 +1362,16 @@
             mockHelper.Expect(h => h.PublicInvokeActionResult(actionResult)).Verifiable();
             ControllerActionInvokerHelper helper = mockHelper.Object;
 
-            // Execute
-            bool retVal = helper.InvokeAction("SomeMethod", values);
+            // Act
+            bool retVal = helper.InvokeAction(context, "SomeMethod");
             Assert.IsTrue(retVal, "InvokeAction() should return True on success.");
             mockHelper.Verify();
         }
 
         [TestMethod]
         public void InvokeAuthorizationFilters() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             MethodInfo methodInfo = typeof(object).GetMethod("ToString");
             ControllerContext controllerContext = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
@@ -1954,11 +1380,10 @@
             AuthorizationFilterHelper filter1 = new AuthorizationFilterHelper(callQueue);
             AuthorizationFilterHelper filter2 = new AuthorizationFilterHelper(callQueue);
 
-            // Execute
+            // Act
             AuthorizationContext postContext = helper.PublicInvokeAuthorizationFilters(methodInfo, new List<IAuthorizationFilter> { filter1, filter2 });
 
-            // Verify
-            Assert.AreSame(methodInfo, postContext.ActionMethod);
+            // Assert
             Assert.AreEqual(2, callQueue.Count);
             Assert.AreSame(filter1, callQueue[0]);
             Assert.AreSame(filter2, callQueue[1]);
@@ -1966,8 +1391,8 @@
 
         [TestMethod]
         public void InvokeAuthorizationFiltersStopsExecutingIfResultProvided() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             MethodInfo methodInfo = typeof(object).GetMethod("ToString");
             ControllerContext controllerContext = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
@@ -1977,11 +1402,10 @@
             AuthorizationFilterHelper filter1 = new AuthorizationFilterHelper(callQueue) { ShouldCancel = true, ShortCircuitResult = result };
             AuthorizationFilterHelper filter2 = new AuthorizationFilterHelper(callQueue);
 
-            // Execute
+            // Act
             AuthorizationContext postContext = helper.PublicInvokeAuthorizationFilters(methodInfo, new List<IAuthorizationFilter> { filter1, filter2 });
 
-            // Verify
-            Assert.AreSame(methodInfo, postContext.ActionMethod);
+            // Assert
             Assert.IsTrue(postContext.Cancel);
             Assert.AreSame(result, postContext.Result);
             Assert.AreEqual(1, callQueue.Count);
@@ -1990,12 +1414,12 @@
 
         [TestMethod]
         public void InvokeAuthorizationFiltersWithNullFiltersThrows() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicInvokeAuthorizationFilters(typeof(object).GetMethod("ToString"), null /* filters */);
@@ -2004,12 +1428,12 @@
 
         [TestMethod]
         public void InvokeExceptionFiltersWithNullMethodInfoThrows() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicInvokeAuthorizationFilters(null /* methodInfo */, null /* filters */);
@@ -2018,8 +1442,8 @@
 
         [TestMethod]
         public void InvokeExceptionFilters() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             Exception exception = new Exception();
             ControllerContext controllerContext = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
@@ -2028,10 +1452,10 @@
             ExceptionFilterHelper filter1 = new ExceptionFilterHelper(callQueue);
             ExceptionFilterHelper filter2 = new ExceptionFilterHelper(callQueue);
 
-            // Execute
+            // Act
             ExceptionContext postContext = helper.PublicInvokeExceptionFilters(exception, new List<IExceptionFilter> { filter1, filter2 });
 
-            // Verify
+            // Assert
             Assert.AreSame(exception, postContext.Exception);
             Assert.IsFalse(postContext.ExceptionHandled);
             Assert.AreSame(filter1.ContextPassed, filter2.ContextPassed, "The same context should have been passed to each exception filter.");
@@ -2042,8 +1466,8 @@
 
         [TestMethod]
         public void InvokeExceptionFiltersContinuesExecutingIfExceptionHandled() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             Exception exception = new Exception();
             ControllerContext controllerContext = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
@@ -2052,10 +1476,10 @@
             ExceptionFilterHelper filter1 = new ExceptionFilterHelper(callQueue) { ShouldHandleException = true };
             ExceptionFilterHelper filter2 = new ExceptionFilterHelper(callQueue);
 
-            // Execute
+            // Act
             ExceptionContext postContext = helper.PublicInvokeExceptionFilters(exception, new List<IExceptionFilter> { filter1, filter2 });
 
-            // Verify
+            // Assert
             Assert.AreSame(exception, postContext.Exception);
             Assert.IsTrue(postContext.ExceptionHandled, "The exception should have been handled.");
             Assert.AreSame(filter1.ContextPassed, filter2.ContextPassed, "The same context should have been passed to each exception filter.");
@@ -2066,12 +1490,12 @@
 
         [TestMethod]
         public void InvokeExceptionFiltersWithNullExceptionThrows() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicInvokeExceptionFilters(null /* exception */, null /* filters */);
@@ -2080,12 +1504,12 @@
 
         [TestMethod]
         public void InvokeExceptionFiltersWithNullFiltersThrows() {
-            // Setup
-            IController controller = new Mock<IController>().Object;
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.PublicInvokeExceptionFilters(new Exception(), null /* filters */);
@@ -2094,7 +1518,7 @@
 
         [TestMethod]
         public void InvokeResultFiltersOrdersFiltersCorrectly() {
-            // Setup
+            // Arrange
             List<string> actions = new List<string>();
             ActionFilterImpl filter1 = new ActionFilterImpl() {
                 OnResultExecutingImpl = delegate(ResultExecutingContext filterContext) {
@@ -2116,14 +1540,14 @@
                 actions.Add("Continuation");
             };
             ActionResult actionResult = new ContinuationResult(continuation);
-            IController controller = new Mock<IController>().Object;
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
 
-            // Execute
+            // Act
             helper.PublicInvokeActionResultWithFilters(actionResult, new List<IResultFilter>() { filter1, filter2 });
 
-            // Verify
+            // Assert
             Assert.AreEqual(5, actions.Count);
             Assert.AreEqual("OnResultExecuting1", actions[0]);
             Assert.AreEqual("OnResultExecuting2", actions[1]);
@@ -2134,13 +1558,13 @@
 
         [TestMethod]
         public void InvokeResultFiltersPassesArgumentsCorrectly() {
-            // Setup
+            // Arrange
             bool wasCalled = false;
             Action continuation = delegate {
                 Assert.Fail("Continuation should not be called.");
             };
             ActionResult actionResult = new ContinuationResult(continuation);
-            IController controller = new Mock<IController>().Object;
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             ControllerContext context = GetControllerContext(controller);
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             ActionFilterImpl filter = new ActionFilterImpl() {
@@ -2152,11 +1576,11 @@
                 }
             };
 
-            // Execute
+            // Act
             ResultExecutedContext result = helper.PublicInvokeActionResultWithFilters(actionResult,
                 new List<IResultFilter>() { filter });
 
-            // Verify
+            // Assert
             Assert.IsTrue(wasCalled);
             Assert.IsNull(result.Exception);
             Assert.IsFalse(result.ExceptionHandled);
@@ -2165,7 +1589,7 @@
 
         [TestMethod]
         public void InvokeResultFilterWhereContinuationThrowsExceptionAndIsHandled() {
-            // Setup
+            // Arrange
             List<string> actions = new List<string>();
             ActionResult actionResult = new EmptyResult();
             Exception exception = new Exception();
@@ -2186,10 +1610,10 @@
                 throw exception;
             };
 
-            // Execute
+            // Act
             ResultExecutedContext result = ControllerActionInvoker.InvokeActionResultFilter(filter, new ResultExecutingContext(ControllerContextTest.GetControllerContext(), actionResult), continuation);
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, actions.Count);
             Assert.AreEqual("OnResultExecuting", actions[0]);
             Assert.AreEqual("Continuation", actions[1]);
@@ -2201,7 +1625,7 @@
 
         [TestMethod]
         public void InvokeResultFilterWhereContinuationThrowsExceptionAndIsNotHandled() {
-            // Setup
+            // Arrange
             List<string> actions = new List<string>();
             ActionResult actionResult = new EmptyResult();
             ActionFilterImpl filter = new ActionFilterImpl() {
@@ -2217,7 +1641,7 @@
                 throw new Exception("Some exception message.");
             };
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<Exception>(
                 delegate {
                     ControllerActionInvoker.InvokeActionResultFilter(filter, new ResultExecutingContext(ControllerContextTest.GetControllerContext(), actionResult), continuation);
@@ -2231,7 +1655,7 @@
 
         [TestMethod]
         public void InvokeResultFilterWhereContinuationThrowsThreadAbortException() {
-            // Setup
+            // Arrange
             List<string> actions = new List<string>();
             ActionResult actionResult = new EmptyResult();
             ActionFilterImpl filter = new ActionFilterImpl() {
@@ -2252,7 +1676,7 @@
                 return null;
             };
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<ThreadAbortException>(
                 delegate {
                     ControllerActionInvoker.InvokeActionResultFilter(filter, new ResultExecutingContext(ControllerContextTest.GetControllerContext(), actionResult), continuation);
@@ -2266,7 +1690,7 @@
 
         [TestMethod]
         public void InvokeResultFilterWhereOnResultExecutingCancels() {
-            // Setup
+            // Arrange
             bool wasCalled = false;
             MethodInfo mi = typeof(object).GetMethod("ToString");
             object[] paramValues = new object[0];
@@ -2283,10 +1707,10 @@
                 return null;
             };
 
-            // Execute
+            // Act
             ResultExecutedContext result = ControllerActionInvoker.InvokeActionResultFilter(filter, new ResultExecutingContext(ControllerContextTest.GetControllerContext(), actionResult), continuation);
 
-            // Verify
+            // Assert
             Assert.IsTrue(wasCalled);
             Assert.IsNull(result.Exception);
             Assert.IsTrue(result.Canceled);
@@ -2295,7 +1719,7 @@
 
         [TestMethod]
         public void InvokeResultFilterWithNormalControlFlow() {
-            // Setup
+            // Arrange
             List<string> actions = new List<string>();
             ActionResult actionResult = new EmptyResult();
             ResultExecutedContext postContext = new ResultExecutedContext(ControllerContextTest.GetControllerContext(), actionResult, false /* canceled */, null /* exception */);
@@ -2315,10 +1739,10 @@
                 return postContext;
             };
 
-            // Execute
+            // Act
             ResultExecutedContext result = ControllerActionInvoker.InvokeActionResultFilter(filter, new ResultExecutingContext(ControllerContextTest.GetControllerContext(), actionResult), continuation);
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, actions.Count);
             Assert.AreEqual("OnResultExecuting", actions[0]);
             Assert.AreEqual("Continuation", actions[1]);
@@ -2326,11 +1750,21 @@
             Assert.AreSame(result, postContext);
         }
 
-        private static ControllerContext GetControllerContext(IController controller) {
+        private static ControllerContext GetControllerContext(ControllerBase controller) {
+            return GetControllerContext(controller, null);
+        }
+
+        private static ControllerContext GetControllerContext(ControllerBase controller, IDictionary<string, object> values) {
+            RouteData routeData = new RouteData();
+            if (values != null) {
+                foreach (var entry in values) {
+                    routeData.Values[entry.Key] = entry.Value;
+                }
+            }
             Mock<HttpContextBase> contextMock = new Mock<HttpContextBase>();
             contextMock.Expect(o => o.Request).Returns((HttpRequestBase)null); // make the TempDataDictionary happy
             contextMock.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
-            return new ControllerContext(contextMock.Object, new RouteData(), controller);
+            return new ControllerContext(contextMock.Object, routeData, controller);
         }
 
         private class EmptyActionFilterAttribute : ActionFilterAttribute {
@@ -2435,14 +1869,6 @@
         private class BasicMethodInvokeController : Controller {
             public ActionResult ReturnsRenderView(object viewItem) {
                 return View("ReturnsRenderView", viewItem);
-            }
-            public void VoidMethod() {
-            }
-            public object ReturnsNull() {
-                return null;
-            }
-            public int ReturnsInteger() {
-                return 42;
             }
         }
 
@@ -2611,121 +2037,28 @@
             public void TakesDateTime(DateTime id) {
             }
 
-            public void CustomClassConverter(MyParameterClass mp) {
-            }
-
-            public void CustomStructConverter(MyParameterStruct mp) {
-            }
-
-            public void CustomStructConverterFromString(MyParameterStructBad mp) {
-            }
-
-            public void CustomNullableStructConverter(MyParameterStruct? mp) {
-            }
-
-            public void CustomNullableStructConverterFromString(MyParameterStructBad? mp) {
-            }
-
-        }
-
-        // Custom class with custom type converter
-        [TypeConverter(typeof(MyParameterClassConverter))]
-        private class MyParameterClass {
-            public int Number { get; set; }
-            public char Char { get; set; }
-
-            public override bool Equals(object obj) {
-                MyParameterClass other = obj as MyParameterClass;
-                if (other == null) {
-                    return false;
-                }
-                return other.Char == Char && other.Number == Number;
-            }
-
-            public override int GetHashCode() {
-                return Char.GetHashCode() ^ Number.GetHashCode();
-            }
-        }
-
-        // Custom struct with custom type converter
-        [TypeConverter(typeof(MyParameterStructConverter))]
-        private struct MyParameterStruct {
-            public int Number { get; set; }
-            public char Char { get; set; }
-        }
-
-        // Custom struct with custom type converter that won't convert from strings
-        [TypeConverter(typeof(MyParameterStructBadConverter))]
-        private struct MyParameterStructBad {
-            public int Number { get; set; }
-            public char Char { get; set; }
-        }
-
-        private class MyParameterClassConverter : TypeConverter {
-            public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) {
-                if (sourceType == typeof(string)) {
-                    return true;
-                }
-                return base.CanConvertFrom(context, sourceType);
-            }
-
-            public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) {
-                string valueString = value as string;
-                if (valueString != null) {
-                    if (valueString.Length < 2) {
-                        throw new InvalidOperationException("String too short!");
-                    }
-                    char c = valueString[0];
-                    int n = Int32.Parse(valueString.Substring(1));
-                    MyParameterClass myParam = new MyParameterClass { Char = c, Number = n };
-                    return myParam;
-                }
-                return base.ConvertFrom(context, culture, value);
-            }
-        }
-
-        private class MyParameterStructConverter : TypeConverter {
-            public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) {
-                if (sourceType == typeof(string)) {
-                    return true;
-                }
-                return base.CanConvertFrom(context, sourceType);
-            }
-
-            public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) {
-                string valueString = value as string;
-                if (valueString != null) {
-                    if (valueString.Length < 2) {
-                        throw new InvalidOperationException("String too short!");
-                    }
-                    char c = valueString[0];
-                    int n = Int32.Parse(valueString.Substring(1));
-                    MyParameterStruct myParam = new MyParameterStruct { Char = c, Number = n };
-                    return myParam;
-                }
-                return base.ConvertFrom(context, culture, value);
-            }
-        }
-
-        private class MyParameterStructBadConverter : TypeConverter {
-            public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType) {
-                return false;
-            }
         }
 
         // Provides access to the protected members of ControllerActionInvoker
         public class ControllerActionInvokerHelper : ControllerActionInvoker {
 
-            public ControllerActionInvokerHelper(ControllerContext context)
-                : base(context) {
+            public ControllerActionInvokerHelper() {
+                // set instance caches to prevent modifying global test application state
+                DispatcherCache = new ActionMethodDispatcherCache();
+                SelectorCache = new ActionMethodSelectorCache();
             }
 
-            protected override MethodInfo FindActionMethod(string actionName, IDictionary<string, object> values) {
-                return PublicFindActionMethod(actionName, values);
+            public ControllerActionInvokerHelper(ControllerContext controllerContext)
+                : this() {
+                ControllerContext = controllerContext;
             }
 
-            public virtual MethodInfo PublicFindActionMethod(string actionName, IDictionary<string, object> values) {
-                return base.FindActionMethod(actionName, values);
+            protected override MethodInfo FindActionMethod(string actionName) {
+                return PublicFindActionMethod(actionName);
+            }
+
+            public virtual MethodInfo PublicFindActionMethod(string actionName) {
+                return base.FindActionMethod(actionName);
             }
 
             protected override FilterInfo GetFiltersForActionMethod(MethodInfo methodInfo) {
@@ -2736,20 +2069,20 @@
                 return base.GetFiltersForActionMethod(methodInfo);
             }
 
-            protected override object GetParameterValue(ParameterInfo parameterInfo, IDictionary<string, object> values) {
-                return PublicGetParameterValue(parameterInfo, values);
+            protected override object GetParameterValue(ParameterInfo parameterInfo) {
+                return PublicGetParameterValue(parameterInfo);
             }
 
-            public virtual object PublicGetParameterValue(ParameterInfo parameterInfo, IDictionary<string, object> values) {
-                return base.GetParameterValue(parameterInfo, values);
+            public virtual object PublicGetParameterValue(ParameterInfo parameterInfo) {
+                return base.GetParameterValue(parameterInfo);
             }
 
-            protected override IDictionary<string, object> GetParameterValues(MethodInfo methodInfo, IDictionary<string, object> values) {
-                return PublicGetParameterValues(methodInfo, values);
+            protected override IDictionary<string, object> GetParameterValues(MethodInfo methodInfo) {
+                return PublicGetParameterValues(methodInfo);
             }
 
-            public virtual IDictionary<string, object> PublicGetParameterValues(MethodInfo methodInfo, IDictionary<string, object> values) {
-                return base.GetParameterValues(methodInfo, values);
+            public virtual IDictionary<string, object> PublicGetParameterValues(MethodInfo methodInfo) {
+                return base.GetParameterValues(methodInfo);
             }
 
             protected override ActionResult InvokeActionMethod(MethodInfo methodInfo, IDictionary<string, object> parameters) {
@@ -2847,10 +2180,30 @@
             }
         }
 
-        public class Person {
+        private class CustomConverterController : Controller {
+
+            public void ParameterHasNoConverters(string foo) {
+            }
+
+            public void ParameterHasOneConverter([MyCustomConverter] string foo) {
+            }
+
+            public void ParameterHasTwoConverters([MyCustomConverter, MyCustomConverter] string foo) {
+            }
+
         }
 
-        public class Employee : Person {
+        [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
+        private class MyCustomConverterAttribute : CustomModelBinderAttribute {
+            public override IModelBinder GetBinder() {
+                return new MyConverter();
+            }
+            private class MyConverter : IModelBinder {
+                public object GetValue(ControllerContext controllerContext, string parameterName, Type parameterType, ModelStateDictionary modelState) {
+                    return parameterName + "_" + parameterType.Name;
+                }
+            }
         }
+
     }
 }

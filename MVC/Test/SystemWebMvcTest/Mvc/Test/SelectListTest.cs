@@ -13,13 +13,13 @@
 
         [TestMethod]
         public void Constructor1SetsProperties() {
-            // Setup
+            // Arrange
             IEnumerable items = new object[0];
 
-            // Execute
+            // Act
             SelectList selectList = new SelectList(items);
 
-            // Verify
+            // Assert
             Assert.AreSame(items, selectList.Items);
             Assert.IsNull(selectList.DataValueField);
             Assert.IsNull(selectList.DataTextField);
@@ -29,15 +29,15 @@
 
         [TestMethod]
         public void Constructor2SetsProperties() {
-            // Setup
+            // Arrange
             IEnumerable items = new object[0];
             object selectedValue = new object();
 
-            // Execute
+            // Act
             SelectList selectList = new SelectList(items, selectedValue);
             List<object> selectedValues = selectList.SelectedValues.Cast<object>().ToList();
 
-            // Verify
+            // Assert
             Assert.AreSame(items, selectList.Items);
             Assert.IsNull(selectList.DataValueField);
             Assert.IsNull(selectList.DataTextField);
@@ -48,13 +48,13 @@
 
         [TestMethod]
         public void Constructor3SetsProperties() {
-            // Setup
+            // Arrange
             IEnumerable items = new object[0];
 
-            // Execute
+            // Act
             SelectList selectList = new SelectList(items, "SomeValueField", "SomeTextField");
 
-            // Verify
+            // Assert
             Assert.AreSame(items, selectList.Items);
             Assert.AreEqual("SomeValueField", selectList.DataValueField);
             Assert.AreEqual("SomeTextField", selectList.DataTextField);
@@ -64,15 +64,15 @@
 
         [TestMethod]
         public void Constructor4SetsProperties() {
-            // Setup
+            // Arrange
             IEnumerable items = new object[0];
             object selectedValue = new object();
 
-            // Execute
+            // Act
             SelectList selectList = new SelectList(items, "SomeValueField", "SomeTextField", selectedValue);
             List<object> selectedValues = selectList.SelectedValues.Cast<object>().ToList();
 
-            // Verify
+            // Assert
             Assert.AreSame(items, selectList.Items);
             Assert.AreEqual("SomeValueField", selectList.DataValueField);
             Assert.AreEqual("SomeTextField", selectList.DataTextField);

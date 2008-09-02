@@ -1,220 +1,92 @@
 ﻿namespace System.Web.Mvc.Test {
-    using System;
-    using System.Web.Routing;
-    using System.Web.TestUtil;
+    using System.Web.Mvc;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using Moq;
 
     [TestClass]
     public class WebFormViewEngineTest {
-        [TestMethod]
-        public void RenderViewWithNullContextThrows() {
-            // Setup
-            IViewEngine vf = new WebFormViewEngine();
-
-            // Execute
-            ExceptionHelper.ExpectArgumentNullException(
-                delegate {
-                    vf.RenderView(null);
-                },
-                "viewContext");
-        }
 
         [TestMethod]
-        public void RenderViewWithPathNotFoundThrows() {
-            // Setup
-            ViewContext vc = GetViewContext(false);
-            Mock<IViewLocator> viewLocatorMock = new Mock<IViewLocator>();
-            viewLocatorMock.Expect(o => o.GetViewLocation(vc, "view")).Returns(String.Empty);
-            WebFormViewEngine vf = new WebFormViewEngine();
-            vf.ViewLocator = viewLocatorMock.Object;
+        public void CreatePartialViewCreatesWebFormView() {
+            // Arrange
+            TestableWebFormViewEngine engine = new TestableWebFormViewEngine();
 
-            // Execute
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    ((IViewEngine)vf).RenderView(vc);
-                },
-                "The view 'view' could not be found.");
+            // Act
+            WebFormView result = (WebFormView)engine.CreatePartialView("partial path");
+
+            // Assert
+            Assert.AreEqual("partial path", result.ViewPath);
+            Assert.AreEqual(String.Empty, result.MasterPath);
         }
 
         [TestMethod]
-        public void RenderViewWithNullViewInstanceThrows() {
-            // Setup
-            ViewContext vc = GetViewContext(false);
-            Mock<IViewLocator> viewLocatorMock = new Mock<IViewLocator>();
-            viewLocatorMock.Expect(o => o.GetViewLocation(vc, "view")).Returns("view path");
+        public void CreateViewCreatesWebFormView() {
+            // Arrange
+            TestableWebFormViewEngine engine = new TestableWebFormViewEngine();
 
-            MockBuildManager buildManagerMock = new MockBuildManager("view path", typeof(object), null);
+            // Act
+            WebFormView result = (WebFormView)engine.CreateView("view path", "master path");
 
-            WebFormViewEngine vf = new WebFormViewEngine();
-            vf.ViewLocator = viewLocatorMock.Object;
-            vf.BuildManager = buildManagerMock;
-
-            // Execute
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    ((IViewEngine)vf).RenderView(vc);
-                },
-                "The view found at 'view path' could not be created.");
+            // Assert
+            Assert.AreEqual("view path", result.ViewPath);
+            Assert.AreEqual("master path", result.MasterPath);
         }
 
         [TestMethod]
-        public void RenderViewWithViewPageRendersView() {
-            // Setup
-            ViewContext vc = GetViewContext(false);
-            Mock<IViewLocator> viewLocatorMock = new Mock<IViewLocator>();
-            viewLocatorMock.Expect(o => o.GetViewLocation(vc, "view")).Returns("view path");
+        public void MasterLocationFormatsProperty() {
+            // Act
+            TestableWebFormViewEngine engine = new TestableWebFormViewEngine();
 
-            ViewPageToRender viewPage = new ViewPageToRender();
-
-            MockBuildManager buildManagerMock = new MockBuildManager("view path", typeof(object), viewPage);
-
-            WebFormViewEngine vf = new WebFormViewEngine();
-            vf.ViewLocator = viewLocatorMock.Object;
-            vf.BuildManager = buildManagerMock;
-
-            // Execute
-            ((IViewEngine)vf).RenderView(vc);
-
-            // Verify
-            Assert.AreEqual<ViewContext>(vc, viewPage.ResultViewContext);
-            Assert.AreEqual<string>(String.Empty, viewPage.MasterLocation);
+            // Assert
+            Assert.AreEqual(2, engine.MasterLocationFormats.Length);
+            Assert.AreEqual("~/Views/{1}/{0}.master", engine.MasterLocationFormats[0]);
+            Assert.AreEqual("~/Views/Shared/{0}.master", engine.MasterLocationFormats[1]);
         }
 
         [TestMethod]
-        public void RenderViewWithViewPageAndMasterRendersView() {
-            // Setup
-            ViewContext vc = GetViewContext(true);
-            Mock<IViewLocator> viewLocatorMock = new Mock<IViewLocator>();
-            viewLocatorMock.Expect(o => o.GetViewLocation(vc, "view")).Returns("view path");
-            viewLocatorMock.Expect(o => o.GetMasterLocation(vc, "master")).Returns("master path");
+        public void PartialViewLocationFormatsProperty() {
+            // Act
+            TestableWebFormViewEngine engine = new TestableWebFormViewEngine();
 
-            ViewPageToRender viewPage = new ViewPageToRender();
-
-            MockBuildManager buildManagerMock = new MockBuildManager("view path", typeof(object), viewPage);
-
-            WebFormViewEngine vf = new WebFormViewEngine();
-            vf.ViewLocator = viewLocatorMock.Object;
-            vf.BuildManager = buildManagerMock;
-
-            // Execute
-            ((IViewEngine)vf).RenderView(vc);
-
-            // Verify
-            Assert.AreEqual<ViewContext>(vc, viewPage.ResultViewContext);
-            Assert.AreEqual<string>("master path", viewPage.MasterLocation);
+            // Assert
+            Assert.AreEqual(4, engine.PartialViewLocationFormats.Length);
+            Assert.AreEqual("~/Views/{1}/{0}.aspx", engine.PartialViewLocationFormats[0]);
+            Assert.AreEqual("~/Views/{1}/{0}.ascx", engine.PartialViewLocationFormats[1]);
+            Assert.AreEqual("~/Views/Shared/{0}.aspx", engine.PartialViewLocationFormats[2]);
+            Assert.AreEqual("~/Views/Shared/{0}.ascx", engine.PartialViewLocationFormats[3]);
         }
 
         [TestMethod]
-        public void RenderViewWithViewPageAndMasterNotFoundThrows() {
-            // Setup
-            ViewContext vc = GetViewContext(true);
-            Mock<IViewLocator> viewLocatorMock = new Mock<IViewLocator>();
-            viewLocatorMock.Expect(o => o.GetViewLocation(vc, "view")).Returns("view path");
-            viewLocatorMock.Expect(o => o.GetMasterLocation(vc, "master")).Returns(String.Empty);
+        public void ViewLocationFormatsProperty() {
+            // Act
+            TestableWebFormViewEngine engine = new TestableWebFormViewEngine();
 
-            MockBuildManager buildManagerMock = new MockBuildManager("view path", typeof(object), new DummyViewPage());
-
-            WebFormViewEngine vf = new WebFormViewEngine();
-            vf.ViewLocator = viewLocatorMock.Object;
-            vf.BuildManager = buildManagerMock;
-
-            // Execute
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    ((IViewEngine)vf).RenderView(vc);
-                },
-                "The master 'master' could not be found.");
+            // Assert
+            Assert.AreEqual(4, engine.ViewLocationFormats.Length);
+            Assert.AreEqual("~/Views/{1}/{0}.aspx", engine.ViewLocationFormats[0]);
+            Assert.AreEqual("~/Views/{1}/{0}.ascx", engine.ViewLocationFormats[1]);
+            Assert.AreEqual("~/Views/Shared/{0}.aspx", engine.ViewLocationFormats[2]);
+            Assert.AreEqual("~/Views/Shared/{0}.ascx", engine.ViewLocationFormats[3]);
         }
 
-        [TestMethod]
-        public void RenderViewWithViewUserControlRendersView() {
-            // Setup
-            ViewContext vc = GetViewContext(false);
-            Mock<IViewLocator> viewLocatorMock = new Mock<IViewLocator>();
-            viewLocatorMock.Expect(o => o.GetViewLocation(vc, "view")).Returns("view path");
-
-            ViewUserControlToRender viewUserControl = new ViewUserControlToRender();
-
-            MockBuildManager buildManagerMock = new MockBuildManager("view path", typeof(object), viewUserControl);
-
-            WebFormViewEngine vf = new WebFormViewEngine();
-            vf.ViewLocator = viewLocatorMock.Object;
-            vf.BuildManager = buildManagerMock;
-
-            // Execute
-            ((IViewEngine)vf).RenderView(vc);
-
-            // Verify
-            Assert.AreEqual<ViewContext>(vc, viewUserControl.ResultViewContext);
-        }
-
-        [TestMethod]
-        public void RenderViewWithViewUserControlAndMasterThrows() {
-            // Setup
-            ViewContext vc = GetViewContext(true);
-            Mock<IViewLocator> viewLocatorMock = new Mock<IViewLocator>();
-            viewLocatorMock.Expect(o => o.GetViewLocation(vc, "view")).Returns("view path");
-
-            MockBuildManager buildManagerMock = new MockBuildManager("view path", typeof(object), new DummyViewUserControl());
-
-            WebFormViewEngine vf = new WebFormViewEngine();
-            vf.ViewLocator = viewLocatorMock.Object;
-            vf.BuildManager = buildManagerMock;
-
-            // Execute
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    ((IViewEngine)vf).RenderView(vc);
-                },
-                "A master name cannot be specified when the view is a ViewUserControl.");
-        }
-
-        [TestMethod]
-        public void RenderViewWithUnknownTypeThrows() {
-            // Setup
-            ViewContext vc = GetViewContext(false);
-            Mock<IViewLocator> viewLocatorMock = new Mock<IViewLocator>();
-            viewLocatorMock.Expect(o => o.GetViewLocation(vc, "view")).Returns("view path");
-
-            MockBuildManager buildManagerMock = new MockBuildManager("view path", typeof(object), 12345);
-
-            WebFormViewEngine vf = new WebFormViewEngine();
-            vf.ViewLocator = viewLocatorMock.Object;
-            vf.BuildManager = buildManagerMock;
-
-            // Execute
-            ExceptionHelper.ExpectException<InvalidOperationException>(
-                delegate {
-                    ((IViewEngine)vf).RenderView(vc);
-                },
-                "The view at 'view path' must derive from ViewPage, ViewPage<TViewData>, ViewUserControl, or ViewUserControl<TViewData>.");
-        }
-
-        private static ViewContext GetViewContext(bool useMaster) {
-            Mock<HttpContextBase> contextMock = new Mock<HttpContextBase>();
-            return new ViewContext(contextMock.Object, new RouteData(), new Mock<IController>().Object, "view", useMaster ? "master" : String.Empty, new ViewDataDictionary(), null);
-        }
-
-        public sealed class DummyViewPage : ViewPage {
-        }
-
-        public sealed class DummyViewUserControl : ViewUserControl {
-        }
-
-        public sealed class ViewPageToRender : ViewPage {
-            public ViewContext ResultViewContext;
-
-            public override void RenderView(ViewContext viewContext) {
-                ResultViewContext = viewContext;
+        class TestableWebFormViewEngine : WebFormViewEngine {
+            public new string[] MasterLocationFormats {
+                get { return base.MasterLocationFormats; }
             }
-        }
 
-        public sealed class ViewUserControlToRender : ViewUserControl {
-            public ViewContext ResultViewContext;
+            public new string[] PartialViewLocationFormats {
+                get { return base.PartialViewLocationFormats; }
+            }
 
-            public override void RenderView(ViewContext viewContext) {
-                ResultViewContext = viewContext;
+            public new string[] ViewLocationFormats {
+                get { return base.ViewLocationFormats; }
+            }
+
+            public IView CreatePartialView(string partialPath) {
+                return base.CreatePartialView(null, partialPath);
+            }
+
+            public IView CreateView(string viewPath, string masterPath) {
+                return base.CreateView(null, viewPath, masterPath);
             }
         }
     }

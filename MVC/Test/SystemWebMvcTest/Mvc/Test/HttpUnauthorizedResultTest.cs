@@ -10,16 +10,16 @@
 
         [TestMethod]
         public void ExecuteResult() {
-            // Setup
+            // Arrange
             Mock<HttpResponseBase> mockResponse = new Mock<HttpResponseBase>(MockBehavior.Strict);
             mockResponse.ExpectSetProperty(response => response.StatusCode, 401).Verifiable();
             ControllerContext controllerContext = GetControllerContext(mockResponse.Object);
             HttpUnauthorizedResult result = new HttpUnauthorizedResult();
 
-            // Execute
+            // Act
             result.ExecuteResult(controllerContext);
 
-            // Verify
+            // Assert
             mockResponse.Verify();
         }
 
@@ -34,7 +34,7 @@
         private static ControllerContext GetControllerContext(HttpResponseBase httpResponse) {
             Mock<HttpContextBase> httpContext = new Mock<HttpContextBase>();
             httpContext.Expect(ctx => ctx.Response).Returns(httpResponse);
-            return new ControllerContext(httpContext.Object, new RouteData(), new Mock<IController>().Object);
+            return new ControllerContext(httpContext.Object, new RouteData(), new Mock<ControllerBase>().Object);
         }
     }
 }

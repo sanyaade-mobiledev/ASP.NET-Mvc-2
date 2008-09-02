@@ -19,28 +19,28 @@
         public void SubmitImageWithTypeAttributeRendersExplicitTypeAttribute() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string button = html.SubmitImage("specified-name", "/mvc.jpg", new { type = "not-image" });
-            Assert.AreEqual("<input type=\"not-image\" id=\"specified-name\" name=\"specified-name\" src=\"/mvc.jpg\" />", button);
+            Assert.AreEqual("<input id=\"specified-name\" name=\"specified-name\" src=\"/mvc.jpg\" type=\"not-image\" />", button);
         }
         
         [TestMethod]
         public void SubmitImageWithNameAndImageUrlRendersNameAndSrcAttributes() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string button = html.SubmitImage("button-name", "/mvc.gif");
-            Assert.AreEqual("<input type=\"image\" id=\"button-name\" name=\"button-name\" src=\"/mvc.gif\" />", button);
+            Assert.AreEqual("<input id=\"button-name\" name=\"button-name\" src=\"/mvc.gif\" type=\"image\" />", button);
         }
 
         [TestMethod]
         public void SubmitImageWithImageUrlStartingWithTildeRendersAppPath() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary(), "/app");
             string button = html.SubmitImage("button-name", "~/mvc.gif");
-            Assert.AreEqual("<input type=\"image\" id=\"button-name\" name=\"button-name\" src=\"/app/mvc.gif\" />", button);
+            Assert.AreEqual("<input id=\"button-name\" name=\"button-name\" src=\"/app/mvc.gif\" type=\"image\" />", button);
         }
 
         [TestMethod]
         public void SubmitImageWithNameAndIdRendersBothAttributesCorrectly() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string button = html.SubmitImage("button-name", "/mvc.png", new { id = "button-id" });
-            Assert.AreEqual("<input id=\"button-id\" type=\"image\" name=\"button-name\" src=\"/mvc.png\" />", button);
+            Assert.AreEqual("<input id=\"button-id\" name=\"button-name\" src=\"/mvc.png\" type=\"image\" />", button);
         }
 
         [TestMethod]
@@ -48,7 +48,7 @@
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string button = html.SubmitImage("specified-name", "/specified-src.bmp"
                 , new RouteValueDictionary(new { name = "name-attribute", src="src-attribute" }));
-            Assert.AreEqual("<input name=\"name-attribute\" src=\"src-attribute\" type=\"image\" id=\"specified-name\" />", button);
+            Assert.AreEqual("<input id=\"specified-name\" name=\"name-attribute\" src=\"src-attribute\" type=\"image\" />", button);
         }
     }
 }

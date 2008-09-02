@@ -8,40 +8,40 @@
 
         [TestMethod]
         public void SetViewItemOnBaseClassPropagatesToDerivedClass() {
-            // Setup
+            // Arrange
             ViewPage<object> vpInt = new ViewPage<object>();
             ViewPage vp = vpInt;
             object o = new object();
 
-            // Execute
+            // Act
             vp.ViewData.Model = o;
 
-            // Verify
+            // Assert
             Assert.AreEqual(o, vpInt.ViewData.Model);
             Assert.AreEqual(o, vp.ViewData.Model);
         }
 
         [TestMethod]
         public void SetViewItemOnDerivedClassPropagatesToBaseClass() {
-            // Setup
+            // Arrange
             ViewPage<object> vpInt = new ViewPage<object>();
             ViewPage vp = vpInt;
             object o = new object();
 
-            // Execute
+            // Act
             vpInt.ViewData.Model = o;
 
-            // Verify
+            // Assert
             Assert.AreEqual(o, vpInt.ViewData.Model);
             Assert.AreEqual(o, vp.ViewData.Model);
         }
 
         [TestMethod]
         public void SetViewItemToWrongTypeThrows() {
-            // Setup
+            // Arrange
             ViewPage vp = new ViewPage<string>();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     vp.ViewData.Model = 50;
@@ -51,7 +51,7 @@
 
         private static void WriterSetCorrectlyInternal(bool throwException) {
 
-            // Setup
+            // Arrange
             bool triggered = false;
             HtmlTextWriter writer = new HtmlTextWriter(System.IO.TextWriter.Null);
             MockViewPage vp = new MockViewPage();
@@ -63,7 +63,7 @@
                 }
             };
 
-            // Execute & verify
+            // Act & Assert
             Assert.IsNull(vp.Writer);
             try {
                 vp.RenderControl(writer);

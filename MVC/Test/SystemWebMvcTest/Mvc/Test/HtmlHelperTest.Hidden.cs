@@ -10,12 +10,24 @@
             return new ViewDataDictionary { { "foo", "ViewDataFoo" } };
         }
 
+        private static ViewDataDictionary GetHiddenViewDataWithErrors() {
+            ViewDataDictionary viewData = new ViewDataDictionary { { "foo", "ViewDataFoo" } };
+
+            ModelState modelStateFoo = new ModelState();
+            modelStateFoo.Errors.Add(new ModelError("foo error 1"));
+            modelStateFoo.Errors.Add(new ModelError("foo error 2"));
+            viewData.ModelState["foo"] = modelStateFoo;
+            modelStateFoo.AttemptedValue = "AttemptedValueFoo";
+
+            return viewData;
+        }
+
         [TestMethod]
         public void HiddenWithEmptyNameThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetHiddenViewData());
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     helper.Hidden(String.Empty);
@@ -25,111 +37,135 @@
 
         [TestMethod]
         public void HiddenWithExplicitValue() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetHiddenViewData());
 
-            // Execute
+            // Act
             string html = helper.Hidden("foo", "DefaultFoo");
 
-            // Verify
-            Assert.AreEqual(@"<input type=""hidden"" name=""foo"" id=""foo"" value=""DefaultFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input id=""foo"" name=""foo"" type=""hidden"" value=""DefaultFoo"" />", html);
         }
 
         [TestMethod]
         public void HiddenWithExplicitValueAndAttributesDictionary() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetHiddenViewData());
 
-            // Execute
+            // Act
             string html = helper.Hidden("foo", "DefaultFoo", _attributesDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazValue"" type=""hidden"" name=""foo"" id=""foo"" value=""DefaultFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazValue"" id=""foo"" name=""foo"" type=""hidden"" value=""DefaultFoo"" />", html);
         }
 
         [TestMethod]
         public void HiddenWithExplicitValueAndAttributesObject() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetHiddenViewData());
 
-            // Execute
+            // Act
             string html = helper.Hidden("foo", "DefaultFoo", _attributesObjectDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazObjValue"" type=""hidden"" name=""foo"" id=""foo"" value=""DefaultFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazObjValue"" id=""foo"" name=""foo"" type=""hidden"" value=""DefaultFoo"" />", html);
         }
 
         [TestMethod]
         public void HiddenWithExplicitValueNull() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetHiddenViewData());
 
-            // Execute
+            // Act
             string html = helper.Hidden("foo", (string)null /* value */);
 
-            // Verify
-            Assert.AreEqual(@"<input type=""hidden"" name=""foo"" id=""foo"" value="""" />", html);
+            // Assert
+            Assert.AreEqual(@"<input id=""foo"" name=""foo"" type=""hidden"" value="""" />", html);
         }
 
         [TestMethod]
         public void HiddenWithImplicitValue() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetHiddenViewData());
 
-            // Execute
+            // Act
             string html = helper.Hidden("foo");
 
-            // Verify
-            Assert.AreEqual(@"<input type=""hidden"" name=""foo"" id=""foo"" value=""ViewDataFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input id=""foo"" name=""foo"" type=""hidden"" value=""ViewDataFoo"" />", html);
         }
 
         [TestMethod]
         public void HiddenWithImplicitValueAndAttributesDictionary() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetHiddenViewData());
 
-            // Execute
+            // Act
             string html = helper.Hidden("foo", _attributesDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazValue"" type=""hidden"" name=""foo"" id=""foo"" value=""ViewDataFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazValue"" id=""foo"" name=""foo"" type=""hidden"" value=""ViewDataFoo"" />", html);
         }
 
         [TestMethod]
         public void HiddenWithImplicitValueAndAttributesDictionaryReturnsEmptyValueIfNotFound() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetHiddenViewData());
 
-            // Execute
+            // Act
             string html = helper.Hidden("keyNotFound", _attributesDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazValue"" type=""hidden"" name=""keyNotFound"" id=""keyNotFound"" value="""" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazValue"" id=""keyNotFound"" name=""keyNotFound"" type=""hidden"" value="""" />", html);
         }
 
         [TestMethod]
         public void HiddenWithImplicitValueAndAttributesObject() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetHiddenViewData());
 
-            // Execute
+            // Act
             string html = helper.Hidden("foo", _attributesObjectDictionary);
 
-            // Verify
-            Assert.AreEqual(@"<input baz=""BazObjValue"" type=""hidden"" name=""foo"" id=""foo"" value=""ViewDataFoo"" />", html);
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazObjValue"" id=""foo"" name=""foo"" type=""hidden"" value=""ViewDataFoo"" />", html);
         }
 
         [TestMethod]
         public void HiddenWithNullNameThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetHiddenViewData());
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     helper.Hidden(null /* name */);
                 },
                 "name");
+        }
+
+        [TestMethod]
+        public void HiddenWithViewDataErrors() {
+            // Arrange
+            HtmlHelper helper = GetHtmlHelper(GetHiddenViewDataWithErrors());
+
+            // Act
+            string html = helper.Hidden("foo", _attributesObjectDictionary);
+
+            // Assert
+            Assert.AreEqual(@"<input baz=""BazObjValue"" class=""input-validation-error"" id=""foo"" name=""foo"" type=""hidden"" value=""AttemptedValueFoo"" />", html);
+        }
+
+        [TestMethod]
+        public void HiddenWithViewDataErrorsAndCustomClass() {
+            // Arrange
+            HtmlHelper helper = GetHtmlHelper(GetHiddenViewDataWithErrors());
+
+            // Act
+            string html = helper.Hidden("foo", new { @class = "foo-class" });
+
+            // Assert
+            Assert.AreEqual(@"<input class=""input-validation-error foo-class"" id=""foo"" name=""foo"" type=""hidden"" value=""AttemptedValueFoo"" />", html);
         }
     }
 }

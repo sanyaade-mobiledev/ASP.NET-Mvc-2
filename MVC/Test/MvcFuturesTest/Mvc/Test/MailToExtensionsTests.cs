@@ -31,28 +31,28 @@
         public void MailToWithLinkTextEmailAndHtmlAttributesRendersAttributes() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string result = html.Mailto("This is a test", "test@example.com", new {title="this is a test"});
-            Assert.AreEqual("<a title=\"this is a test\" href=\"mailto:test@example.com\">This is a test</a>", result);
+            Assert.AreEqual("<a href=\"mailto:test@example.com\" title=\"this is a test\">This is a test</a>", result);
         }
 
         [TestMethod]
         public void MailToWithLinkTextEmailAndHtmlAttributesDictionaryRendersAttributes() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string result = html.Mailto("This is a test", "test@example.com", new RouteValueDictionary(new { title = "this is a test" }));
-            Assert.AreEqual("<a title=\"this is a test\" href=\"mailto:test@example.com\">This is a test</a>", result);
+            Assert.AreEqual("<a href=\"mailto:test@example.com\" title=\"this is a test\">This is a test</a>", result);
         }
 
         [TestMethod]
         public void MailToWithSubjectAndHtmlAttributesRendersAttributes() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string result = html.Mailto("This is a test", "test@example.com", "The subject", new { title = "this is a test" });
-            Assert.AreEqual("<a title=\"this is a test\" href=\"mailto:test@example.com?subject=The subject\">This is a test</a>", result);
+            Assert.AreEqual("<a href=\"mailto:test@example.com?subject=The subject\" title=\"this is a test\">This is a test</a>", result);
         }
 
         [TestMethod]
         public void MailToWithSubjectAndHtmlAttributesDictionaryRendersAttributes() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string result = html.Mailto("This is a test", "test@example.com", "The subject", new RouteValueDictionary(new { title = "this is a test" }));
-            Assert.AreEqual("<a title=\"this is a test\" href=\"mailto:test@example.com?subject=The subject\">This is a test</a>", result);
+            Assert.AreEqual("<a href=\"mailto:test@example.com?subject=The subject\" title=\"this is a test\">This is a test</a>", result);
         }
 
         [TestMethod]
@@ -100,7 +100,7 @@ Line three";
 Line two
 Line three";
             string result = html.Mailto("email me", "test@example.com", "the subject", body, "cc@example.com", "bcc@example.com", new { title="email test" });
-            string expected = @"<a title=""email test"" href=""mailto:test@example.com?subject=the subject&amp;cc=cc@example.com&amp;bcc=bcc@example.com&amp;body=Line one%0ALine two%0ALine three"">email me</a>";
+            string expected = @"<a href=""mailto:test@example.com?subject=the subject&amp;cc=cc@example.com&amp;bcc=bcc@example.com&amp;body=Line one%0ALine two%0ALine three"" title=""email test"">email me</a>";
             Assert.AreEqual(expected, result);
         }
     }

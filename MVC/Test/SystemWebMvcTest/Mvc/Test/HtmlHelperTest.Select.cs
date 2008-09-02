@@ -17,34 +17,34 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void DropDownListUsesExplicitValueIfNotProvidedInViewData() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
             SelectList selectList = new SelectList(MultiSelectListTest.GetSampleAnonymousObjects(), "Letter", "FullWord", "C");
 
-            // Execute
-            string html = helper.DropDownList("foo", selectList);
+            // Act
+            string html = helper.DropDownList(null /* optionLabel */, "foo", selectList);
 
-            // Verify
+            // Assert
             Assert.AreEqual(
-                @"<select name=""foo"" id=""foo""><option value=""A"">Alpha</option>
+                @"<select id=""foo"" name=""foo""><option value=""A"">Alpha</option>
 <option value=""B"">Bravo</option>
-<option value=""C"" selected=""selected"">Charlie</option>
+<option selected=""selected"" value=""C"">Charlie</option>
 </select>",
                 html);
         }
 
         [TestMethod]
         public void DropDownListUsesViewDataDefaultValue() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(_dropDownListViewData);
             SelectList selectList = new SelectList(MultiSelectListTest.GetSampleStrings(), "Charlie");
 
-            // Execute
-            string html = helper.DropDownList("foo", selectList);
+            // Act
+            string html = helper.DropDownList(null /* optionLabel */, "foo", selectList);
 
-            // Verify
+            // Assert
             Assert.AreEqual(
-                @"<select name=""foo"" id=""foo""><option>Alpha</option>
+                @"<select id=""foo"" name=""foo""><option>Alpha</option>
 <option selected=""selected"">Bravo</option>
 <option>Charlie</option>
 </select>",
@@ -53,16 +53,16 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void DropDownListWithAttributesDictionary() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
             SelectList selectList = new SelectList(MultiSelectListTest.GetSampleStrings());
 
-            // Execute
-            string html = helper.DropDownList("foo", selectList, _attributesDictionary);
+            // Act
+            string html = helper.DropDownList(null /* optionLabel */, "foo", selectList, _attributesDictionary);
 
-            // Verify
+            // Assert
             Assert.AreEqual(
-                @"<select baz=""BazValue"" name=""foo"" id=""foo""><option>Alpha</option>
+                @"<select baz=""BazValue"" id=""foo"" name=""foo""><option>Alpha</option>
 <option>Bravo</option>
 <option>Charlie</option>
 </select>",
@@ -71,55 +71,112 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void DropDownListWithEmptyNameThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
-                    helper.DropDownList(String.Empty, (SelectList)null /* selectList */);
+                    helper.DropDownList(null /* optionLabel */, String.Empty, (SelectList)null /* selectList */);
                 },
                 "name");
         }
 
         [TestMethod]
         public void DropDownListWithNullNameThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
-                    helper.DropDownList(null /* name */, (SelectList)null /* selectList */);
+                    helper.DropDownList(null /* optionLabel */, null /* name */, (SelectList)null /* selectList */);
                 },
                 "name");
         }
 
         [TestMethod]
         public void DropDownListWithNullSelectListThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    helper.DropDownList("foo", (SelectList)null /* selectList */);
+                    helper.DropDownList(null /* optionLabel */, "foo", (SelectList)null /* selectList */);
                 },
                 "selectList");
         }
 
         [TestMethod]
         public void DropDownListWithObjectDictionary() {
-            // Setup
+            // Arrange
+            SelectList selectList = new SelectList(MultiSelectListTest.GetSampleStrings());
+            ViewDataDictionary viewData = new ViewDataDictionary();
+            viewData["foo"] = selectList;
+            HtmlHelper helper = GetHtmlHelper(viewData);            
+
+            // Act
+            string html = helper.DropDownList(null /* optionLabel */, "foo", _attributesObjectDictionary);
+
+            // Assert
+            Assert.AreEqual(
+                @"<select baz=""BazObjValue"" id=""foo"" name=""foo""><option>Alpha</option>
+<option>Bravo</option>
+<option>Charlie</option>
+</select>",
+                html);
+        }
+
+        [TestMethod]
+        public void DropDownListWithObjectDictionaryAndSelectList() {
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
             SelectList selectList = new SelectList(MultiSelectListTest.GetSampleStrings());
 
-            // Execute
-            string html = helper.DropDownList("foo", selectList, _attributesObjectDictionary);
+            // Act
+            string html = helper.DropDownList(null /* optionLabel */, "foo", selectList, _attributesObjectDictionary);
 
-            // Verify
+            // Assert
             Assert.AreEqual(
-                @"<select baz=""BazObjValue"" name=""foo"" id=""foo""><option>Alpha</option>
+                @"<select baz=""BazObjValue"" id=""foo"" name=""foo""><option>Alpha</option>
+<option>Bravo</option>
+<option>Charlie</option>
+</select>",
+                html);
+        }
+
+        [TestMethod]
+        public void DropDownListWithObjectDictionaryAndEmptyTitle() {
+            // Arrange
+            HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
+            SelectList selectList = new SelectList(MultiSelectListTest.GetSampleStrings());
+
+            // Act
+            string html = helper.DropDownList(String.Empty /* optionLabel */, "foo", selectList, _attributesObjectDictionary);
+
+            // Assert
+            Assert.AreEqual(
+                @"<select baz=""BazObjValue"" id=""foo"" name=""foo""><option>Alpha</option>
+<option>Bravo</option>
+<option>Charlie</option>
+</select>",
+                html);
+        }
+        
+        [TestMethod]
+        public void DropDownListWithObjectDictionaryAndTitle() {
+            // Arrange
+            HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
+            SelectList selectList = new SelectList(MultiSelectListTest.GetSampleStrings());
+
+            // Act
+            string html = helper.DropDownList("[Select Something]", "foo", selectList, _attributesObjectDictionary);
+
+            // Assert
+            Assert.AreEqual(
+                @"<select baz=""BazObjValue"" id=""foo"" name=""foo""><option value="""">[Select Something]</option>
+<option>Alpha</option>
 <option>Bravo</option>
 <option>Charlie</option>
 </select>",
@@ -128,77 +185,77 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void DropDownListUsesViewDataSelectList() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(GetViewDataWithSelectList());
 
-            // Execute
-            string html = helper.DropDownList("foo");
+            // Act
+            string html = helper.DropDownList(null /* optionLabel */, "foo");
 
-            // Verify
+            // Assert
             Assert.AreEqual(
-                @"<select name=""foo"" id=""foo""><option value=""A"">Alpha</option>
+                @"<select id=""foo"" name=""foo""><option value=""A"">Alpha</option>
 <option value=""B"">Bravo</option>
-<option value=""C"" selected=""selected"">Charlie</option>
+<option selected=""selected"" value=""C"">Charlie</option>
 </select>",
                 html);
         }
 
         [TestMethod]
         public void DropDownListWithNullViewDataValueThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
 
-            // Execute
+            // Act
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    helper.DropDownList("foo");
+                    helper.DropDownList(null /* optionLabel */, "foo");
                 },
                 "There is no ViewData item with the key 'foo' of type 'System.Web.Mvc.SelectList'.");
         }
 
         [TestMethod]
         public void DropDownListWithWrongViewDataTypeValueThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary { { "foo", 123 } });
 
-            // Execute
+            // Act
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    helper.DropDownList("foo");
+                    helper.DropDownList(null /* optionLabel */, "foo");
                 },
                 "The ViewData item with the key 'foo' is of type 'System.Int32' but needs to be of type 'System.Web.Mvc.SelectList'.");
         }
 
         [TestMethod]
         public void ListBoxUsesExplicitValueIfNotProvidedInViewData() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
             MultiSelectList selectList = new MultiSelectList(MultiSelectListTest.GetSampleAnonymousObjects(), "Letter", "FullWord", new[] { "A", "C" });
 
-            // Execute
+            // Act
             string html = helper.ListBox("foo", selectList);
 
-            // Verify
+            // Assert
             Assert.AreEqual(
-                @"<select name=""foo"" id=""foo"" multiple=""multiple""><option value=""A"" selected=""selected"">Alpha</option>
+                @"<select id=""foo"" multiple=""multiple"" name=""foo""><option selected=""selected"" value=""A"">Alpha</option>
 <option value=""B"">Bravo</option>
-<option value=""C"" selected=""selected"">Charlie</option>
+<option selected=""selected"" value=""C"">Charlie</option>
 </select>",
                 html);
         }
 
         [TestMethod]
         public void ListBoxUsesViewDataDefaultValue() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(_listBoxViewData);
             MultiSelectList selectList = new MultiSelectList(MultiSelectListTest.GetSampleStrings(), new[] { "Charlie" });
 
-            // Execute
+            // Act
             string html = helper.ListBox("foo", selectList);
 
-            // Verify
+            // Assert
             Assert.AreEqual(
-                @"<select name=""foo"" id=""foo"" multiple=""multiple""><option>Alpha</option>
+                @"<select id=""foo"" multiple=""multiple"" name=""foo""><option>Alpha</option>
 <option selected=""selected"">Bravo</option>
 <option>Charlie</option>
 </select>",
@@ -207,16 +264,36 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void ListBoxWithAttributesDictionary() {
-            // Setup
+            // Arrange
+            ViewDataDictionary viewData = new ViewDataDictionary();
+            MultiSelectList selectList = new MultiSelectList(MultiSelectListTest.GetSampleStrings());
+            viewData["foo"] = selectList;
+            HtmlHelper helper = GetHtmlHelper(viewData);
+
+            // Act
+            string html = helper.ListBox("foo",  _attributesDictionary);
+
+            // Assert
+            Assert.AreEqual(
+                @"<select baz=""BazValue"" id=""foo"" multiple=""multiple"" name=""foo""><option>Alpha</option>
+<option>Bravo</option>
+<option>Charlie</option>
+</select>",
+                html);
+        }
+
+        [TestMethod]
+        public void ListBoxWithAttributesDictionaryAndMultiSelectList() {
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
             MultiSelectList selectList = new MultiSelectList(MultiSelectListTest.GetSampleStrings());
 
-            // Execute
+            // Act
             string html = helper.ListBox("foo", selectList, _attributesDictionary);
 
-            // Verify
+            // Assert
             Assert.AreEqual(
-                @"<select baz=""BazValue"" name=""foo"" id=""foo"" multiple=""multiple""><option>Alpha</option>
+                @"<select baz=""BazValue"" id=""foo"" multiple=""multiple"" name=""foo""><option>Alpha</option>
 <option>Bravo</option>
 <option>Charlie</option>
 </select>",
@@ -225,10 +302,10 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void ListBoxWithEmptyNameThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     helper.ListBox(String.Empty, (MultiSelectList)null /* selectList */);
@@ -238,10 +315,10 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void ListBoxWithNullNameThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     helper.ListBox(null /* name */, (MultiSelectList)null /* selectList */);
@@ -251,10 +328,10 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void ListBoxWithNullSelectListThrows() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     helper.ListBox("foo", (MultiSelectList)null /* selectList */);
@@ -262,19 +339,18 @@ namespace System.Web.Mvc.Test {
                 "selectList");
         }
 
-
         [TestMethod]
         public void ListBoxWithObjectDictionary() {
-            // Setup
+            // Arrange
             HtmlHelper helper = GetHtmlHelper(new ViewDataDictionary());
             MultiSelectList selectList = new MultiSelectList(MultiSelectListTest.GetSampleStrings());
 
-            // Execute
+            // Act
             string html = helper.ListBox("foo", selectList, _attributesObjectDictionary);
 
-            // Verify
+            // Assert
             Assert.AreEqual(
-                @"<select baz=""BazObjValue"" name=""foo"" id=""foo"" multiple=""multiple""><option>Alpha</option>
+                @"<select baz=""BazObjValue"" id=""foo"" multiple=""multiple"" name=""foo""><option>Alpha</option>
 <option>Bravo</option>
 <option>Charlie</option>
 </select>",

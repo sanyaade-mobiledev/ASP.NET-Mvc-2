@@ -14,10 +14,10 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void VerifyAndProcessRequestWithNullHandlerThrows() {
-            // Setup
+            // Arrange
             PublicMvcHttpHandler handler = new PublicMvcHttpHandler();
 
-            // Execute
+            // Act
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     handler.PublicVerifyAndProcessRequest(null, null);
@@ -27,11 +27,11 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void VerifyAndProcessRequestWithNonMvcHandlerThrows() {
-            // Setup
+            // Arrange
             PublicMvcHttpHandler handler = new PublicMvcHttpHandler();
             DummyHttpHandler dummyHandler = new DummyHttpHandler();
 
-            // Execute
+            // Act
             ExceptionHelper.ExpectArgumentException(
                 delegate {
                     handler.PublicVerifyAndProcessRequest(dummyHandler, null);
@@ -42,15 +42,15 @@ Parameter name: httpHandler");
 
         [TestMethod]
         public void ProcessRequestCallsExecute() {
-            // Setup
+            // Arrange
             PublicMvcHttpHandler handler = new PublicMvcHttpHandler();
             Mock<MvcHandler> mockTargetHandler = new Mock<MvcHandler>(new RequestContext(new Mock<HttpContextBase>().Object, new RouteData()));
             mockTargetHandler.Expect(h => h.ProcessRequest(It.IsAny<HttpContextBase>())).Verifiable();
 
-            // Execute
+            // Act
             handler.PublicVerifyAndProcessRequest(mockTargetHandler.Object, null);
 
-            // Verify
+            // Assert
             mockTargetHandler.Verify();
         }
 

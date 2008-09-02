@@ -9,33 +9,33 @@
     public class ViewMasterPageTest {
         [TestMethod]
         public void GetViewDataFromViewPage() {
-            // Setup
+            // Arrange
             ViewMasterPage vmp = new ViewMasterPage();
             ViewPage vp = new ViewPage();
             vmp.Page = vp;
             vp.ViewData = new ViewDataDictionary { { "a", "123" }, { "b", "456" } };
 
-            // Verify
+            // Assert
             Assert.AreEqual("123", vmp.ViewData.Eval("a"));
             Assert.AreEqual("456", vmp.ViewData.Eval("b"));
         }
 
         [TestMethod]
         public void GetViewItemFromViewPageTViewData() {
-            // Setup
+            // Arrange
             MockViewMasterPageDummyViewData vmp = new MockViewMasterPageDummyViewData();
             MockViewPageDummyViewData vp = new MockViewPageDummyViewData();
             vmp.Page = vp;
             vp.ViewData.Model = new DummyViewData { MyInt = 123, MyString = "abc" };
 
-            // Verify
+            // Assert
             Assert.AreEqual(123, vmp.ViewData.Model.MyInt);
             Assert.AreEqual("abc", vmp.ViewData.Model.MyString);
         }
 
         [TestMethod]
         public void GetWriterFromViewPage() {
-            // Setup
+            // Arrange
             bool triggered = false;
             HtmlTextWriter writer = new HtmlTextWriter(System.IO.TextWriter.Null);
             ViewMasterPage vmp = new ViewMasterPage();
@@ -46,7 +46,7 @@
             };
             vmp.Page = vp;
 
-            // Execute & verify
+            // Act & Assert
             Assert.IsNull(vmp.Writer);
             vp.RenderControl(writer);
             Assert.IsNull(vmp.Writer);
@@ -55,11 +55,11 @@
 
         [TestMethod]
         public void GetViewDataFromPageThrows() {
-            // Setup
+            // Arrange
             ViewMasterPage vmp = new ViewMasterPage();
             vmp.Page = new Page();
 
-            // Verify
+            // Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     object foo = vmp.ViewData;
@@ -69,13 +69,13 @@
 
         [TestMethod]
         public void GetViewItemFromWrongGenericViewPageType() {
-            // Setup
+            // Arrange
             MockViewMasterPageDummyViewData vmp = new MockViewMasterPageDummyViewData();
             MockViewPageBogusViewData vp = new MockViewPageBogusViewData();
             vmp.Page = vp;
             vp.ViewData.Model = new ListItem();
 
-            // Verify
+            // Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     object foo = vmp.ViewData.Model;
@@ -85,10 +85,10 @@
 
         [TestMethod]
         public void GetViewDataFromNullPageThrows() {
-            // Setup
+            // Arrange
             MockViewMasterPageDummyViewData vmp = new MockViewMasterPageDummyViewData();
 
-            // Verify
+            // Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     object foo = vmp.ViewData;
@@ -98,11 +98,11 @@
 
         [TestMethod]
         public void GetViewDataFromRegularPageThrows() {
-            // Setup
+            // Arrange
             MockViewMasterPageDummyViewData vmp = new MockViewMasterPageDummyViewData();
             vmp.Page = new Page();
 
-            // Verify
+            // Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     object foo = vmp.ViewData;
@@ -112,44 +112,40 @@
 
         [TestMethod]
         public void GetHtmlHelperFromViewPage() {
-            // Setup
+            // Arrange
             ViewMasterPage vmp = new ViewMasterPage();
             ViewPage vp = new ViewPage();
             vmp.Page = vp;
-            ViewContext vc = new ViewContext(
-                new Mock<HttpContextBase>().Object,
-                new RouteData(),
-                new Mock<IController>().Object,
-                "view",
-                null,
-                new ViewDataDictionary(),
-                new TempDataDictionary());
+            ViewContext vc = new ViewContext(new Mock<HttpContextBase>().Object, 
+                                             new RouteData(), 
+                                             new Mock<ControllerBase>().Object, 
+                                             "view", 
+                                             new ViewDataDictionary(), 
+                                             new TempDataDictionary());
 
             HtmlHelper htmlHelper = new HtmlHelper(vc, vp);
             vp.Html = htmlHelper;
 
-            // Verify
+            // Assert
             Assert.AreEqual(vmp.Html, htmlHelper);
         }
 
         [TestMethod]
         public void GetUrlHelperFromViewPage() {
-            // Setup
+            // Arrange
             ViewMasterPage vmp = new ViewMasterPage();
             ViewPage vp = new ViewPage();
             vmp.Page = vp;
-            ViewContext vc = new ViewContext(
-                new Mock<HttpContextBase>().Object,
-                new RouteData(),
-                new Mock<IController>().Object,
-                "view",
-                null,
-                new ViewDataDictionary(),
-                new TempDataDictionary());
+            ViewContext vc = new ViewContext(new Mock<HttpContextBase>().Object, 
+                                             new RouteData(),
+                                             new Mock<ControllerBase>().Object, 
+                                             "view", 
+                                             new ViewDataDictionary(), 
+                                             new TempDataDictionary());
             UrlHelper urlHelper = new UrlHelper(vc);
             vp.Url = urlHelper;
 
-            // Verify
+            // Assert
             Assert.AreEqual(vmp.Url, urlHelper);
         }
 

@@ -9,24 +9,23 @@ namespace System.Web.Mvc.Test {
     public class UrlHelperTest {
         [TestMethod]
         public void ViewContextProperty() {
-            // Setup
+            // Arrange
             ViewContext viewContext = new ViewContext(
                 new Mock<HttpContextBase>().Object,
                 new RouteData(),
-                new Mock<IController>().Object,
+                new Mock<ControllerBase>().Object,
                 "view",
-                "master",
                 new ViewDataDictionary(),
                 new TempDataDictionary());
             UrlHelper urlHelper = new UrlHelper(viewContext);
 
-            // Verify
+            // Assert
             Assert.AreEqual(urlHelper.ViewContext, viewContext);
         }
 
         [TestMethod]
         public void ConstructorWithNullViewContextThrows() {
-            // Verify
+            // Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     new UrlHelper(null);
@@ -36,106 +35,130 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void Action() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string url = urlHelper.Action("newaction");
 
-            // Verify
+            // Assert
             Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home/newaction", url);
         }
 
         [TestMethod]
         public void ActionWithControllerName() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string url = urlHelper.Action("newaction", "home2");
 
-            // Verify
+            // Assert
             Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction", url);
         }
 
         [TestMethod]
         public void ActionWithControllerNameAndDictionary() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string url = urlHelper.Action("newaction", "home2", new RouteValueDictionary(new { id = "someid" }));
 
-            // Verify
+            // Assert
             Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
         }
 
         [TestMethod]
         public void ActionWithControllerNameAndObjectProperties() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string url = urlHelper.Action("newaction", "home2", new { id = "someid" });
 
-            // Verify
+            // Assert
             Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
         }
 
         [TestMethod]
         public void ActionWithDictionary() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string url = urlHelper.Action("newaction", new RouteValueDictionary(new { Controller = "home2", id = "someid" }));
 
-            // Verify
+            // Assert
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
+        }
+
+        [TestMethod]
+        public void ActionWithNullProtocol() {
+            // Arrange
+            UrlHelper urlHelper = GetUrlHelper();
+
+            // Act
+            string url = urlHelper.Action("newaction", "home2", new { id = "someid" }, null /* protocol */);
+
+            // Assert
             Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
         }
 
         [TestMethod]
         public void ActionWithObjectProperties() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string url = urlHelper.Action("newaction", new { Controller = "home2", id = "someid" });
 
-            // Verify
+            // Assert
             Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
         }
 
         [TestMethod]
-        public void ContentWithAbsolutePath() {
-            // Setup
+        public void ActionWithProtocol() {
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
+            string url = urlHelper.Action("newaction", "home2", new { id = "someid" }, "https");
+
+            // Assert
+            Assert.AreEqual<string>("https://localhost" + HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
+        }
+
+        [TestMethod]
+        public void ContentWithAbsolutePath() {
+            // Arrange
+            UrlHelper urlHelper = GetUrlHelper();
+
+            // Act
             string url = urlHelper.Content("/Content/Image.jpg");
 
-            // Verify
-            Assert.AreEqual("/app/Content/Image.jpg", url);
+            // Assert
+            Assert.AreEqual("/Content/Image.jpg", url);
         }
 
         [TestMethod]
         public void ContentWithAppRelativePath() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string url = urlHelper.Content("~/Content/Image.jpg");
 
-            // Verify
+            // Assert
             Assert.AreEqual("/app/Content/Image.jpg", url);
         }
 
         [TestMethod]
         public void ContentWithEmptyPathThrows() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate() {
                     urlHelper.Content(String.Empty);
@@ -145,31 +168,43 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void ContentWithRelativePath() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string url = urlHelper.Content("Content/Image.jpg");
 
-            // Verify
-            Assert.AreEqual("/app/Content/Image.jpg", url);
+            // Assert
+            Assert.AreEqual("Content/Image.jpg", url);
+        }
+
+        [TestMethod]
+        public void ContentWithExternalUrl() {
+            // Arrange
+            UrlHelper urlHelper = GetUrlHelper();
+
+            // Act
+            string url = urlHelper.Content("http://www.asp.net/App_Themes/Standard/i/logo.png");
+
+            // Assert
+            Assert.AreEqual("http://www.asp.net/App_Themes/Standard/i/logo.png", url);
         }
 
         [TestMethod]
         public void Encode() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string encodedUrl = urlHelper.Encode(@"SomeUrl /+\");
 
-            // Verify
+            // Assert
             Assert.AreEqual(encodedUrl, "SomeUrl+%2f%2b%5c");
         }
 
         [TestMethod]
         public void NullDictionaryParameterThrows() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
             GenericDelegate[] tests = new GenericDelegate[] {
                 () => urlHelper.Action("actionName", (RouteValueDictionary)null),
@@ -178,7 +213,7 @@ namespace System.Web.Mvc.Test {
                 () => urlHelper.RouteUrl("routeName", (RouteValueDictionary)null)
             };
 
-            // Execute & verify
+            // Act & Assert
             foreach (GenericDelegate test in tests) {
                 ExceptionHelper.ExpectArgumentNullException(test, "valuesDictionary");
             }
@@ -186,7 +221,7 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void NullOrEmptyStringParameterThrows() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
             Func<Action, GenericDelegate> Wrap = action => new GenericDelegate(() => action());
             var tests = new[] {
@@ -221,7 +256,7 @@ namespace System.Web.Mvc.Test {
                 new { Parameter = "routeName", Action = Wrap(() => urlHelper.RouteUrl(String.Empty, new RouteValueDictionary())) }
             };
 
-            // Execute & verify
+            // Act & Assert
             foreach (var test in tests) {
                 ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(test.Action, test.Parameter);
             }
@@ -229,84 +264,144 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void RouteUrlWithDictionary() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string url = urlHelper.RouteUrl(new RouteValueDictionary(new { Action = "newaction", Controller = "home2", id = "someid" }));
 
-            // Verify
+            // Assert
             Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
+        }
+
+        [TestMethod]
+        public void RouteUrlWithEmptyHostName() {
+            // Arrange
+            UrlHelper urlHelper = GetUrlHelper();
+
+            // Act
+            string url = urlHelper.RouteUrl("namedroute", new RouteValueDictionary(new { Action = "newaction", Controller = "home2", id = "someid" }), "http", String.Empty /* hostName */);
+
+            // Assert
+            Assert.AreEqual<string>("http://localhost" + HtmlHelperTest.AppPathModifier + "/app/named/home2/newaction/someid", url);
+        }
+
+        [TestMethod]
+        public void RouteUrlWithEmptyProtocol() {
+            // Arrange
+            UrlHelper urlHelper = GetUrlHelper();
+
+            // Act
+            string url = urlHelper.RouteUrl("namedroute", new RouteValueDictionary(new { Action = "newaction", Controller = "home2", id = "someid" }), String.Empty /* protocol */, "foo.bar.com");
+
+            // Assert
+            Assert.AreEqual<string>("http://foo.bar.com" + HtmlHelperTest.AppPathModifier + "/app/named/home2/newaction/someid", url);
+        }
+
+        [TestMethod]
+        public void RouteUrlWithNullProtocol() {
+            // Arrange
+            UrlHelper urlHelper = GetUrlHelper();
+
+            // Act
+            string url = urlHelper.RouteUrl("namedroute", new RouteValueDictionary(new { Action = "newaction", Controller = "home2", id = "someid" }), null /* protocol */, "foo.bar.com");
+
+            // Assert
+            Assert.AreEqual<string>("http://foo.bar.com" + HtmlHelperTest.AppPathModifier + "/app/named/home2/newaction/someid", url);
+        }       
+
+        [TestMethod]
+        public void RouteUrlWithNullProtocolAndNullHostName() {
+            // Arrange
+            UrlHelper urlHelper = GetUrlHelper();
+
+            // Act
+            string url = urlHelper.RouteUrl("namedroute", new RouteValueDictionary(new { Action = "newaction", Controller = "home2", id = "someid" }), null /* protocol */, null /* hostName */);
+
+            // Assert
+            Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/named/home2/newaction/someid", url);
         }
 
         [TestMethod]
         public void RouteUrlWithObjectProperties() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string url = urlHelper.RouteUrl(new { Action = "newaction", Controller = "home2", id = "someid" });
 
-            // Verify
+            // Assert
             Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/home2/newaction/someid", url);
         }
 
         [TestMethod]
-        public void RouteUrlWithRouteNameAndDefaults() {
-            // Setup
+        public void RouteUrlWithProtocol() {
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
+            string url = urlHelper.RouteUrl("namedroute", new { Action = "newaction", Controller = "home2", id = "someid" }, "https");
+
+            // Assert
+            Assert.AreEqual<string>("https://localhost" + HtmlHelperTest.AppPathModifier + "/app/named/home2/newaction/someid", url);
+        }
+
+        [TestMethod]
+        public void RouteUrlWithRouteNameAndDefaults() {
+            // Arrange
+            UrlHelper urlHelper = GetUrlHelper();
+
+            // Act
             string url = urlHelper.RouteUrl("namedroute");
 
-            // Verify
+            // Assert
             Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/named/home/oldaction", url);
         }
 
         [TestMethod]
         public void RouteUrlWithRouteNameAndDictionary() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string url = urlHelper.RouteUrl("namedroute", new RouteValueDictionary(new { Action = "newaction", Controller = "home2", id = "someid" }));
 
-            // Verify
+            // Assert
             Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/named/home2/newaction/someid", url);
         }
 
         [TestMethod]
         public void RouteUrlWithRouteNameAndObjectProperties() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Execute
+            // Act
             string url = urlHelper.RouteUrl("namedroute", new { Action = "newaction", Controller = "home2", id = "someid" });
 
-            // Verify
+            // Assert
             Assert.AreEqual<string>(HtmlHelperTest.AppPathModifier + "/app/named/home2/newaction/someid", url);
         }
 
         [TestMethod]
         public void UrlGenerationDoesNotChangeProvidedDictionary() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
             RouteValueDictionary valuesDictionary = new RouteValueDictionary();
 
-            // Execute
+            // Act
             urlHelper.Action("actionName", valuesDictionary);
 
-            // Verify
+            // Assert
             Assert.IsFalse(valuesDictionary.ContainsKey("action"));
         }
 
         [TestMethod]
         public void UrlGenerationThrowsIfDictionaryAlreadyContainsActionName() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
             RouteValueDictionary valuesDictionary = new RouteValueDictionary(new { Action = "someaction" });
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentException(
                 delegate() {
                     urlHelper.Action("action", valuesDictionary);
@@ -316,11 +411,11 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void UrlGenerationThrowsIfDictionaryAlreadyContainsControllerName() {
-            // Setup
+            // Arrange
             UrlHelper urlHelper = GetUrlHelper();
             RouteValueDictionary valuesDictionary = new RouteValueDictionary(new { Controller = "somecontroller" });
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentException(
                 delegate() {
                     urlHelper.Action("action", "controller", valuesDictionary);
@@ -336,7 +431,7 @@ namespace System.Web.Mvc.Test {
             RouteData rd = new RouteData();
             rd.Values.Add("controller", "home");
             rd.Values.Add("action", "oldaction");
-            ViewContext context = new ViewContext(httpcontext, rd, new Mock<IController>().Object, "view", "master", new ViewDataDictionary(), new TempDataDictionary());
+            ViewContext context = new ViewContext(httpcontext, rd, new Mock<ControllerBase>().Object, "view", new ViewDataDictionary(), new TempDataDictionary());
             UrlHelper urlHelper = new UrlHelper(context);
             urlHelper.RouteCollection = rt;
             return urlHelper;

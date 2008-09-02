@@ -10,7 +10,7 @@
         public void ConstructorWithNullRequestContextThrows() {
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    new ControllerContext(null, new Mock<IController>().Object);
+                    new ControllerContext(null, new Mock<ControllerBase>().Object);
                 },
                 "requestContext");
         }
@@ -37,7 +37,7 @@
         public void ConstructorWithNullHttpContextThrows() {
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    new ControllerContext(null, new RouteData(), new Mock<IController>().Object);
+                    new ControllerContext(null, new RouteData(), new Mock<ControllerBase>().Object);
                 },
                 "httpContext");
         }
@@ -46,7 +46,7 @@
         public void ConstructorWithNullRouteDataThrows() {
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    new ControllerContext(new Mock<HttpContextBase>().Object, null, new Mock<IController>().Object);
+                    new ControllerContext(new Mock<HttpContextBase>().Object, null, new Mock<ControllerBase>().Object);
                 },
                 "routeData");
         }
@@ -62,55 +62,55 @@
 
         [TestMethod]
         public void ConstructorSetsProperties() {
-            // Setup
+            // Arrange
             HttpContextBase httpContext = GetEmptyContextForTempData();
-            IController controller = new Mock<IController>().Object;
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             RouteData routeData = new RouteData();
 
-            // Execute
+            // Act
             ControllerContext cc = new ControllerContext(httpContext, routeData, controller);
 
-            // Verify
-            Assert.AreEqual<HttpContextBase>(httpContext, cc.HttpContext);
-            Assert.AreEqual<RouteData>(routeData, cc.RouteData);
-            Assert.AreEqual<IController>(controller, cc.Controller);
+            // Assert
+            Assert.AreEqual(httpContext, cc.HttpContext);
+            Assert.AreEqual(routeData, cc.RouteData);
+            Assert.AreEqual(controller, cc.Controller);
         }
 
         [TestMethod]
         public void ConstructorSetsProperties2() {
-            // Setup
+            // Arrange
             HttpContextBase httpContext = GetEmptyContextForTempData();
-            IController controller = new Mock<IController>().Object;
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             RouteData routeData = new RouteData();
 
-            // Execute
+            // Act
             ControllerContext cc = new ControllerContext(new RequestContext(httpContext, routeData), controller);
 
-            // Verify
-            Assert.AreEqual<HttpContextBase>(httpContext, cc.HttpContext);
-            Assert.AreEqual<RouteData>(routeData, cc.RouteData);
-            Assert.AreEqual<IController>(controller, cc.Controller);
+            // Assert
+            Assert.AreEqual(httpContext, cc.HttpContext);
+            Assert.AreEqual(routeData, cc.RouteData);
+            Assert.AreEqual(controller, cc.Controller);
         }
 
         [TestMethod]
         public void ConstructorSetsProperties3() {
-            // Setup
+            // Arrange
             HttpContextBase httpContext = GetEmptyContextForTempData();
-            IController controller = new Mock<IController>().Object;
+            ControllerBase controller = new Mock<ControllerBase>().Object;
             RouteData routeData = new RouteData();
 
-            // Execute
+            // Act
             ControllerContext cc1 = new ControllerContext(new RequestContext(httpContext, routeData), controller);
             ControllerContext cc2 = new ControllerContext(cc1);
 
-            // Verify
+            // Assert
             Assert.AreEqual(cc1.HttpContext, cc2.HttpContext);
             Assert.AreEqual(cc1.RouteData, cc2.RouteData);
             Assert.AreEqual(cc1.Controller, cc2.Controller);
         }
 
         internal static ControllerContext GetControllerContext() {
-            return new ControllerContext(GetEmptyContextForTempData(), new RouteData(), new Mock<IController>().Object);
+            return new ControllerContext(GetEmptyContextForTempData(), new RouteData(), new Mock<ControllerBase>().Object);
         }
 
         internal static HttpContextBase GetEmptyContextForTempData() {

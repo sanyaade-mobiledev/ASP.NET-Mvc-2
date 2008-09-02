@@ -1,5 +1,6 @@
 namespace System.Web.Mvc.Test {
     using System;
+    using System.Web.Mvc;
     using System.Web.Routing;
     using System.Web.TestUtil;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,77 +11,23 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void ControllerBuilderReturnsDefaultControllerBuilderByDefault() {
-            // Setup
+            // Arrange
             ControllerBuilder cb = new ControllerBuilder();
             
-            // Execute
+            // Act
             IControllerFactory cf = cb.GetControllerFactory();
 
-            // Verify
+            // Assert
             Assert.IsInstanceOfType(cf, typeof(DefaultControllerFactory));
         }
 
         [TestMethod]
-        public void ControllerIsDisposedIfExceptionThrown() {
-            // Setup
-            bool wasDisposed = false;
-            ControllerBuilder cb = new ControllerBuilder();
-            IController controller = new DisposableController(
-                delegate() {
-                    wasDisposed = true;
-                },
-                delegate() {
-                    throw new Exception("Execute");
-                });
-            cb.SetControllerFactory(new SimpleControllerFactory(controller));
-            RequestContext reqContext = new RequestContext(new Mock<HttpContextBase>().Object, new RouteData());
-            reqContext.RouteData.Values["controller"] = "foo";
-            MvcHandler handler = new MvcHandler(reqContext) {
-                ControllerBuilder = cb
-            };
-
-            // Execute
-            ExceptionHelper.ExpectException<Exception>(
-                delegate() {
-                    handler.ProcessRequest(reqContext.HttpContext);
-                },
-                "Execute");
-
-            // Verify
-            Assert.IsTrue(wasDisposed);
-        }
-
-        [TestMethod]
-        public void ControllerIsDisposedIfNoExceptionThrown() {
-            // Setup
-            bool wasDisposed = false;
-            ControllerBuilder cb = new ControllerBuilder();
-            IController controller = new DisposableController(
-                delegate() {
-                    wasDisposed = true;
-                },
-                null /* executeCallback */);
-            cb.SetControllerFactory(new SimpleControllerFactory(controller));
-            RequestContext reqContext = new RequestContext(new Mock<HttpContextBase>().Object, new RouteData());
-            reqContext.RouteData.Values["controller"] = "foo";
-            MvcHandler handler = new MvcHandler(reqContext) {
-                ControllerBuilder = cb
-            };
-
-            // Execute
-            handler.ProcessRequest(reqContext.HttpContext);
-
-            // Verify
-            Assert.IsTrue(wasDisposed);
-        }
-
-        [TestMethod]
         public void CreateControllerWithFactoryThatCannotBeCreatedThrows() {
-            // Setup
+            // Arrange
             ControllerBuilder cb = new ControllerBuilder();
             cb.SetControllerFactory(typeof(ControllerFactoryThrowsFromConstructor));
 
-            // Execute
+            // Act
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     RequestContext reqContext = new RequestContext(new Mock<HttpContextBase>().Object, new RouteData());
@@ -95,11 +42,11 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void CreateControllerWithFactoryThatReturnsNullThrows() {
-            // Setup
+            // Arrange
             ControllerBuilder cb = new ControllerBuilder();
             cb.SetControllerFactory(typeof(ControllerFactoryReturnsNull));
 
-            // Execute
+            // Act
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     RequestContext reqContext = new RequestContext(new Mock<HttpContextBase>().Object, new RouteData());
@@ -114,11 +61,11 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void CreateControllerWithFactoryThatThrowsDoesNothingSpecial() {
-            // Setup
+            // Arrange
             ControllerBuilder cb = new ControllerBuilder();
             cb.SetControllerFactory(typeof(ControllerFactoryThrows));
 
-            // Execute
+            // Act
             ExceptionHelper.ExpectException<Exception>(
                 delegate {
                     RequestContext reqContext = new RequestContext(new Mock<HttpContextBase>().Object, new RouteData());
@@ -133,28 +80,28 @@ namespace System.Web.Mvc.Test {
 
         [TestMethod]
         public void CreateControllerWithFactoryInstanceReturnsInstance() {
-            // Setup
+            // Arrange
             ControllerBuilder cb = new ControllerBuilder();
             DefaultControllerFactory factory = new DefaultControllerFactory();
             cb.SetControllerFactory(factory);
 
-            // Execute
+            // Act
             IControllerFactory cf = cb.GetControllerFactory();
 
-            // Verify
+            // Assert
             Assert.AreSame(factory, cf);
         }
 
         [TestMethod]
         public void CreateControllerWithFactoryTypeReturnsValidType() {
-            // Setup
+            // Arrange
             ControllerBuilder cb = new ControllerBuilder();
             cb.SetControllerFactory(typeof(MockControllerFactory));
 
-            // Execute
+            // Act
             IControllerFactory cf = cb.GetControllerFactory();
             
-            // Verify
+            // Assert
             Assert.IsInstanceOfType(cf, typeof(MockControllerFactory));
         }
 
@@ -222,64 +169,10 @@ namespace System.Web.Mvc.Test {
         public class MockControllerFactory : IControllerFactory {
 
             public IController CreateController(RequestContext context, string controllerName) {
-                return new DummyController { ControllerName = controllerName };
-            }
-
-            public void DisposeController(IController controller) {
-            }
-        }
-
-        public class DummyController : IController {
-            public string ControllerName {
-                get;
-                set;
-            }
-
-            #region IController Members
-            void IController.Execute(ControllerContext controllerContext) {
                 throw new NotImplementedException();
             }
-            #endregion
-        }
 
-        public class SimpleControllerFactory : IControllerFactory {
-
-            private IController _instance;
-
-            public SimpleControllerFactory(IController instance) {
-                _instance = instance;
-            }
-
-            #region IControllerFactory Members
-            public IController CreateController(RequestContext context, string controllerName) {
-                return _instance;
-            }
             public void DisposeController(IController controller) {
-                IDisposable disposable = _instance as IDisposable;
-                if (disposable != null) {
-                    disposable.Dispose();
-                }
-            }
-            #endregion
-        }
-
-        public class DisposableController : IController, IDisposable {
-
-            private Action _disposeCallback;
-            private Action _executeCallback;
-            private static Action _defaultAction = delegate {
-            };
-
-            public DisposableController(Action disposeCallback, Action executeCallback) {
-                _disposeCallback = disposeCallback ?? _defaultAction;
-                _executeCallback = executeCallback ?? _defaultAction;
-            }
-
-            public void Execute(ControllerContext controllerContext) {
-                _executeCallback();
-            }
-            public void Dispose() {
-                _disposeCallback();
             }
         }
 

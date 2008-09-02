@@ -1,5 +1,4 @@
 ﻿namespace System.Web.Mvc.Test {
-    using System.Security;
     using System.Security.Principal;
     using System.Web;
     using System.Web.Mvc;
@@ -13,10 +12,10 @@
 
         [TestMethod]
         public void NullFilterContextThrows() {
-            // Setup
+            // Arrange
             AuthorizeAttribute attr = new AuthorizeAttribute();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     attr.OnAuthorization(null /* filterContext */);
@@ -25,17 +24,17 @@
 
         [TestMethod]
         public void StringPropertiesReturnEmptyInsteadOfNull() {
-            // Setup
+            // Arrange
             AuthorizeAttribute attr = new AuthorizeAttribute();
 
-            // Execute & verify
+            // Act & Assert
             MemberHelper.TestStringProperty(attr, "Roles", String.Empty, false /* testDefaultValue */);
             MemberHelper.TestStringProperty(attr, "Users", String.Empty, false /* testDefaultValue */);
         }
 
         [TestMethod]
         public void UserIsNotAuthenticatedThrows() {
-            // Setup
+            // Arrange
             AuthorizeAttribute attr = new AuthorizeAttribute();
             Mock<IIdentity> mockIdentity = new Mock<IIdentity>();
             mockIdentity.Expect(i => i.IsAuthenticated).Returns(false).Verifiable();
@@ -43,10 +42,10 @@
             mockPrincipal.Expect(p => p.Identity).Returns(mockIdentity.Object).Verifiable();
             AuthorizationContext filterContext = GetFilterContext(mockPrincipal.Object);
 
-            // Execute
+            // Act
             attr.OnAuthorization(filterContext);
 
-            // Verify
+            // Assert
             Assert.IsTrue(filterContext.Cancel, "Action should have been canceled.");
             Assert.IsInstanceOfType(filterContext.Result, typeof(HttpUnauthorizedResult));
             mockIdentity.Verify();
@@ -55,7 +54,7 @@
 
         [TestMethod]
         public void UserIsWrongNameThrows() {
-            // Setup
+            // Arrange
             AuthorizeAttribute attr = new AuthorizeAttribute() { Users = "SomeName, YetAnotherName" };
             Mock<IIdentity> mockIdentity = new Mock<IIdentity>();
             mockIdentity.Expect(i => i.IsAuthenticated).Returns(true).Verifiable();
@@ -64,10 +63,10 @@
             mockPrincipal.Expect(p => p.Identity).Returns(mockIdentity.Object).Verifiable();
             AuthorizationContext filterContext = GetFilterContext(mockPrincipal.Object);
 
-            // Execute
+            // Act
             attr.OnAuthorization(filterContext);
 
-            // Verify
+            // Assert
             Assert.IsTrue(filterContext.Cancel, "Action should have been canceled.");
             Assert.IsInstanceOfType(filterContext.Result, typeof(HttpUnauthorizedResult));
             mockIdentity.Verify();
@@ -76,7 +75,7 @@
 
         [TestMethod]
         public void UserNotInRoleThrows() {
-            // Setup
+            // Arrange
             AuthorizeAttribute attr = new AuthorizeAttribute() { Roles = "SomeRole, SomeOtherRole, , YetAnotherRole" };
             Mock<IIdentity> mockIdentity = new Mock<IIdentity>();
             mockIdentity.Expect(i => i.IsAuthenticated).Returns(true).Verifiable();
@@ -87,10 +86,10 @@
             mockPrincipal.Expect(p => p.IsInRole("YetAnotherRole")).Returns(false).Verifiable();
             AuthorizationContext filterContext = GetFilterContext(mockPrincipal.Object);
 
-            // Execute
+            // Act
             attr.OnAuthorization(filterContext);
 
-            // Verify
+            // Assert
             Assert.IsTrue(filterContext.Cancel, "Action should have been canceled.");
             Assert.IsInstanceOfType(filterContext.Result, typeof(HttpUnauthorizedResult));
             mockIdentity.Verify();
@@ -99,7 +98,7 @@
 
         [TestMethod]
         public void ValidUser() {
-            // Setup
+            // Arrange
             AuthorizeAttribute attr = new AuthorizeAttribute();
             Mock<IIdentity> mockIdentity = new Mock<IIdentity>();
             mockIdentity.Expect(i => i.IsAuthenticated).Returns(true).Verifiable();
@@ -107,10 +106,10 @@
             mockPrincipal.Expect(p => p.Identity).Returns(mockIdentity.Object).Verifiable();
             AuthorizationContext filterContext = GetFilterContext(mockPrincipal.Object);
 
-            // Execute
+            // Act
             attr.OnAuthorization(filterContext);
 
-            // Verify
+            // Assert
             Assert.IsFalse(filterContext.Cancel);
             mockIdentity.Verify();
             mockPrincipal.Verify();
@@ -118,7 +117,7 @@
 
         [TestMethod]
         public void ValidUserWithNameAndRole() {
-            // Setup
+            // Arrange
             AuthorizeAttribute attr = new AuthorizeAttribute() {
                 Roles = "SomeRole, SomeOtherRole, YetAnotherRole",
                 Users = "somename, someothername"
@@ -132,10 +131,10 @@
             mockPrincipal.Expect(p => p.IsInRole("SomeOtherRole")).Returns(true).Verifiable();
             AuthorizationContext filterContext = GetFilterContext(mockPrincipal.Object);
 
-            // Execute
+            // Act
             attr.OnAuthorization(filterContext);
 
-            // Verify
+            // Assert
             Assert.IsFalse(filterContext.Cancel);
             mockIdentity.Verify();
             mockPrincipal.Verify();
@@ -145,8 +144,8 @@
             Mock<HttpContextBase> mockHttpContext = new Mock<HttpContextBase>();
             mockHttpContext.Expect(c => c.User).Returns(user);
             ControllerContext controllerContext = new ControllerContext(mockHttpContext.Object, new RouteData(),
-                new Mock<IController>().Object);
-            return new AuthorizationContext(controllerContext, typeof(object).GetMethod("ToString"));
+                new Mock<ControllerBase>().Object);
+            return new AuthorizationContext(controllerContext);
         }
     }
 }

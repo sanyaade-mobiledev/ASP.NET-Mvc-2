@@ -10,13 +10,13 @@
 
         [TestMethod]
         public void Constructor1SetsProperties() {
-            // Setup
+            // Arrange
             IEnumerable items = new object[0];
 
-            // Execute
+            // Act
             MultiSelectList multiSelect = new MultiSelectList(items);
 
-            // Verify
+            // Assert
             Assert.AreSame(items, multiSelect.Items);
             Assert.IsNull(multiSelect.DataValueField);
             Assert.IsNull(multiSelect.DataTextField);
@@ -25,14 +25,14 @@
 
         [TestMethod]
         public void Constructor2SetsProperties() {
-            // Setup
+            // Arrange
             IEnumerable items = new object[0];
             IEnumerable selectedValues = new object[0];
 
-            // Execute
+            // Act
             MultiSelectList multiSelect = new MultiSelectList(items, selectedValues);
 
-            // Verify
+            // Assert
             Assert.AreSame(items, multiSelect.Items);
             Assert.IsNull(multiSelect.DataValueField);
             Assert.IsNull(multiSelect.DataTextField);
@@ -41,13 +41,13 @@
 
         [TestMethod]
         public void Constructor3SetsProperties() {
-            // Setup
+            // Arrange
             IEnumerable items = new object[0];
 
-            // Execute
+            // Act
             MultiSelectList multiSelect = new MultiSelectList(items, "SomeValueField", "SomeTextField");
 
-            // Verify
+            // Assert
             Assert.AreSame(items, multiSelect.Items);
             Assert.AreEqual("SomeValueField", multiSelect.DataValueField);
             Assert.AreEqual("SomeTextField", multiSelect.DataTextField);
@@ -56,14 +56,14 @@
 
         [TestMethod]
         public void Constructor4SetsProperties() {
-            // Setup
+            // Arrange
             IEnumerable items = new object[0];
             IEnumerable selectedValues = new object[0];
 
-            // Execute
+            // Act
             MultiSelectList multiSelect = new MultiSelectList(items, "SomeValueField", "SomeTextField", selectedValues);
 
-            // Verify
+            // Assert
             Assert.AreSame(items, multiSelect.Items);
             Assert.AreEqual("SomeValueField", multiSelect.DataValueField);
             Assert.AreEqual("SomeTextField", multiSelect.DataTextField);
@@ -79,28 +79,27 @@
         }
 
         [TestMethod]
-        public void GetListItemsSetsEmptyStringValueOnDataBinderFailure() {
-            // Setup
-            MultiSelectList multiSelect = new MultiSelectList(new[] { "Foo" }, "NonExistentValueField", null /* dataTextField */);
+        public void GetListItemsThrowsOnBindingFailure() {
+            // Arrange
+            MultiSelectList multiSelect = new MultiSelectList(GetSampleFieldObjects(),
+                "Text", "Value", new string[] { "A", "C", "T" });
 
-            // Execute
-            IList<ListItem> listItems = multiSelect.GetListItems();
-
-            // Verify
-            Assert.AreEqual(1, listItems.Count);
-            Assert.AreEqual("", listItems[0].Value);
-            Assert.AreEqual("Foo", listItems[0].Text);
+            // Assert
+            ExceptionHelper.ExpectHttpException(
+                delegate {
+                    IList<ListItem> listItems = multiSelect.GetListItems();
+                }, "DataBinding: 'System.Web.Mvc.Test.MultiSelectListTest+Item' does not contain a property with the name 'Text'.", 500);
         }
 
         [TestMethod]
         public void GetListItemsWithoutValueField() {
-            // Setup
+            // Arrange
             MultiSelectList multiSelect = new MultiSelectList(GetSampleStrings());
 
-            // Execute
+            // Act
             IList<ListItem> listItems = multiSelect.GetListItems();
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, listItems.Count);
             Assert.IsNull(listItems[0].Value);
             Assert.AreEqual("Alpha", listItems[0].Text);
@@ -115,13 +114,13 @@
 
         [TestMethod]
         public void GetListItemsWithoutValueFieldWithSelections() {
-            // Setup
+            // Arrange
             MultiSelectList multiSelect = new MultiSelectList(GetSampleStrings(), new string[] { "Alpha", "Charlie", "Tango" });
 
-            // Execute
+            // Act
             IList<ListItem> listItems = multiSelect.GetListItems();
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, listItems.Count);
             Assert.IsNull(listItems[0].Value);
             Assert.AreEqual("Alpha", listItems[0].Text);
@@ -136,13 +135,13 @@
 
         [TestMethod]
         public void GetListItemsWithValueField() {
-            // Setup
+            // Arrange
             MultiSelectList multiSelect = new MultiSelectList(GetSampleAnonymousObjects(), "Letter", "FullWord");
 
-            // Execute
+            // Act
             IList<ListItem> listItems = multiSelect.GetListItems();
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, listItems.Count);
             Assert.AreEqual("A", listItems[0].Value);
             Assert.AreEqual("Alpha", listItems[0].Text);
@@ -157,14 +156,14 @@
 
         [TestMethod]
         public void GetListItemsWithValueFieldWithSelections() {
-            // Setup
+            // Arrange
             MultiSelectList multiSelect = new MultiSelectList(GetSampleAnonymousObjects(),
                 "Letter", "FullWord", new string[] { "A", "C", "T" });
 
-            // Execute
+            // Act
             IList<ListItem> listItems = multiSelect.GetListItems();
 
-            // Verify
+            // Assert
             Assert.AreEqual(3, listItems.Count);
             Assert.AreEqual("A", listItems[0].Value);
             Assert.AreEqual("Alpha", listItems[0].Text);
@@ -185,8 +184,21 @@
             };
         }
 
+        internal static IEnumerable GetSampleFieldObjects() {
+            return new[] {
+                new Item { Text = "A", Value = "Alpha" },
+                new Item { Text = "B", Value = "Bravo" },
+                new Item { Text = "C", Value = "Charlie" }
+            };
+        }
+
         internal static IEnumerable GetSampleStrings() {
             return new string[] { "Alpha", "Bravo", "Charlie" };
+        }        
+
+        internal class Item {
+            public string Text;
+            public string Value;
         }
     }
 }

@@ -1,10 +1,11 @@
 ﻿namespace System.Web.Mvc.Test {
-    using System.Web.Mvc;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    using System.ComponentModel;
-    using System.Linq;
+    using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Web.Mvc;
+    using System.Web.TestUtil;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
     public class ViewDataDictionaryTest {
@@ -13,28 +14,28 @@
         public void ComparerIsOrdinalIgnoreCase() {
             // DevDiv Bugs 195982: The ViewData dictionary property on Controller should be case insensitive
 
-            // Setup
+            // Arrange
             ViewDataDictionary dictionary = new ViewDataDictionary();
             object item = new object();
 
-            // Execute
+            // Act
             dictionary["Foo"] = item;
             object value = dictionary["FOO"];
 
-            // Verify
+            // Assert
             Assert.AreSame(item, value);
         }
 
         [TestMethod]
         public void ItemWithKeyInDictionaryReturnsEntry() {
-            // Setup
+            // Arrange
             ViewDataDictionary dictionary = new ViewDataDictionary();
             dictionary["Foo"] = "FooValue";
 
-            // Execute
+            // Act
             object value = dictionary["Foo"];
 
-            // Verify
+            // Assert
             Assert.AreEqual("FooValue", value);
         }
 
@@ -43,13 +44,13 @@
             // DevDiv Bugs 201014: Consider having ViewDataDictionary's indexer be just a dictionary
             // indexer and have a separate public Eval() method
 
-            // Setup
+            // Arrange
             ViewDataDictionary dictionary = new ViewDataDictionary(new { Foo = "Bar" });
 
-            // Execute
+            // Act
             object value = dictionary["Foo"];
 
-            // Verify
+            // Assert
             Assert.IsNull(value);
         }
 
@@ -57,30 +58,15 @@
         public void ItemWithKeyNotInDictionaryReturnsNull() {
             // DevDiv Bugs 195981: ViewData should not throw an exception if the key does not exist
 
-            // Setup
+            // Arrange
             ViewDataDictionary dictionary = new ViewDataDictionary();
 
-            // Execute
+            // Act
             object value = dictionary["Foo"];
 
-            // Verify
+            // Assert
             Assert.IsNull(value);
         }
-
-        [TestMethod]
-        public void SubDataItemsComparerIsOrdinalIgnoreCase() {
-            // Setup
-            ViewDataDictionary dictionary = new ViewDataDictionary();
-            ViewDataDictionary item = new ViewDataDictionary();
-
-            // Execute
-            dictionary.SubDataItems["Foo"] = item;
-            object value = dictionary.SubDataItems["FOO"];
-
-            // Verify
-            Assert.AreSame(item, value);
-        }
-
 
         [TestMethod]
         public void EvalReturnsSimplePropertyValue() {
@@ -197,6 +183,30 @@
             vdd.Add("Foo.Bar", new { Baz = "Quux" });
 
             Assert.AreEqual("Quux", vdd.Eval("Foo.Bar.Baz"));
+        }
+
+        [TestMethod]
+        public void EvalThrowsIfExpressionIsEmpty() {
+            // Arrange
+            ViewDataDictionary vdd = new ViewDataDictionary();
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
+                delegate {
+                    vdd.Eval(String.Empty);
+                }, "expression");
+        }
+
+        [TestMethod]
+        public void EvalThrowsIfExpressionIsNull() {
+            // Arrange
+            ViewDataDictionary vdd = new ViewDataDictionary();
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
+                delegate {
+                    vdd.Eval(null);
+                }, "expression");
         }
 
         [TestMethod]

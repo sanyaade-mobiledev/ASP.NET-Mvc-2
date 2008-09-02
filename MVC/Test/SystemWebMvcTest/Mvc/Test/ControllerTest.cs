@@ -10,48 +10,58 @@
     using System.Web.TestUtil;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
+    using Moq.Protected;
 
     [TestClass]
     public class ControllerTest {
 
         [TestMethod]
+        public void ActionInvokerProperty() {
+            // Arrange
+            Controller controller = new EmptyController();
+
+            // Act & Assert
+            MemberHelper.TestPropertyWithDefaultInstance(controller, "ActionInvoker", new ControllerActionInvoker());
+        }
+
+        [TestMethod]
         public void ContentWithContentString() {
-            // Setup
+            // Arrange
             Controller controller = new EmptyController();
             string content = "Some content";
 
-            // Execute
+            // Act
             ContentResult result = controller.Content(content);
 
-            // Verify
+            // Assert
             Assert.AreEqual(content, result.Content);
         }
 
         public void ContentWithContentStringAndContentType() {
-            // Setup
+            // Arrange
             Controller controller = new EmptyController();
             string content = "Some content";
             string contentType = "Some content type";
 
-            // Execute
+            // Act
             ContentResult result = controller.Content(content, contentType);
 
-            // Verify
+            // Assert
             Assert.AreEqual(content, result.Content);
             Assert.AreEqual(contentType, result.ContentType);
         }
 
         public void ContentWithContentStringAndContentTypeAndEncoding() {
-            // Setup
+            // Arrange
             Controller controller = new EmptyController();
             string content = "Some content";
             string contentType = "Some content type";
             Encoding contentEncoding = Encoding.UTF8;
 
-            // Execute
+            // Act
             ContentResult result = controller.Content(content, contentType, contentEncoding);
 
-            // Verify
+            // Assert
             Assert.AreEqual(content, result.Content);
             Assert.AreEqual(contentType, result.ContentType);
             Assert.AreSame(contentEncoding, result.ContentEncoding);
@@ -145,59 +155,6 @@
         }
 
         [TestMethod]
-        public void ViewDataProperty() {
-            var controller = new EmptyController();
-            // test returns empty dictionary by default
-            IDictionary<string, object> viewData = controller.ViewData;
-            Assert.AreNotEqual(viewData, null);
-            Assert.AreEqual(viewData.Count, 0);
-        }
-
-        [TestMethod]
-        public void ViewEngineProperty() {
-            Mock<IViewEngine> viewEngineMock = new Mock<IViewEngine>();
-            MemberHelper.TestPropertyValue(new EmptyController(), "ViewEngine", viewEngineMock.Object);
-        }
-
-        [TestMethod]
-        public void ViewEnginePropertyCachesWebFormViewEngine() {
-            // DevDiv Bugs 194190: When using the default view engine, cache the instance so we don't keep
-            // returning a new instance every time.
-
-            // Setup
-            Controller controller = new EmptyController();
-
-            // Execute
-            IViewEngine viewEngine1 = controller.ViewEngine;
-            IViewEngine viewEngine2 = controller.ViewEngine;
-
-            // Verify
-            Assert.AreSame(viewEngine1, viewEngine2);
-        }
-
-        [TestMethod]
-        public void ViewEnginePropertyGetReturnsWebFormViewEnginebyDefault() {
-            // Setup
-            Controller controller = new EmptyController();
-
-            // Execute
-            IViewEngine viewEngine = controller.ViewEngine;
-
-            // Verify
-            Assert.IsInstanceOfType(viewEngine, typeof(WebFormViewEngine));
-        }
-
-        [TestMethod]
-        public void ViewEnginePropertySetToNullThrows() {
-            var controller = new EmptyController();
-            ExceptionHelper.ExpectArgumentNullException(
-                delegate {
-                    controller.ViewEngine = null;
-                },
-                "value");
-        }
-
-        [TestMethod]
         public void ControllerMethodsDoNotHaveNonActionAttribute() {
             var methods = typeof(Controller).GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             foreach (var method in methods) {
@@ -207,32 +164,36 @@
         }
 
         [TestMethod]
+        public void DisposeCallsProtectedDisposingMethod() {
+            // Arrange
+            Mock<Controller> mockController = new Mock<Controller>();
+            mockController.Protected().Expect("Dispose", true).Verifiable();
+            Controller controller = mockController.Object;
+
+            // Act
+            controller.Dispose();
+
+            // Assert
+            mockController.Verify();
+        }
+
+        [TestMethod]
         public void ExecuteWithUnknownAction() {
-            // Setup
+            // Arrange
             UnknownActionController controller = new UnknownActionController();
             // We need a provider since Controller.Execute is called
             controller.TempDataProvider = new EmptyTempDataProvider();
             ControllerContext context = GetControllerContext("Foo");
 
-            Mock<ControllerActionInvoker> mockInvoker = new Mock<ControllerActionInvoker>(context);
-            mockInvoker.Expect(o => o.InvokeAction("Foo", null)).Returns(false);
+            Mock<IActionInvoker> mockInvoker = new Mock<IActionInvoker>();
+            mockInvoker.Expect(o => o.InvokeAction(context, "Foo")).Returns(false);
             controller.ActionInvoker = mockInvoker.Object;
 
-            // Execute
-            controller.Execute(context);
+            // Act
+            ((IController)controller).Execute(context);
 
-            // Verify
+            // Assert
             Assert.IsTrue(controller.WasCalled);
-        }
-
-        [TestMethod]
-        public void ExecuteWithNullContextThrows() {
-            var controller = new EmptyController();
-            ExceptionHelper.ExpectArgumentNullException(
-                delegate {
-                    controller.Execute(null);
-                },
-                "controllerContext");
         }
 
         [TestMethod]
@@ -246,18 +207,76 @@
         }
 
         [TestMethod]
+        public void PartialView() {
+            // Arrange
+            Controller controller = GetEmptyController();
+
+            // Act
+            PartialViewResult result = controller.PartialView();
+
+            // Assert
+            Assert.AreSame(controller.TempData, result.TempData);
+            Assert.AreSame(controller.ViewData, result.ViewData);
+        }
+
+        [TestMethod]
+        public void PartialView_Model() {
+            // Arrange
+            Controller controller = GetEmptyController();
+            object model = new object();
+
+            // Act
+            PartialViewResult result = controller.PartialView(model);
+
+            // Assert
+            Assert.AreSame(model, result.ViewData.Model);
+            Assert.AreSame(controller.TempData, result.TempData);
+            Assert.AreSame(controller.ViewData, result.ViewData);
+        }
+
+        [TestMethod]
+        public void PartialView_ViewName() {
+            // Arrange
+            Controller controller = GetEmptyController();
+
+            // Act
+            PartialViewResult result = controller.PartialView("Some partial view");
+
+            // Assert
+            Assert.AreEqual("Some partial view", result.ViewName);
+            Assert.AreSame(controller.TempData, result.TempData);
+            Assert.AreSame(controller.ViewData, result.ViewData);
+        }
+
+        [TestMethod]
+        public void PartialView_ViewName_Model() {
+            // Arrange
+            Controller controller = GetEmptyController();
+            object model = new object();
+
+            // Act
+            PartialViewResult result = controller.PartialView("Some partial view", model);
+
+            // Assert
+            Assert.AreEqual("Some partial view", result.ViewName);
+            Assert.AreSame(model, result.ViewData.Model);
+            Assert.AreSame(controller.TempData, result.TempData);
+            Assert.AreSame(controller.ViewData, result.ViewData);
+        }
+
+        [TestMethod]
         public void RedirectToActionClonesRouteValueDictionary() {
             // The RedirectToAction() method should clone the provided dictionary, then operate on the clone.
             // The original dictionary should remain unmodified throughout the helper's execution.
 
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             RouteValueDictionary values = new RouteValueDictionary(new { Action = "SomeAction", Controller = "SomeController" });
 
-            // Execute
+            // Act
             controller.RedirectToAction("SomeOtherAction", "SomeOtherController", values);
 
-            // Verify
+            // Assert
             Assert.AreEqual(2, values.Count);
             Assert.AreEqual("SomeAction", values["action"]);
             Assert.AreEqual("SomeController", values["controller"]);
@@ -265,68 +284,68 @@
 
         [TestMethod]
         public void RedirectToActionPreservesControllerDictionaryKeyIfNotSpecified() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             object values = new { Controller = "SomeController" };
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", values);
             RouteValueDictionary newValues = result.Values;
 
-            // Verify
+            // Assert
             Assert.AreEqual("SomeController", newValues["controller"]);
         }
 
         [TestMethod]
         public void RedirectToActionDoesNotOverwritesActionDictionaryKey() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             object values = new { Action = "SomeAction" };
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", values);
             RouteValueDictionary newValues = result.Values;
 
-            // Verify
+            // Assert
             Assert.AreEqual("SomeAction", newValues["action"]);
         }
 
         [TestMethod]
         public void RedirectToActionDoesNotOverwritesControllerDictionaryKeyIfSpecified() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             object values = new { Action = "SomeAction", Controller = "SomeController" };
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", "SomeOtherController", values);
             RouteValueDictionary newValues = result.Values;
 
-            // Verify
+            // Assert
             Assert.AreEqual("SomeController", newValues["controller"]);
         }
 
         [TestMethod]
         public void RedirectToActionWithActionName() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction");
 
-            // Verify
+            // Assert
             Assert.AreEqual("", result.RouteName);
             Assert.AreEqual("SomeOtherAction", result.Values["action"]);
         }
 
         [TestMethod]
         public void RedirectToActionWithActionNameAndControllerName() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", "SomeOtherController");
 
-            // Verify
+            // Assert
             Assert.AreEqual("", result.RouteName);
             Assert.AreEqual("SomeOtherAction", result.Values["action"]);
             Assert.AreEqual("SomeOtherController", result.Values["controller"]);
@@ -334,14 +353,14 @@
 
         [TestMethod]
         public void RedirectToActionWithActionNameAndControllerNameAndValuesDictionary() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             RouteValueDictionary values = new RouteValueDictionary(new { Foo = "SomeFoo" });
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", "SomeOtherController", values);
 
-            // Verify
+            // Assert
             Assert.AreEqual("", result.RouteName);
             Assert.AreEqual("SomeOtherAction", result.Values["action"]);
             Assert.AreEqual("SomeOtherController", result.Values["controller"]);
@@ -350,14 +369,14 @@
 
         [TestMethod]
         public void RedirectToActionWithActionNameAndControllerNameAndValuesObject() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             object values = new { Foo = "SomeFoo" };
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", "SomeOtherController", values);
 
-            // Verify
+            // Assert
             Assert.AreEqual("", result.RouteName);
             Assert.AreEqual("SomeOtherAction", result.Values["action"]);
             Assert.AreEqual("SomeOtherController", result.Values["controller"]);
@@ -366,43 +385,43 @@
 
         [TestMethod]
         public void RedirectToActionSelectsCurrentControllerByDefault() {
-            // Setup
+            // Arrange
             TestRouteController controller = new TestRouteController();
             controller.ControllerContext = GetControllerContext("SomeAction", "TestRoute");
 
-            // Execute
+            // Act
             RedirectToRouteResult route = controller.Index() as RedirectToRouteResult;
 
-            // Verify
+            // Assert
             Assert.AreEqual("SomeAction", route.Values["action"]);
             Assert.AreEqual("TestRoute", route.Values["controller"]);
         }
 
         [TestMethod]
         public void RedirectToActionDictionaryOverridesDefaultControllerName() {
-            // Setup
+            // Arrange
             TestRouteController controller = new TestRouteController();
             object values = new { controller = "SomeOtherController" };
             controller.ControllerContext = GetControllerContext("SomeAction", "TestRoute");
 
-            // Execute
+            // Act
             RedirectToRouteResult route = controller.RedirectToAction("SomeOtherAction", values);
 
-            // Verify
+            // Assert
             Assert.AreEqual("SomeOtherAction", route.Values["action"]);
             Assert.AreEqual("SomeOtherController", route.Values["controller"]);
         }
 
         [TestMethod]
         public void RedirectToActionWithActionNameAndValuesDictionary() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             RouteValueDictionary values = new RouteValueDictionary(new { Foo = "SomeFoo" });
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", values);
 
-            // Verify
+            // Assert
             Assert.AreEqual("", result.RouteName);
             Assert.AreEqual("SomeOtherAction", result.Values["action"]);
             Assert.AreEqual("SomeFoo", result.Values["foo"]);
@@ -410,14 +429,14 @@
 
         [TestMethod]
         public void RedirectToActionWithActionNameAndValuesObject() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             object values = new { Foo = "SomeFoo" };
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", values);
 
-            // Verify
+            // Assert
             Assert.AreEqual("", result.RouteName);
             Assert.AreEqual("SomeOtherAction", result.Values["action"]);
             Assert.AreEqual("SomeFoo", result.Values["foo"]);
@@ -425,10 +444,10 @@
 
         [TestMethod]
         public void RedirectToActionWithEmptyActionNameThrows() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
-            
-            // Execute & verify
+
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     controller.RedirectToAction(String.Empty);
@@ -437,10 +456,10 @@
 
         [TestMethod]
         public void RedirectToActionWithNullActionNameThrows() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     controller.RedirectToAction(null /* actionName */);
@@ -449,54 +468,54 @@
 
         [TestMethod]
         public void RedirectToActionWithNullRouteValueDictionary() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute
-            RedirectToRouteResult result=controller.RedirectToAction("SomeOtherAction", (RouteValueDictionary)null);
+            // Act
+            RedirectToRouteResult result = controller.RedirectToAction("SomeOtherAction", (RouteValueDictionary)null);
             RouteValueDictionary newValues = result.Values;
 
-            // Verify
+            // Assert
             Assert.AreEqual(1, newValues.Count);
             Assert.AreEqual("SomeOtherAction", newValues["action"]);
         }
 
         [TestMethod]
         public void RedirectToRouteWithNullRouteValueDictionary() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToRoute((RouteValueDictionary)null);
 
-            // Verify
+            // Assert
             Assert.AreEqual(0, result.Values.Count);
         }
 
         [TestMethod]
         public void RedirectToRouteWithObjectDictionary() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             var values = new { Foo = "MyFoo" };
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToRoute(values);
 
-            // Verify
+            // Assert
             Assert.AreEqual(1, result.Values.Count);
             Assert.AreEqual("MyFoo", result.Values["Foo"]);
         }
 
         [TestMethod]
         public void RedirectToRouteWithRouteValueDictionary() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             RouteValueDictionary values = new RouteValueDictionary() { { "Foo", "MyFoo" } };
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToRoute(values);
 
-            // Verify
+            // Assert
             Assert.AreEqual(1, result.Values.Count);
             Assert.AreEqual("MyFoo", result.Values["Foo"]);
             Assert.AreNotSame(values, result.Values);
@@ -504,53 +523,53 @@
 
         [TestMethod]
         public void RedirectToRouteWithName() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToRoute("foo");
 
-            // Verify
+            // Assert
             Assert.AreEqual(0, result.Values.Count);
             Assert.AreEqual("foo", result.RouteName);
         }
 
         [TestMethod]
         public void RedirectToRouteWithNameAndNullRouteValueDictionary() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToRoute("foo", (RouteValueDictionary)null);
 
-            // Verify
+            // Assert
             Assert.AreEqual(0, result.Values.Count);
             Assert.AreEqual("foo", result.RouteName);
         }
 
         [TestMethod]
         public void RedirectToRouteWithNullNameAndNullRouteValueDictionary() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToRoute(null, (RouteValueDictionary)null);
 
-            // Verify
+            // Assert
             Assert.AreEqual(0, result.Values.Count);
             Assert.AreEqual(String.Empty, result.RouteName);
         }
 
         [TestMethod]
         public void RedirectToRouteWithNameAndObjectDictionary() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             var values = new { Foo = "MyFoo" };
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToRoute("foo", values);
 
-            // Verify
+            // Assert
             Assert.AreEqual(1, result.Values.Count);
             Assert.AreEqual("MyFoo", result.Values["Foo"]);
             Assert.AreEqual("foo", result.RouteName);
@@ -558,38 +577,38 @@
 
         [TestMethod]
         public void RedirectToRouteWithNameAndRouteValueDictionary() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             RouteValueDictionary values = new RouteValueDictionary() { { "Foo", "MyFoo" } };
 
-            // Execute
+            // Act
             RedirectToRouteResult result = controller.RedirectToRoute("foo", values);
 
-            // Verify
+            // Assert
             Assert.AreEqual(1, result.Values.Count);
             Assert.AreEqual("MyFoo", result.Values["Foo"]);
             Assert.AreNotSame(values, result.Values);
             Assert.AreEqual("foo", result.RouteName);
         }
-        
+
         [TestMethod]
         public void RedirectReturnsCorrectActionResult() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute & verify
+            // Act & Assert
             var result = controller.Redirect("http://www.contoso.com/");
 
-            // Verify
+            // Assert
             Assert.AreEqual("http://www.contoso.com/", result.Url);
         }
 
         [TestMethod]
         public void RedirectWithEmptyUrlThrows() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     controller.Redirect(String.Empty);
@@ -599,10 +618,10 @@
 
         [TestMethod]
         public void RedirectWithNullUrlThrows() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     controller.Redirect(null /* url */);
@@ -612,100 +631,121 @@
 
         [TestMethod]
         public void RenderView0_SetsProperties() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute
+            // Act
             ViewResult result = controller.View();
 
-            // Verify
-            Assert.IsNull(result.ViewName);
-            Assert.IsNull(result.MasterName);
+            // Assert
             Assert.AreSame(controller.ViewData, result.ViewData);
-            Assert.AreSame(controller.ViewEngine, result.ViewEngine);
             Assert.AreSame(controller.TempData, result.TempData);
         }
 
         [TestMethod]
         public void RenderView1_obj_SetsProperties() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             object viewItem = new object();
 
-            // Execute
+            // Act
             ViewResult result = controller.View(viewItem);
 
-            // Verify
-            Assert.IsNull(result.ViewName);
-            Assert.IsNull(result.MasterName);
-            Assert.AreSame(controller.ViewEngine, result.ViewEngine);
+            // Assert
+            Assert.AreSame(viewItem, result.ViewData.Model);
             Assert.AreSame(controller.TempData, result.TempData);
         }
 
         [TestMethod]
         public void RenderView1_str_SetsProperties() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute
+            // Act
             ViewResult result = controller.View("Foo");
 
-            // Verify
+            // Assert
             Assert.AreEqual("Foo", result.ViewName);
-            Assert.IsNull(result.MasterName);
             Assert.AreSame(controller.ViewData, result.ViewData);
-            Assert.AreSame(controller.ViewEngine, result.ViewEngine);
             Assert.AreSame(controller.TempData, result.TempData);
         }
 
         [TestMethod]
         public void RenderView2_str_obj_SetsProperties() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             object viewItem = new object();
 
-            // Execute
+            // Act
             ViewResult result = controller.View("Foo", viewItem);
 
-            // Verify
+            // Assert
             Assert.AreEqual("Foo", result.ViewName);
-            Assert.IsNull(result.MasterName);
             Assert.AreSame(viewItem, result.ViewData.Model);
-            Assert.AreSame(controller.ViewEngine, result.ViewEngine);
             Assert.AreSame(controller.TempData, result.TempData);
         }
 
         [TestMethod]
         public void RenderView2_str_str_SetsProperties() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
 
-            // Execute
+            // Act
             ViewResult result = controller.View("Foo", "Bar");
 
-            // Verify
+            // Assert
             Assert.AreEqual("Foo", result.ViewName);
             Assert.AreEqual("Bar", result.MasterName);
             Assert.AreSame(controller.ViewData, result.ViewData);
-            Assert.AreSame(controller.ViewEngine, result.ViewEngine);
             Assert.AreSame(controller.TempData, result.TempData);
         }
 
         [TestMethod]
         public void RenderView3_str_str_obj_SetsProperties() {
-            // Setup
+            // Arrange
             Controller controller = GetEmptyController();
             object viewItem = new object();
 
-            // Execute
+            // Act
             ViewResult result = controller.View("Foo", "Bar", viewItem);
 
-            // Verify
+            // Assert
             Assert.AreEqual("Foo", result.ViewName);
             Assert.AreEqual("Bar", result.MasterName);
             Assert.AreSame(viewItem, result.ViewData.Model);
-            Assert.AreSame(controller.ViewEngine, result.ViewEngine);
             Assert.AreSame(controller.TempData, result.TempData);
+        }
+
+        [TestMethod]
+        public void RenderView4_view_SetsProperties() {
+            // Arrange
+            Controller controller = GetEmptyController();
+            IView view = new Mock<IView>().Object;
+
+            // Act
+            ViewResult result = controller.View(view);
+
+            // Assert
+            Assert.AreSame(result.View, view);
+            Assert.AreSame(controller.ViewData, result.ViewData);
+            Assert.AreSame(controller.TempData, result.TempData);
+        }
+
+        [TestMethod]
+        public void RenderView5_view_obj_SetsProperties() {
+            // Arrange
+            Controller controller = GetEmptyController();
+            IView view = new Mock<IView>().Object;
+            object model = new object();
+
+            // Act
+            ViewResult result = controller.View(view, model);
+
+            // Assert
+            Assert.AreSame(result.View, view);
+            Assert.AreSame(controller.ViewData, result.ViewData);
+            Assert.AreSame(controller.TempData, result.TempData);
+            Assert.AreSame(model, result.ViewData.Model);
         }
 
         internal static void AddRequestParams(Mock<HttpRequestBase> requestMock, object paramValues) {
@@ -717,14 +757,14 @@
 
         [TestMethod]
         public void TempDataGreetUserWithNoUserIDRedirects() {
-            // Setup
+            // Arrange
             TempDataHomeController tempDataHomeController = new TempDataHomeController();
 
-            // Execute
+            // Act
             RedirectToRouteResult result = tempDataHomeController.GreetUser() as RedirectToRouteResult;
             RouteValueDictionary values = result.Values;
 
-            // Verify
+            // Assert
             Assert.IsTrue(values.ContainsKey("action"));
             Assert.AreEqual("ErrorPage", values["action"]);
             Assert.AreEqual(0, tempDataHomeController.TempData.Count);
@@ -732,15 +772,15 @@
 
         [TestMethod]
         public void TempDataGreetUserWithUserIDCopiesToViewDataAndRenders() {
-            // Setup
+            // Arrange
             TempDataHomeController tempDataHomeController = new TempDataHomeController();
             tempDataHomeController.TempData["UserID"] = "TestUserID";
 
-            // Execute
+            // Act
             ViewResult result = tempDataHomeController.GreetUser() as ViewResult;
             ViewDataDictionary viewData = tempDataHomeController.ViewData;
 
-            // Verify
+            // Assert
             Assert.AreEqual("GreetUser", result.ViewName);
             Assert.IsNotNull(viewData);
             Assert.IsTrue(viewData.ContainsKey("NewUserID"));
@@ -749,14 +789,14 @@
 
         [TestMethod]
         public void TempDataIndexSavesUserIDAndRedirects() {
-            // Setup
+            // Arrange
             TempDataHomeController tempDataHomeController = new TempDataHomeController();
 
-            // Execute
+            // Act
             RedirectToRouteResult result = tempDataHomeController.Index() as RedirectToRouteResult;
             RouteValueDictionary values = result.Values;
 
-            // Verify
+            // Assert
             Assert.IsTrue(values.ContainsKey("action"));
             Assert.AreEqual("GreetUser", values["action"]);
 
@@ -766,7 +806,7 @@
 
         [TestMethod]
         public void TempDataSavedWhenControllerThrows() {
-            // Setup
+            // Arrange
             BrokenController controller = new BrokenController();
             Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
             HttpSessionStateBase session = GetEmptySession();
@@ -775,78 +815,237 @@
             rd.Values.Add("action", "Crash");
             controller.ControllerContext = new ControllerContext(mockContext.Object, rd, controller);
 
-            // Execute and Verify
+            // Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
-                    controller.Execute(controller.ControllerContext);
+                    ((IController)controller).Execute(controller.ControllerContext);
                 });
             Assert.AreNotEqual(mockContext.Object.Session[SessionStateTempDataProvider.TempDataSessionStateKey], null);
             TempDataDictionary tempData = new TempDataDictionary();
-            tempData.Load(controller.TempDataProvider);
+            tempData.Load(controller.ControllerContext, controller.TempDataProvider);
             Assert.AreEqual(tempData["Key1"], "Value1");
         }
 
         [TestMethod]
         public void TempDataMovedToPreviousTempDataInDestinationController() {
-            // Setup
-            Mock<Controller> mockController = new Mock<Controller>();
+            // Arrange
+            Mock<Controller> mockController = new Mock<Controller>() { CallBase = true };
             Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
             HttpSessionStateBase session = GetEmptySession();
             mockContext.Expect(o => o.Session).Returns(session);
             mockController.Object.ControllerContext = new ControllerContext(mockContext.Object, new RouteData(), mockController.Object);
 
-            // Execute
+            // Act
             mockController.Object.TempData.Add("Key", "Value");
-            mockController.Object.TempData.ApplyChanges();
-            mockController.Object.TempDataProvider.SaveTempData(mockController.Object.TempData);
+            mockController.Object.TempData.Save(mockController.Object.ControllerContext, mockController.Object.TempDataProvider);
 
-            // Verify
+            // Assert
             Assert.IsTrue(mockController.Object.TempData.ContainsKey("Key"), "The key should still exist in the old TempData");
             Assert.IsTrue(mockController.Object.TempData.ContainsValue("Value"), "The value should still exist in the old TempData");
 
             // Instantiate "destination" controller with the same session state and see that it gets the temp data
-            Mock<Controller> mockDestinationController = new Mock<Controller>();
+            Mock<Controller> mockDestinationController = new Mock<Controller>() { CallBase = true };
             Mock<HttpContextBase> mockDestinationContext = new Mock<HttpContextBase>();
             mockDestinationContext.Expect(o => o.Session).Returns(session);
             mockDestinationController.Object.ControllerContext = new ControllerContext(mockDestinationContext.Object, new RouteData(), mockDestinationController.Object);
-            mockDestinationController.Object.TempData.Load(mockDestinationController.Object.TempDataProvider);
+            mockDestinationController.Object.TempData.Load(mockDestinationController.Object.ControllerContext, mockDestinationController.Object.TempDataProvider);
 
-            // Verify
+            // Assert
             Assert.AreEqual("Value", mockDestinationController.Object.TempData["Key"], "The key should exist in the new TempData");
 
-            // Execute
+            // Act
             mockDestinationController.Object.TempData["NewKey"] = "NewValue";
             Assert.AreEqual("NewValue", mockDestinationController.Object.TempData["NewKey"], "The new key should exist in the new TempData");
-            mockDestinationController.Object.TempData.ApplyChanges();
-            mockDestinationController.Object.TempDataProvider.SaveTempData(mockDestinationController.Object.TempData);
+            mockDestinationController.Object.TempData.Save(mockDestinationController.Object.ControllerContext, mockDestinationController.Object.TempDataProvider);
 
             // Instantiate "second destination" controller with the same session state and see that it gets the temp data
-            Mock<Controller> mockSecondDestinationController = new Mock<Controller>();
+            Mock<Controller> mockSecondDestinationController = new Mock<Controller>() { CallBase = true };
             Mock<HttpContextBase> mockSecondDestinationContext = new Mock<HttpContextBase>();
             mockSecondDestinationContext.Expect(o => o.Session).Returns(session);
             mockSecondDestinationController.Object.ControllerContext = new ControllerContext(mockSecondDestinationContext.Object, new RouteData(), mockSecondDestinationController.Object);
-            mockSecondDestinationController.Object.TempData.Load(mockSecondDestinationController.Object.TempDataProvider);
+            mockSecondDestinationController.Object.TempData.Load(mockSecondDestinationController.Object.ControllerContext, mockSecondDestinationController.Object.TempDataProvider);
 
-            // Verify
+            // Assert
             Assert.IsFalse(mockSecondDestinationController.Object.TempData.ContainsKey("Key"), "The key should not exist in the new TempData");
             Assert.AreEqual("NewValue", mockSecondDestinationController.Object.TempData["NewKey"], "The new key should exist in the new TempData");
         }
 
         [TestMethod]
         public void TempDataValidForSingleControllerWhenSessionStateDisabled() {
-            // Setup
+            // Arrange
             Mock<Controller> mockController = new Mock<Controller>();
             Mock<HttpContextBase> mockContext = new Mock<HttpContextBase>();
             HttpSessionStateBase session = null;
             mockContext.Expect(o => o.Session).Returns(session);
             mockController.Object.ControllerContext = new ControllerContext(mockContext.Object, new RouteData(), mockController.Object);
             mockController.Object.TempData = new TempDataDictionary();
-            
-            // Execute
+
+            // Act
             mockController.Object.TempData["Key"] = "Value";
 
-            // Verify
+            // Assert
             Assert.IsTrue(mockController.Object.TempData.ContainsKey("Key"), "The key should exist in TempData, even with SessionState disabled.");
+        }
+
+        [TestMethod]
+        public void TryUpdateModelReturnsFalseIfUpdateUnsuccessful() {
+            // Arrange
+            Controller controller = new EmptyController();
+            MyModel model = new MyModel();
+            string[] keys = new string[] { "EmployeePropertyFails" };
+
+            // Act
+            bool success = controller.TryUpdateModel(model, keys);
+
+            // Assert
+            Assert.IsFalse(success);
+            Assert.IsFalse(controller.ViewData.ModelState.IsValid);
+            Assert.AreEqual("EmployeePropertyFailsValue", controller.ViewData.ModelState["EmployeePropertyFails"].AttemptedValue);
+            Assert.AreEqual("Conversion failed.", controller.ViewData.ModelState["EmployeePropertyFails"].Errors[0].ErrorMessage);
+        }
+
+        [TestMethod]
+        public void TryUpdateModelReturnsTrueOnSuccess() {
+            // Arrange
+            Controller controller = new EmptyController();
+            MyModel model = new MyModel();
+            string[] keys = new string[] { "EmployeeProperty" };
+
+            // Act
+            bool success = controller.TryUpdateModel(model, keys);
+
+            // Assert
+            Assert.IsTrue(success);
+            Assert.IsTrue(controller.ViewData.ModelState.IsValid);
+            Assert.AreEqual("EmployeePropertyValue", model.EmployeeProperty.Value);
+        }
+
+        [TestMethod]
+        public void TryUpdateModelContinuesIfPropertySetterThrows() {
+            // Arrange
+            RouteData rd = new RouteData();
+            rd.Values["SomeBadInteger"] = 42;
+            rd.Values["SomeBadInteger2"] = 84;
+            Controller controller = new EmptyController();
+            controller.ControllerContext = new ControllerContext(new Mock<HttpContextBase>().Object, rd, controller);
+
+            MyModel model = new MyModel();
+            string[] keys = new string[] { "SomeBadInteger", "SomeBadInteger2" };
+
+            // Act
+            bool succeeded = controller.TryUpdateModel(model, keys);
+
+            // Assert
+            Assert.IsFalse(succeeded, "TryUpdateModel() should have returned false if a property setter threw.");
+            Assert.AreEqual(2, controller.ViewData.ModelState.Count, "TryUpdateModel() should continue to update the model, even if early properties throw.");
+            Assert.AreEqual("42", controller.ViewData.ModelState["SomeBadInteger"].AttemptedValue);
+            Assert.AreEqual(1, controller.ViewData.ModelState["SomeBadInteger"].Errors.Count);
+            Assert.AreEqual("The value '42' is invalid for property 'SomeBadInteger'.", controller.ViewData.ModelState["SomeBadInteger"].Errors[0].ErrorMessage);
+            Assert.AreEqual("84", controller.ViewData.ModelState["SomeBadInteger2"].AttemptedValue);
+            Assert.AreEqual(1, controller.ViewData.ModelState["SomeBadInteger2"].Errors.Count);
+            Assert.AreEqual("The value '84' is invalid for property 'SomeBadInteger2'.", controller.ViewData.ModelState["SomeBadInteger2"].Errors[0].ErrorMessage);
+        }
+
+        [TestMethod]
+        public void UpdateModelSuccess() {
+            // Arrange
+            Controller controller = new EmptyController();
+            MyModel model = new MyModel();
+            string[] keys = new string[] { "EmployeeProperty" };
+
+            // Act
+            controller.UpdateModel(model, keys);
+
+            // Assert
+            Assert.IsTrue(controller.ViewData.ModelState.IsValid);
+            Assert.AreEqual("EmployeePropertyValue", model.EmployeeProperty.Value);
+        }
+
+        [TestMethod]
+        public void UpdateModelThrowsIfKeysIsEmpty() {
+            // Arrange
+            Controller controller = new EmptyController();
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
+                delegate {
+                    controller.UpdateModel(new object(), new string[0]);
+                }, "keys");
+        }
+
+        [TestMethod]
+        public void UpdateModelThrowsIfKeysIsNull() {
+            // Arrange
+            Controller controller = new EmptyController();
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
+                delegate {
+                    controller.UpdateModel(new object(), null);
+                }, "keys");
+        }
+
+        [TestMethod]
+        public void UpdateModelThrowsIfModelIsNull() {
+            // Arrange
+            Controller controller = new EmptyController();
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentNullException(
+                delegate {
+                    controller.UpdateModel(null, new string[0]);
+                }, "model");
+        }
+
+        [TestMethod]
+        public void UpdateModelThrowsIfPropertyNotFound() {
+            // Arrange
+            Controller controller = new EmptyController();
+            MyModel model = new MyModel();
+            string[] keys = new string[] { "nonexistentProperty" };
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentException(
+                delegate {
+                    controller.UpdateModel(model, keys);
+                },
+                @"The model of type 'System.Web.Mvc.Test.ControllerTest+MyModel' does not have a property named 'nonexistentProperty'.
+Parameter name: keys");
+        }
+
+        [TestMethod]
+        public void UpdateModelThrowsIfUpdateUnsuccessful() {
+            // Arrange
+            Controller controller = new EmptyController();
+            MyModel model = new MyModel();
+            string[] keys = new string[] { "EmployeePropertyFails" };
+
+            // Act
+            ExceptionHelper.ExpectInvalidOperationException(
+                delegate {
+                    controller.UpdateModel(model, keys);
+                },
+                "The model of type 'System.Web.Mvc.Test.ControllerTest+MyModel' was not successfully updated.");
+
+            // Assert
+            Assert.IsFalse(controller.ViewData.ModelState.IsValid);
+            Assert.AreEqual("EmployeePropertyFailsValue", controller.ViewData.ModelState["EmployeePropertyFails"].AttemptedValue);
+            Assert.AreEqual("Conversion failed.", controller.ViewData.ModelState["EmployeePropertyFails"].Errors[0].ErrorMessage);
+        }
+
+        [TestMethod]
+        public void UpdateModelWithPrefix() {
+            // Arrange
+            Controller controller = new EmptyController();
+            MyModel model = new MyModel();
+            string[] keys = new string[] { "EmployeeProperty" };
+
+            // Act
+            controller.UpdateModel(model, keys, "SomePrefix");
+
+            // Assert
+            Assert.IsTrue(controller.ViewData.ModelState.IsValid);
+            Assert.AreEqual("SomePrefix.EmployeePropertyValue", model.EmployeeProperty.Value);
         }
 
         private static ControllerContext GetControllerContext(string actionName) {
@@ -854,7 +1053,7 @@
             mockContext.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
             RouteData rd = new RouteData();
             rd.Values["action"] = actionName;
-            return new ControllerContext(mockContext.Object, rd, new Mock<IController>().Object);
+            return new ControllerContext(mockContext.Object, rd, new Mock<ControllerBase>().Object);
         }
 
         private static ControllerContext GetControllerContext(string actionName, string controllerName) {
@@ -863,7 +1062,7 @@
             RouteData rd = new RouteData();
             rd.Values["action"] = actionName;
             rd.Values["controller"] = controllerName;
-            return new ControllerContext(mockContext.Object, rd, new Mock<IController>().Object);
+            return new ControllerContext(mockContext.Object, rd, new Mock<ControllerBase>().Object);
         }
 
         private static Controller GetEmptyController() {
@@ -872,7 +1071,7 @@
                 ControllerContext = context,
                 RouteCollection = new RouteCollection(),
                 TempData = new TempDataDictionary(),
-                TempDataProvider = new SessionStateTempDataProvider(context.HttpContext)
+                TempDataProvider = new SessionStateTempDataProvider()
             };
             return controller;
         }
@@ -912,34 +1111,12 @@
                 base.HandleUnknownAction(actionName);
             }
         }
-                
+
         private sealed class UnknownActionController : Controller {
             public bool WasCalled;
 
             protected override void HandleUnknownAction(string actionName) {
                 WasCalled = true;
-            }
-        }
-
-        private sealed class TestTempDataProvider : ITempDataProvider {
-            private TempDataDictionary _tempData;
-
-            public void SaveTempData(TempDataDictionary tempDataDictionary) {
-                _tempData = tempDataDictionary;
-            }
-
-            public TempDataDictionary LoadTempData() {
-                TempDataDictionary tempData = null;
-
-                if (_tempData != null) {
-                    tempData = _tempData;
-                    _tempData = null;
-                }
-                else {
-                    return new TempDataDictionary();
-                }
-
-                return tempData;
             }
         }
 
@@ -963,6 +1140,11 @@
         }
 
         public class BrokenController : Controller {
+            public BrokenController() {
+                ActionInvoker = new ControllerActionInvoker() {
+                    DispatcherCache = new ActionMethodDispatcherCache()
+                };
+            }
             public ActionResult Crash() {
                 TempData["Key1"] = "Value1";
                 throw new InvalidOperationException("Crashing....");
@@ -973,15 +1155,65 @@
             public ActionResult Index() {
                 return RedirectToAction("SomeAction");
             }
-        } 
-    }
-    
-    internal class EmptyTempDataProvider : ITempDataProvider {
-        public void SaveTempData(TempDataDictionary tempDataDictionary) {
         }
 
-        public TempDataDictionary LoadTempData() {
-            return new TempDataDictionary();
+        private class MyModel {
+            public Employee EmployeeProperty {
+                get;
+                set;
+            }
+
+            public Employee EmployeePropertyFails {
+                get;
+                set;
+            }
+
+            public int SomeBadInteger {
+                get {
+                    return 0;
+                }
+                set {
+                    throw new Exception("Property setter threw!");
+                }
+            }
+
+            public int SomeBadInteger2 {
+                get {
+                    return 0;
+                }
+                set {
+                    throw new Exception("Property setter threw!");
+                }
+            }
+        }
+
+        [ModelBinder(typeof(EmployeeConverter))]
+        private class Employee {
+            public string Value {
+                get;
+                set;
+            }
+        }
+
+        private class EmployeeConverter : IModelBinder {
+            public object GetValue(ControllerContext controllerContext, string parameterName, Type parameterType, ModelStateDictionary modelState) {
+                if (parameterName.EndsWith("EmployeeProperty")) {
+                    return new Employee() { Value = parameterName + "Value" };
+                }
+                else {
+                    modelState.AddModelError(parameterName, parameterName + "Value", "Conversion failed.");
+                    return null;
+                }
+            }
+        }
+    }
+
+    internal class EmptyTempDataProvider : ITempDataProvider {
+        public void SaveTempData(ControllerContext controllerContext, IDictionary<string, object> values) {
+        }
+
+        public IDictionary<string, object> LoadTempData(ControllerContext controllerContext) {
+            return new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
         }
     }
 }

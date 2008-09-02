@@ -14,7 +14,7 @@
 
         [TestMethod]
         public void ExecuteReplacesMinusOneLocationWithAny() {
-            // Setup
+            // Arrange
             OutputCacheAttribute attr = new OutputCacheAttribute() {
                 Duration = 20,
                 Location = (OutputCacheLocation)(-1),
@@ -25,7 +25,7 @@
                 VaryByParam = " Param3 ; Param4 "
             };
 
-            // Setup
+            // Arrange
             Mock<HttpCachePolicyBase> mockCache = new Mock<HttpCachePolicyBase>();
             HttpCacheVaryByContentEncodings varyByContentEncodings = GetInternalType<HttpCacheVaryByContentEncodings>();
             HttpCacheVaryByHeaders varyByHeaders = GetInternalType<HttpCacheVaryByHeaders>();
@@ -45,10 +45,10 @@
             HttpCachePolicyBase cache = mockCache.Object;
             ResultExecutingContext filterContext = GetFilterContext(cache);
 
-            // Execute
+            // Act
             attr.OnResultExecuting(filterContext);
 
-            // Verify
+            // Assert
             Assert.IsTrue(varyByContentEncodings["ContentEncoding3"]);
             Assert.IsTrue(varyByContentEncodings["ContentEncoding4"]);
             Assert.IsTrue(varyByHeaders["Header3"]);
@@ -62,12 +62,12 @@
         //[TestMethod]
         // See DevDiv bug 207591 and 207634
         public void ExecuteWithDisabledOutputCacheSectionThrows() {
-            // Setup
+            // Arrange
             ResultExecutingContext filterContext = GetFilterContext(new Mock<HttpCachePolicyBase>().Object);
             OutputCacheAttribute attr = new OutputCacheAttribute();
             OutputCacheSection newSection = new OutputCacheSection() { EnableOutputCache = false };
 
-            // Execute & verify
+            // Act & Assert
             using (ReplaceOutputCacheSection(newSection)) {
                 attr.OnResultExecuting(filterContext);
             }
@@ -75,11 +75,11 @@
 
         [TestMethod]
         public void ExecuteWithInvalidOutputCacheProfileThrows() {
-            // Setup
+            // Arrange
             ResultExecutingContext filterContext = GetFilterContext(new Mock<HttpCachePolicyBase>().Object);
             OutputCacheAttribute attr = new OutputCacheAttribute() { CacheProfile = "InvalidProfile" };
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     attr.OnResultExecuting(filterContext);
@@ -89,12 +89,12 @@
 
         [TestMethod]
         public void ExecuteWithProfileDisabled() {
-            // Setup
+            // Arrange
             ResultExecutingContext filterContext = GetFilterContext(new Mock<HttpCachePolicyBase>().Object);
             OutputCacheAttribute attr = new OutputCacheAttribute() { CacheProfile = "MyProfile" };
             OutputCacheProfile profile = new OutputCacheProfile("MyProfile") { Enabled = false };
 
-            // Execute & verify
+            // Act & Assert
             // Should do nothing - if the code tries to call into the HttpCachePolicyBase object, it will
             // throw a NotImplementedException.
             using (AddOutputCacheProfile(profile)) {
@@ -104,11 +104,11 @@
 
         [TestMethod]
         public void ExecuteWithProfileEnabled() {
-            // Setup
+            // Arrange
             OutputCacheProfile profile = GetProfile("MyProfile");
             OutputCacheAttribute attr = new OutputCacheAttribute() { CacheProfile = "MyProfile" };
 
-            // Setup
+            // Arrange
             Mock<HttpCachePolicyBase> mockCache = new Mock<HttpCachePolicyBase>();
             HttpCacheVaryByContentEncodings varyByContentEncodings = GetInternalType<HttpCacheVaryByContentEncodings>();
             HttpCacheVaryByHeaders varyByHeaders = GetInternalType<HttpCacheVaryByHeaders>();
@@ -127,12 +127,12 @@
             HttpCachePolicyBase cache = mockCache.Object;
             ResultExecutingContext filterContext = GetFilterContext(cache);
 
-            // Execute
+            // Act
             using (AddOutputCacheProfile(profile)) {
                 attr.OnResultExecuting(filterContext);
             }
 
-            // Verify
+            // Assert
             Assert.IsTrue(varyByContentEncodings["ContentEncoding1"]);
             Assert.IsTrue(varyByContentEncodings["ContentEncoding2"]);
             Assert.IsTrue(varyByHeaders["Header1"]);
@@ -145,7 +145,7 @@
 
         [TestMethod]
         public void ExecuteWithProfileGetsOverriddenWithExplicitValues() {
-            // Setup
+            // Arrange
             OutputCacheProfile profile = GetProfile("MyProfile");
             OutputCacheAttribute attr = new OutputCacheAttribute() {
                 CacheProfile = "MyProfile",
@@ -158,7 +158,7 @@
                 VaryByParam = " Param3 ; Param4 "
             };
 
-            // Setup
+            // Arrange
             Mock<HttpCachePolicyBase> mockCache = new Mock<HttpCachePolicyBase>();
             HttpCacheVaryByContentEncodings varyByContentEncodings = GetInternalType<HttpCacheVaryByContentEncodings>();
             HttpCacheVaryByHeaders varyByHeaders = GetInternalType<HttpCacheVaryByHeaders>();
@@ -178,12 +178,12 @@
             HttpCachePolicyBase cache = mockCache.Object;
             ResultExecutingContext filterContext = GetFilterContext(cache);
 
-            // Execute
+            // Act
             using (AddOutputCacheProfile(profile)) {
                 attr.OnResultExecuting(filterContext);
             }
 
-            // Verify
+            // Assert
             Assert.IsTrue(varyByContentEncodings["ContentEncoding3"]);
             Assert.IsTrue(varyByContentEncodings["ContentEncoding4"]);
             Assert.IsTrue(varyByHeaders["Header3"]);
@@ -196,7 +196,7 @@
 
         [TestMethod]
         public void InitializeCacheClient() {
-            // Setup
+            // Arrange
             Mock<HttpCachePolicyBase> mockCache = new Mock<HttpCachePolicyBase>();
             // by default, timestamp is midnight on Jan 1, 2001 and validity period is 10 sec
             mockCache.Expect(c => c.SetCacheability(HttpCacheability.Private)).Verifiable();
@@ -209,16 +209,16 @@
             var initializer = GetInitializer();
             initializer.Location = OutputCacheLocation.Client;
 
-            // Execute
+            // Act
             initializer.InitializeCache(cache);
 
-            // Verify
+            // Assert
             mockCache.Verify();
         }
 
         [TestMethod]
         public void InitializeCacheDownstream() {
-            // Setup
+            // Arrange
             Mock<HttpCachePolicyBase> mockCache = new Mock<HttpCachePolicyBase>();
             HttpCacheVaryByContentEncodings varyByContentEncodings = GetInternalType<HttpCacheVaryByContentEncodings>();
             HttpCacheVaryByHeaders varyByHeaders = GetInternalType<HttpCacheVaryByHeaders>();
@@ -237,10 +237,10 @@
             var initializer = GetInitializer();
             initializer.Location = OutputCacheLocation.Downstream;
 
-            // Execute
+            // Act
             initializer.InitializeCache(cache);
 
-            // Verify
+            // Assert
             Assert.IsTrue(varyByContentEncodings["ContentEncoding1"]);
             Assert.IsTrue(varyByContentEncodings["ContentEncoding2"]);
             Assert.IsTrue(varyByHeaders["Header1"]);
@@ -250,7 +250,7 @@
 
         [TestMethod]
         public void InitializeCacheNoStore() {
-            // Setup
+            // Arrange
             Mock<HttpCachePolicyBase> mockCache = new Mock<HttpCachePolicyBase>();
             mockCache.Expect(c => c.SetNoStore()).Verifiable();
             mockCache.Expect(c => c.SetCacheability(HttpCacheability.NoCache)).Verifiable();
@@ -260,16 +260,16 @@
             initializer.Location = OutputCacheLocation.None;
             initializer.NoStore = true;
 
-            // Execute
+            // Act
             initializer.InitializeCache(cache);
 
-            // Verify
+            // Assert
             mockCache.Verify();
         }
 
         [TestMethod]
         public void InitializeCacheServerAndClient() {
-            // Setup
+            // Arrange
             Mock<HttpCachePolicyBase> mockCache = new Mock<HttpCachePolicyBase>();
             HttpCacheVaryByContentEncodings varyByContentEncodings = GetInternalType<HttpCacheVaryByContentEncodings>();
             HttpCacheVaryByHeaders varyByHeaders = GetInternalType<HttpCacheVaryByHeaders>();
@@ -290,10 +290,10 @@
             var initializer = GetInitializer();
             initializer.Location = OutputCacheLocation.ServerAndClient;
 
-            // Execute
+            // Act
             initializer.InitializeCache(cache);
 
-            // Verify
+            // Assert
             Assert.IsTrue(varyByContentEncodings["ContentEncoding1"]);
             Assert.IsTrue(varyByContentEncodings["ContentEncoding2"]);
             Assert.IsTrue(varyByHeaders["Header1"]);
@@ -306,7 +306,7 @@
 
         [TestMethod]
         public void InitializeCacheServerAndClientWithoutVaryByParam() {
-            // Setup
+            // Arrange
             Mock<HttpCachePolicyBase> mockCache = new Mock<HttpCachePolicyBase>();
             HttpCacheVaryByContentEncodings varyByContentEncodings = GetInternalType<HttpCacheVaryByContentEncodings>();
             HttpCacheVaryByHeaders varyByHeaders = GetInternalType<HttpCacheVaryByHeaders>();
@@ -328,10 +328,10 @@
             initializer.VaryByParam = String.Empty;
             initializer.Location = OutputCacheLocation.ServerAndClient;
 
-            // Execute
+            // Act
             initializer.InitializeCache(cache);
 
-            // Verify
+            // Assert
             Assert.IsTrue(varyByContentEncodings["ContentEncoding1"]);
             Assert.IsTrue(varyByContentEncodings["ContentEncoding2"]);
             Assert.IsTrue(varyByHeaders["Header1"]);
@@ -342,39 +342,39 @@
 
         [TestMethod]
         public void InitializeCacheWithInvalidDurationThrows() {
-            // Setup
+            // Arrange
             HttpCachePolicyBase cache = new Mock<HttpCachePolicyBase>().Object;
             var initializer = GetInitializer();
-            initializer.Duration = -10;
+            initializer.Duration = 0;
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     initializer.InitializeCache(cache);
                 },
-                "A valid value for 'Duration' must be specified in the configuration file or on the OutputCacheAttribute declaration.");
+                "A valid value for 'Duration' must be specified on the OutputCacheAttribute declaration or in a cache profile in the configuration file.");
         }
 
         [TestMethod]
         public void SetCacheabilityInvalidThrows() {
-            // Setup
+            // Arrange
             HttpCachePolicyBase cache = new Mock<HttpCachePolicyBase>().Object;
-            var initializer = new OutputCacheAttribute.OutputCacheInitializer() { Location = (OutputCacheLocation)(-1) };
+            var initializer = new OutputCacheAttribute.OutputCacheInitializer() { Duration = 10, Location = (OutputCacheLocation)(-1) };
 
-            // Execute & verify
+            // Act & Assert
             ExceptionHelper.ExpectException<InvalidOperationException>(
                 delegate {
                     initializer.InitializeCache(cache);
                 },
-                "A valid value for 'Location' must be specified in the configuration file or on the OutputCacheAttribute declaration.");
+                "A valid value for 'Location' must be specified on the OutputCacheAttribute declaration or in a cache profile in the configuration file.");
         }
 
         [TestMethod]
         public void StringPropertiesReturnEmptyInsteadOfNull() {
-            // Setup
+            // Arrange
             OutputCacheAttribute attr = new OutputCacheAttribute();
 
-            // Execute & verify
+            // Act & Assert
             MemberHelper.TestStringProperty(attr, "CacheProfile", String.Empty, false /* testDefaultValue */);
             MemberHelper.TestStringProperty(attr, "VaryByContentEncoding", String.Empty, false /* testDefaultValue */);
             MemberHelper.TestStringProperty(attr, "VaryByCustom", String.Empty, false /* testDefaultValue */);
@@ -393,7 +393,7 @@
             mockHttpContext.Expect(c => c.Response).Returns(mockResponse.Object);
             mockHttpContext.Expect(c => c.Timestamp).Returns(new DateTime(2001, 1, 1));
             return new ResultExecutingContext(
-                new ControllerContext(mockHttpContext.Object, new RouteData(), new Mock<IController>().Object),
+                new ControllerContext(mockHttpContext.Object, new RouteData(), new Mock<ControllerBase>().Object),
                 EmptyResult.Instance);
         }
 

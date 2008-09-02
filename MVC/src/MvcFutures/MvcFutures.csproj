@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D3CF7430-6DA4-42B0-BD90-CA39D16687B2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.Web.Mvc</RootNamespace>
+    <AssemblyName>Microsoft.Web.Mvc</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <SignAssembly>false</SignAssembly>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\ReferenceAssemblies\System.Web.Abstractions.dll</HintPath>
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web.Routing, Version=3.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\ReferenceAssemblies\System.Web.Routing.dll</HintPath>
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Internal\ExpressionHelper.cs" />
+    <Compile Include="Mvc\ButtonBuilder.cs" />
+    <Compile Include="Mvc\ButtonsAndLinkExtensions.cs" />
+    <Compile Include="Mvc\ComplexModelBinder.cs" />
+    <Compile Include="Mvc\ContentTypeAttribute.cs" />
+    <Compile Include="Mvc\CookieTempDataProvider.cs" />
+    <Compile Include="Mvc\AntiForgeryExtensions.cs" />
+    <Compile Include="Mvc\AntiForgeryToken.cs" />
+    <Compile Include="Mvc\AntiForgeryTokenValidationException.cs" />
+    <Compile Include="Mvc\AntiForgeryTokenSerializer.cs" />
+    <Compile Include="Mvc\AntiForgeryHelper.cs" />
+    <Compile Include="Mvc\DefaultAntiForgeryTokenSerializer.cs" />
+    <Compile Include="Mvc\FormCollection.cs" />
+    <Compile Include="Mvc\FormCollectionModelBinder.cs" />
+    <Compile Include="Mvc\FormExtensions.cs" />
+    <Compile Include="Mvc\FormMethod.cs" />
+    <Compile Include="Mvc\HtmlExtensionUtility.cs" />
+    <Compile Include="Mvc\HtmlTagType.cs" />
+    <Compile Include="Mvc\LinkBuilder.cs" />
+    <Compile Include="Mvc\LinkExtensions.cs" />
+    <Compile Include="Mvc\MvcControlDataBinder.cs" />
+    <Compile Include="Mvc\MvcForm`1.cs" />
+    <Compile Include="Mvc\RadioBuilder.cs" />
+    <Compile Include="Mvc\RadioExtensions.cs" />
+    <Compile Include="Mvc\SimpleForm.cs" />
+    <Compile Include="Mvc\TagBuilder.cs" />
+    <Compile Include="Mvc\ValidateAntiForgeryTokenAttribute.cs" />
+    <Compile Include="Mvc\FileResult.cs" />
+    <Compile Include="Mvc\HtmlInputType.cs" />
+    <Compile Include="Mvc\ImageExtensions.cs" />
+    <Compile Include="Mvc\MailToExtensions.cs" />
+    <Compile Include="Mvc\ValidateInputAttribute.cs" />
+    <Compile Include="Mvc\ViewExtensions.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Resources\MvcResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MvcResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SystemWebMvc\System.Web.Mvc.csproj">
+      <Project>{3D3FFD8A-624D-4E9B-954B-E1C105507975}</Project>
+      <Name>System.Web.Mvc</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\MvcResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>MvcResources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

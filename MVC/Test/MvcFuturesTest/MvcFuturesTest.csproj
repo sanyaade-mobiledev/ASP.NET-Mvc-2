@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30428</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{6C28DA70-60F1-4442-967F-591BF3962EC5}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -34,7 +34,7 @@
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Moq, Version=2.0.2991.26580, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\ReferenceAssemblies\Moq.dll</HintPath>
+      <HintPath>..\..\tools\Moq\Moq.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -44,35 +44,42 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Abstractions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\ReferenceAssemblies\System.Web.Abstractions.dll</HintPath>
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+      <HintPath>..\..\ReferenceAssemblies\System.Web.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Routing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\ReferenceAssemblies\System.Web.Routing.dll</HintPath>
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+      <HintPath>..\..\ReferenceAssemblies\System.Web.Routing.dll</HintPath>
     </Reference>
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MockHelper.cs" />
     <Compile Include="Mvc\Test\ButtonTests.cs" />
+    <Compile Include="Mvc\Test\ComplexModelBinderTest.cs" />
+    <Compile Include="Mvc\Test\ContentTypeAttributeTests.cs" />
+    <Compile Include="Mvc\Test\CookieTempDataProviderTests.cs" />
+    <Compile Include="Mvc\Test\AntiForgeryTokenTest.cs" />
+    <Compile Include="Mvc\Test\AntiForgeryHelperTest.cs" />
+    <Compile Include="Mvc\Test\FormCollectionModelBinderTest.cs" />
+    <Compile Include="Mvc\Test\FormCollectionTest.cs" />
+    <Compile Include="Mvc\Test\ValidateAntiForgeryTokenAttributeTest.cs" />
     <Compile Include="Mvc\Test\ExpressionHelperTests.cs" />
-    <Compile Include="Mvc\Test\RequireHttpMethodsAttributeTests.cs" />
+    <Compile Include="Mvc\Test\FileResultTests.cs" />
+    <Compile Include="Mvc\Test\PermissionTests.cs" />
     <Compile Include="Mvc\Test\MailToExtensionsTests.cs" />
     <Compile Include="Mvc\Test\RenderActionTests.cs" />
     <Compile Include="Mvc\Test\SubmitImageExtensionsTest.cs" />
     <Compile Include="Mvc\Test\ImageExtensionsTest.cs" />
     <Compile Include="Mvc\Test\SubmitButtonExtensionsTest.cs" />
+    <Compile Include="Mvc\Test\ValidateInputAttributeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Futures\MvcFutures\MvcFutures.csproj">
+    <ProjectReference Include="..\..\src\MvcFutures\MvcFutures.csproj">
       <Project>{D3CF7430-6DA4-42B0-BD90-CA39D16687B2}</Project>
       <Name>MvcFutures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\v1\System.Web.Mvc.csproj">
+    <ProjectReference Include="..\..\src\SystemWebMvc\System.Web.Mvc.csproj">
       <Project>{3D3FFD8A-624D-4E9B-954B-E1C105507975}</Project>
       <Name>System.Web.Mvc</Name>
     </ProjectReference>

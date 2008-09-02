@@ -1,24 +1,21 @@
 ﻿namespace MvcFuturesTest.Mvc.Test {
-    using System.Web;
     using System.Web.Mvc;
-    using System.Web.Mvc.Test;
     using System.Web.Routing;
     using System.Web.TestUtil;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Microsoft.Web.Mvc;
-    using Moq;
 
     [TestClass]
     public class ImageExtensionsTest {
         [TestMethod]
         public void ImageWithEmptyRelativeUrlThrowsArgumentNullException() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
-            ExceptionHelper.ExpectArgumentNullException(() => html.Image(null), "imageRelativeUrl");
+            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(() => html.Image(null), "imageRelativeUrl");
         }
 
         [TestMethod]
         public void ImageStaticWithEmptyRelativeUrlThrowsArgumentNullException() {
-            ExceptionHelper.ExpectArgumentNullException(() => ImageExtensions.Image((string)null, "alt", null), "imageRelativeUrl");
+            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(() => ImageExtensions.Image((string)null, "alt", null), "imageUrl");
         }
 
         [TestMethod]
@@ -33,36 +30,36 @@
         public void ImageWithAltValueRendersImageWithAltTag() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string imageResult = html.Image("/system/web/mvc.jpg", "this is an alt value");
-            Assert.AreEqual("<img src=\"/system/web/mvc.jpg\" alt=\"this is an alt value\" />", imageResult);
+            Assert.AreEqual("<img alt=\"this is an alt value\" src=\"/system/web/mvc.jpg\" title=\"this is an alt value\" />", imageResult);
         }
 
         [TestMethod]
-        public void ImageWithAltValueInObjectDictionaryRendersImageWithAltTag() {
+        public void ImageWithAltValueInObjectDictionaryRendersImageWithAltAndTitleTag() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string imageResult = html.Image("/system/web/mvc.jpg", new { alt = "this is an alt value" });
-            Assert.AreEqual("<img alt=\"this is an alt value\" src=\"/system/web/mvc.jpg\" />", imageResult);
+            Assert.AreEqual("<img alt=\"this is an alt value\" src=\"/system/web/mvc.jpg\" title=\"this is an alt value\" />", imageResult);
         }
 
         [TestMethod]
         public void ImageWithAltValueHtmlAttributeEncodesAltTag() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string imageResult = html.Image("/system/web/mvc.jpg", @"<"">");
-            Assert.AreEqual("<img src=\"/system/web/mvc.jpg\" alt=\"&lt;&quot;>\" />", imageResult);
+            Assert.AreEqual("<img alt=\"&lt;&quot;>\" src=\"/system/web/mvc.jpg\" title=\"&lt;&quot;>\" />", imageResult);
         }
 
         [TestMethod]
         public void ImageWithAltValueInObjectDictionaryHtmlAttributeEncodesAltTag() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string imageResult = html.Image("/system/web/mvc.jpg", new { alt = "this is an alt value" });
-            Assert.AreEqual("<img alt=\"this is an alt value\" src=\"/system/web/mvc.jpg\" />", imageResult);
+            Assert.AreEqual("<img alt=\"this is an alt value\" src=\"/system/web/mvc.jpg\" title=\"this is an alt value\" />", imageResult);
         }
 
-        //TODO: Verify this behavior with others.
+        // TODO: Verify this behavior with others.
         [TestMethod]
         public void ImageWithAltSpecifiedAndInDictionaryRendersExplicit() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string imageResult = html.Image("/system/web/mvc.jpg", "specified-alt", new { alt = "object-dictionary-alt" });
-            Assert.AreEqual("<img alt=\"object-dictionary-alt\" src=\"/system/web/mvc.jpg\" />", imageResult);
+            Assert.AreEqual("<img alt=\"object-dictionary-alt\" src=\"/system/web/mvc.jpg\" title=\"object-dictionary-alt\" />", imageResult);
         }
 
         [TestMethod]
@@ -77,7 +74,7 @@
         public void ImageWithOtherAttributesRendersThoseAttributesCaseSensitively() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string imageResult = html.Image("/system/web/mvc.jpg", new { width=100, Height=200 });
-            Assert.AreEqual("<img width=\"100\" Height=\"200\" src=\"/system/web/mvc.jpg\" />", imageResult);
+            Assert.AreEqual("<img Height=\"200\" src=\"/system/web/mvc.jpg\" width=\"100\" />", imageResult);
         }
 
         [TestMethod]
@@ -85,7 +82,7 @@
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             var attributes = new RouteValueDictionary(new { width=125 });
             string imageResult = html.Image("/system/web/mvc.jpg", attributes);
-            Assert.AreEqual("<img width=\"125\" src=\"/system/web/mvc.jpg\" />", imageResult);
+            Assert.AreEqual("<img src=\"/system/web/mvc.jpg\" width=\"125\" />", imageResult);
         }
 
         [TestMethod]
