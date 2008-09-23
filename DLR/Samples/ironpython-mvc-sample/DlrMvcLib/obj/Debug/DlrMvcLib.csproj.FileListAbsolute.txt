@@ -1,0 +1,10 @@
+D:\Temp\MerlinWeb\mvc2\IronPythonMvcDemo\bin\DlrMvcLib.dll
+D:\Temp\MerlinWeb\mvc2\IronPythonMvcDemo\bin\DlrMvcLib.pdb
+D:\Temp\MerlinWeb\mvc2\IronPythonMvcDemo\DlrMvcLib\obj\Debug\ResolveAssemblyReference.cache
+D:\Temp\MerlinWeb\mvc2\IronPythonMvcDemo\DlrMvcLib\obj\Debug\DlrMvcLib.dll
+D:\Temp\MerlinWeb\mvc2\IronPythonMvcDemo\DlrMvcLib\obj\Debug\DlrMvcLib.pdb
+D:\svn\mvcdemos\trunk\MerlinWeb\mvc-sample\bin\DlrMvcLib.dll
+D:\svn\mvcdemos\trunk\MerlinWeb\mvc-sample\bin\DlrMvcLib.pdb
+D:\svn\mvcdemos\trunk\MerlinWeb\mvc-sample\DlrMvcLib\obj\Debug\ResolveAssemblyReference.cache
+D:\svn\mvcdemos\trunk\MerlinWeb\mvc-sample\DlrMvcLib\obj\Debug\DlrMvcLib.dll
+D:\svn\mvcdemos\trunk\MerlinWeb\mvc-sample\DlrMvcLib\obj\Debug\DlrMvcLib.pdb

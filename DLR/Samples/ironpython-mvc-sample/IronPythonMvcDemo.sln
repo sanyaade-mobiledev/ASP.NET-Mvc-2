@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IronPythonMvcWeb", "IronPythonMvcWeb\IronPythonMvcWeb.csproj", "{79E9FBCA-1121-4A55-99AD-E2B384A71BF4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DlrMvcLib", "DlrMvcLib\DlrMvcLib.csproj", "{5EDAC9C7-04A4-43C8-BD60-AB4B776A0D5E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{79E9FBCA-1121-4A55-99AD-E2B384A71BF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79E9FBCA-1121-4A55-99AD-E2B384A71BF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79E9FBCA-1121-4A55-99AD-E2B384A71BF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79E9FBCA-1121-4A55-99AD-E2B384A71BF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5EDAC9C7-04A4-43C8-BD60-AB4B776A0D5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5EDAC9C7-04A4-43C8-BD60-AB4B776A0D5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5EDAC9C7-04A4-43C8-BD60-AB4B776A0D5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5EDAC9C7-04A4-43C8-BD60-AB4B776A0D5E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

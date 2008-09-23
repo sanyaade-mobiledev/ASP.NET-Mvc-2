@@ -1,0 +1,9 @@
+D:\temp\MerlinWeb\mvc\MvcDemoLib\bin\debug\MvcDemoLib.dll
+D:\temp\MerlinWeb\mvc\MvcDemoLib\bin\debug\MvcDemoLib.pdb
+D:\temp\MerlinWeb\mvc\MvcDemoLib\bin\debug\Microsoft.Web.Mvc.dll
+D:\temp\MerlinWeb\mvc\MvcDemoLib\bin\debug\System.Web.Mvc.dll
+D:\temp\MerlinWeb\mvc\MvcDemoLib\obj\Debug\ResolveAssemblyReference.cache
+D:\temp\MerlinWeb\mvc\MvcDemoLib\obj\Debug\MvcDemoLib.dll
+D:\temp\MerlinWeb\mvc\MvcDemoLib\obj\Debug\MvcDemoLib.pdb
+D:\temp\MerlinWeb\mvc\bin\MvcDemoLib.dll
+D:\temp\MerlinWeb\mvc\bin\MvcDemoLib.pdb
