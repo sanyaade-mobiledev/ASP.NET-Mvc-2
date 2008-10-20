@@ -13,13 +13,12 @@ namespace System.Web.Mvc.Test {
             ModelStateDictionary dictionary = new ModelStateDictionary();
 
             // Act
-            dictionary.AddModelError("some key", "some value", "some error");
+            dictionary.AddModelError("some key", "some error");
 
             // Assert
             Assert.AreEqual(1, dictionary.Count);
             ModelState modelState = dictionary["some key"];
 
-            Assert.AreEqual("some value", modelState.AttemptedValue);
             Assert.AreEqual(1, modelState.Errors.Count);
             Assert.AreEqual("some error", modelState.Errors[0].ErrorMessage);
         }
@@ -32,7 +31,7 @@ namespace System.Web.Mvc.Test {
             // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
-                    dictionary.AddModelError(String.Empty, null, (string)null);
+                    dictionary.AddModelError(String.Empty, (string)null);
                 }, "key");
         }
 
@@ -44,7 +43,7 @@ namespace System.Web.Mvc.Test {
             // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
-                    dictionary.AddModelError(null, null, (string)null);
+                    dictionary.AddModelError(null, (string)null);
                 }, "key");
         }
 
@@ -52,17 +51,16 @@ namespace System.Web.Mvc.Test {
         public void AddModelErrorUsesExistingModelStateIfPresent() {
             // Arrange
             ModelStateDictionary dictionary = new ModelStateDictionary();
-            dictionary.AddModelError("some key", "some value", "some error");
+            dictionary.AddModelError("some key", "some error");
             Exception ex = new Exception();
 
             // Act
-            dictionary.AddModelError("some key", "some other value", ex);
+            dictionary.AddModelError("some key", ex);
 
             // Assert
             Assert.AreEqual(1, dictionary.Count);
             ModelState modelState = dictionary["some key"];
 
-            Assert.AreEqual("some other value", modelState.AttemptedValue);
             Assert.AreEqual(2, modelState.Errors.Count);
             Assert.AreEqual("some error", modelState.Errors[0].ErrorMessage);
             Assert.AreSame(ex, modelState.Errors[1].Exception);
@@ -124,6 +122,55 @@ namespace System.Web.Mvc.Test {
 
             // Assert
             Assert.IsTrue(isValid);
+        }
+
+        [TestMethod]
+        public void MergeCopiesDictionaryEntries() {
+            // Arrange
+            ModelStateDictionary fooDict = new ModelStateDictionary() { { "foo", new ModelState() } };
+            ModelStateDictionary barDict = new ModelStateDictionary() { { "bar", new ModelState() } };
+
+            // Act
+            fooDict.Merge(barDict);
+
+            // Assert
+            Assert.AreEqual(2, fooDict.Count);
+            Assert.AreEqual(barDict["bar"], fooDict["bar"]);
+        }
+
+        [TestMethod]
+        public void SetAttemptedValueCreatesModelStateIfNotPresent() {
+            // Arrange
+            ModelStateDictionary dictionary = new ModelStateDictionary();
+
+            // Act
+            dictionary.SetAttemptedValue("some key", "some value");
+
+            // Assert
+            Assert.AreEqual(1, dictionary.Count);
+            ModelState modelState = dictionary["some key"];
+
+            Assert.AreEqual(0, modelState.Errors.Count);
+            Assert.AreEqual("some value", modelState.AttemptedValue);
+        }
+
+        [TestMethod]
+        public void SetAttemptedValueUsesExistingModelStateIfPresent() {
+            // Arrange
+            ModelStateDictionary dictionary = new ModelStateDictionary();
+            dictionary.AddModelError("some key", "some error");
+            Exception ex = new Exception();
+
+            // Act
+            dictionary.SetAttemptedValue("some key", "some value");
+
+            // Assert
+            Assert.AreEqual(1, dictionary.Count);
+            ModelState modelState = dictionary["some key"];
+
+            Assert.AreEqual(1, modelState.Errors.Count);
+            Assert.AreEqual("some error", modelState.Errors[0].ErrorMessage);
+            Assert.AreEqual("some value", modelState.AttemptedValue);
         }
 
     }

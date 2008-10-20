@@ -65,13 +65,6 @@
             return controller;
         }
 
-        public virtual void DisposeController(IController controller) {
-            IDisposable disposable = controller as IDisposable;
-            if (disposable != null) {
-                disposable.Dispose();
-            }
-        }
-
         protected internal virtual IController GetControllerInstance(Type controllerType) {
             if (controllerType == null) {
                 throw new HttpException(404,
@@ -161,5 +154,11 @@
             }
         }
 
+        public virtual void ReleaseController(IController controller) {
+            IDisposable disposable = controller as IDisposable;
+            if (disposable != null) {
+                disposable.Dispose();
+            }
+        }
     }
 }

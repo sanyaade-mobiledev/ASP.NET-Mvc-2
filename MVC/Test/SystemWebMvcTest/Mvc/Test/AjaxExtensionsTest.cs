@@ -10,15 +10,14 @@
 
     [TestClass]
     public class AjaxExtensionsTest {
-        private const string AjaxFormWithDefaultController = @"<form action=""" + AppPathModifier + @"/app/home/Action"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
-        private const string AjaxFormWithId = @"<form action=""" + AppPathModifier + @"/app/Controller/Action/5"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
-        private const string AjaxFormWithIdAndHtmlAttributes = @"<form action=""" + AppPathModifier + @"/app/Controller/Action/5"" method=""get"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
-        private const string AjaxFormWithEmptyOptions = @"<form action=""" + AppPathModifier + @"/app/Controller/Action"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
-        private const string AjaxFormWithTargetId = @"<form action=""" + AppPathModifier + @"/app/Controller/Action"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'some-id' });"">";
-        private const string AjaxFormWithHtmlAttributes = @"<form action=""" + AppPathModifier + @"/app/Controller/Action"" method=""get"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'some-id' });"">";
+        private const string AjaxForm = @"<form action=""http://foo.bar.baz/"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
+        private const string AjaxFormWithDefaultController = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/home/Action"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
+        private const string AjaxFormWithId = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action/5"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
+        private const string AjaxFormWithIdAndHtmlAttributes = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action/5"" method=""get"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
+        private const string AjaxFormWithEmptyOptions = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
+        private const string AjaxFormWithTargetId = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'some-id' });"">";
+        private const string AjaxFormWithHtmlAttributes = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" method=""get"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'some-id' });"">";
         private const string AjaxFormClose = "</form>";
-
-        internal const string AppPathModifier = HtmlHelperTest.AppPathModifier;
 
         private static readonly object _valuesObjectDictionary = new { id = 5 };
         private static readonly object _attributesObjectDictionary = new { method = "post" };
@@ -122,7 +121,7 @@
             string actionLink = ajaxHelper.ActionLink("linkText", "Action", GetEmptyOptions());
 
             // Assert
-            Assert.AreEqual(@"<a href=""" + AppPathModifier + @"/app/home/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">linkText</a>", actionLink);
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/home/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">linkText</a>", actionLink);
         }
 
         [TestMethod]
@@ -136,7 +135,7 @@
             string actionLink = helper.ActionLink("Some Text", "Action", values, options);
 
             // Assert
-            Assert.AreEqual(@"<a href=""" + AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -151,7 +150,7 @@
             string actionLink = helper.ActionLink("Some Text", "Action", values, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -168,7 +167,7 @@
             string actionLink = helper.ActionLink("Some Text", "Action", values, options);
 
             // Assert
-            Assert.AreEqual(@"<a href=""" + AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -188,7 +187,7 @@
             string actionLink = helper.ActionLink("Some Text", "Action", values, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -200,7 +199,7 @@
             string actionLink = ajaxHelper.ActionLink("linkText", "Action", "Controller", GetEmptyOptions());
 
             // Assert
-            Assert.AreEqual(@"<a href=""" + AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">linkText</a>", actionLink);
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">linkText</a>", actionLink);
         }
 
         [TestMethod]
@@ -214,7 +213,7 @@
             string actionLink = helper.ActionLink("Some Text", "Action", "Controller", values, options);
 
             // Assert
-            Assert.AreEqual(@"<a href=""" + AppPathModifier + @"/app/Controller/Action/5"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action/5"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -229,7 +228,7 @@
             string actionLink = helper.ActionLink("Some Text", "Action", "Controller", values, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/Controller/Action/5"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action/5"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -245,7 +244,7 @@
             string actionLink = helper.ActionLink("Some Text", "Action", "Controller", values, options);
 
             // Assert
-            Assert.AreEqual(@"<a href=""" + AppPathModifier + @"/app/Controller/Action/5"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action/5"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -265,7 +264,7 @@
             string actionLink = helper.ActionLink("Some Text", "Action", "Controller", values, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/Controller/Action/5"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action/5"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -277,7 +276,32 @@
             string actionLink = ajaxHelper.ActionLink("linkText", "Action", "Controller", new AjaxOptions { UpdateTargetId = "some-id" });
 
             // Assert
-            Assert.AreEqual(@"<a href=""" + AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'some-id' });"">linkText</a>", actionLink);
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'some-id' });"">linkText</a>", actionLink);
+        }
+
+        [TestMethod]
+        public void ActionLinkWithNullHostName() {
+            // Arrange
+            AjaxHelper ajaxHelper = GetAjaxHelper();
+
+            // Act
+            string actionLink = ajaxHelper.ActionLink("linkText", "Action", "Controller",
+                null, null, null, null, new AjaxOptions { UpdateTargetId = "some-id" }, null);
+
+            // Assert
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'some-id' });"">linkText</a>", actionLink);
+        }
+
+        [TestMethod]
+        public void ActionLinkWithProtocol() {
+            // Arrange
+            AjaxHelper ajaxHelper = GetAjaxHelper();
+
+            // Act
+            string actionLink = ajaxHelper.ActionLink("linkText", "Action", "Controller", "https", null, null, null, new AjaxOptions { UpdateTargetId = "some-id" }, null);
+
+            // Assert
+            Assert.AreEqual(@"<a href=""https://foo.bar.baz" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'some-id' });"">linkText</a>", actionLink);
         }
 
         [TestMethod]
@@ -320,7 +344,7 @@
             string routeLink = helper.RouteLink("Some Text", values, options);
 
             // Assert
-            Assert.AreEqual(@"<a href=""" + AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", routeLink);
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", routeLink);
         }
 
         [TestMethod]
@@ -341,7 +365,7 @@
             string actionLink = helper.RouteLink("Some Text", values, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -362,7 +386,7 @@
             string actionLink = helper.RouteLink("Some Text", values, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -380,7 +404,7 @@
             string actionLink = helper.RouteLink("Some Text", values, options);
 
             // Assert
-            Assert.AreEqual(@"<a href=""" + AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -401,7 +425,7 @@
             string actionLink = helper.RouteLink("Some Text", values, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -422,7 +446,7 @@
             string actionLink = helper.RouteLink("Some Text", values, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -434,7 +458,7 @@
             string actionLink = ajaxHelper.RouteLink("linkText", "namedroute", GetEmptyOptions());
 
             // Assert
-            Assert.AreEqual(@"<a href=""" + AppPathModifier + @"/app/named/home/oldaction"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">linkText</a>", actionLink);
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/named/home/oldaction"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">linkText</a>", actionLink);
         }
 
         [TestMethod]
@@ -451,7 +475,7 @@
             string actionLink = ajaxHelper.RouteLink("Some Text", "namedroute", options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/named/home/oldaction"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/named/home/oldaction"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -465,7 +489,7 @@
             string actionLink = ajaxHelper.RouteLink("Some Text", "namedroute", options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/named/home/oldaction"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/named/home/oldaction"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -481,7 +505,7 @@
             string actionLink = ajaxHelper.RouteLink("linkText", "namedroute", values, GetEmptyOptions());
 
             // Assert
-            Assert.AreEqual(@"<a href=""" + AppPathModifier + @"/app/named/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">linkText</a>", actionLink);
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/named/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">linkText</a>", actionLink);
         }
 
         [TestMethod]
@@ -503,7 +527,7 @@
             string actionLink = ajaxHelper.RouteLink("Some Text", "namedroute", values, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/named/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/named/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -522,7 +546,7 @@
             string actionLink = ajaxHelper.RouteLink("Some Text", "namedroute", values, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/named/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/named/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -538,7 +562,7 @@
             string actionLink = ajaxHelper.RouteLink("linkText", "namedroute", values, GetEmptyOptions());
 
             // Assert
-            Assert.AreEqual(@"<a href=""" + AppPathModifier + @"/app/named/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">linkText</a>", actionLink);
+            Assert.AreEqual(@"<a href=""" + HtmlHelperTest.AppPathModifier + @"/app/named/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">linkText</a>", actionLink);
         }
 
         [TestMethod]
@@ -560,7 +584,7 @@
             string actionLink = ajaxHelper.RouteLink("Some Text", "namedroute", values, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/named/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/named/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -579,7 +603,7 @@
             string actionLink = ajaxHelper.RouteLink("Some Text", "namedroute", values, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/named/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/named/Controller/Action"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
         }
 
         [TestMethod]
@@ -593,7 +617,34 @@
             string actionLink = ajaxHelper.RouteLink("Some Text", "namedroute", null, options, htmlAttributes);
 
             // Assert
-            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + AppPathModifier + @"/app/named/home/oldaction"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""" + HtmlHelperTest.AppPathModifier + @"/app/named/home/oldaction"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+        }
+
+        [TestMethod]
+        public void RouteLinkWithHostName() {
+            // Arrange
+            AjaxHelper ajaxHelper = GetAjaxHelper();
+            Dictionary<string, object> htmlAttributes = new Dictionary<string, object> { { "foo", "bar" }, { "baz", "quux" } };
+            AjaxOptions options = new AjaxOptions { UpdateTargetId = "update-div" };
+
+            // Act
+            string actionLink = ajaxHelper.RouteLink("Some Text", "namedroute", null, "baz.bar.foo", null, null, options, htmlAttributes);
+
+            // Assert
+            Assert.AreEqual(@"<a baz=""quux"" foo=""bar"" href=""http://baz.bar.foo" + HtmlHelperTest.AppPathModifier + @"/app/named/home/oldaction"" onclick=""Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'update-div' });"">Some Text</a>", actionLink);
+        }
+
+        [TestMethod]
+        public void FormOnlyWithNullOptionsThrows() {
+            // Arrange
+            AjaxHelper ajaxHelper = GetAjaxHelper();
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentNullException(
+                delegate {
+                    IDisposable form = ajaxHelper.BeginForm(null);
+                },
+                "ajaxOptions");
         }
 
         [TestMethod]
@@ -604,7 +655,7 @@
             // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
-                    IDisposable form = ajaxHelper.Form(null, new AjaxOptions());
+                    IDisposable form = ajaxHelper.BeginForm(null, new AjaxOptions());
                 },
                 "actionName");
         }
@@ -617,7 +668,7 @@
             // Act & Assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
-                    IDisposable form = ajaxHelper.Form(String.Empty, new AjaxOptions());
+                    IDisposable form = ajaxHelper.BeginForm(String.Empty, new AjaxOptions());
                 },
                 "actionName");
         }
@@ -630,7 +681,7 @@
             // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    IDisposable form = ajaxHelper.Form("someAction", "someController", null);
+                    IDisposable form = ajaxHelper.BeginForm("someAction", "someController", null);
                 },
                 "ajaxOptions");
         }
@@ -643,10 +694,27 @@
             AjaxOptions ajaxOptions = GetEmptyOptions();
 
             // Arrange expectations
+            mockResponse.Expect(response => response.Write(AjaxForm)).Verifiable();
+
+            // Act
+            IDisposable form = ajaxHelper.BeginForm(ajaxOptions);
+
+            // Assert
+            mockResponse.Verify();
+        }
+
+        [TestMethod]
+        public void FormAction() {
+            // Arrange
+            Mock<HttpResponseBase> mockResponse = new Mock<HttpResponseBase>(MockBehavior.Strict);
+            AjaxHelper ajaxHelper = GetAjaxHelper(mockResponse);
+            AjaxOptions ajaxOptions = GetEmptyOptions();
+
+            // Arrange expectations
             mockResponse.Expect(response => response.Write(AjaxFormWithDefaultController)).Verifiable();
 
             // Act
-            IDisposable form = ajaxHelper.Form("Action", ajaxOptions);
+            IDisposable form = ajaxHelper.BeginForm("Action", ajaxOptions);
 
             // Assert
             mockResponse.Verify();
@@ -664,7 +732,7 @@
             mockResponse.Expect(response => response.Write(AjaxFormWithEmptyOptions)).Verifiable();
 
             // Act
-            IDisposable form = ajaxHelper.Form("Action", values, ajaxOptions);
+            IDisposable form = ajaxHelper.BeginForm("Action", values, ajaxOptions);
 
             // Assert
             mockResponse.Verify();
@@ -683,7 +751,7 @@
             mockResponse.Expect(response => response.Write(AjaxFormWithHtmlAttributes)).Verifiable();
 
             // Act
-            IDisposable form = ajaxHelper.Form("Action", values, ajaxOptions, htmlAttributes);
+            IDisposable form = ajaxHelper.BeginForm("Action", values, ajaxOptions, htmlAttributes);
 
             // Assert
             mockResponse.Verify();
@@ -703,7 +771,7 @@
             mockResponse.Expect(response => response.Write(AjaxFormWithEmptyOptions)).Verifiable();
 
             // Act
-            IDisposable form = ajaxHelper.Form("Action", values, ajaxOptions);
+            IDisposable form = ajaxHelper.BeginForm("Action", values, ajaxOptions);
 
             // Assert
             mockResponse.Verify();
@@ -726,7 +794,7 @@
             mockResponse.Expect(response => response.Write(AjaxFormWithHtmlAttributes)).Verifiable();
 
             // Act
-            IDisposable form = ajaxHelper.Form("Action", values, ajaxOptions, htmlAttributes);
+            IDisposable form = ajaxHelper.BeginForm("Action", values, ajaxOptions, htmlAttributes);
 
             // Assert
             mockResponse.Verify();
@@ -743,7 +811,7 @@
             mockResponse.Expect(response => response.Write(AjaxFormWithEmptyOptions)).Verifiable();
 
             // Act
-            IDisposable form = ajaxHelper.Form("Action", "Controller", ajaxOptions);
+            IDisposable form = ajaxHelper.BeginForm("Action", "Controller", ajaxOptions);
 
             // Assert
             mockResponse.Verify();
@@ -761,7 +829,7 @@
             mockResponse.Expect(response => response.Write(AjaxFormWithId)).Verifiable();
 
             // Act
-            IDisposable form = ajaxHelper.Form("Action", "Controller", values, ajaxOptions);
+            IDisposable form = ajaxHelper.BeginForm("Action", "Controller", values, ajaxOptions);
 
             // Assert
             mockResponse.Verify();
@@ -780,7 +848,7 @@
             mockResponse.Expect(response => response.Write(AjaxFormWithIdAndHtmlAttributes)).Verifiable();
 
             // Act
-            IDisposable form = ajaxHelper.Form("Action", "Controller", values, ajaxOptions, htmlAttributes);
+            IDisposable form = ajaxHelper.BeginForm("Action", "Controller", values, ajaxOptions, htmlAttributes);
 
             // Assert
             mockResponse.Verify();
@@ -800,7 +868,7 @@
             mockResponse.Expect(response => response.Write(AjaxFormWithId)).Verifiable();
 
             // Act
-            IDisposable form = ajaxHelper.Form("Action", "Controller", values, ajaxOptions);
+            IDisposable form = ajaxHelper.BeginForm("Action", "Controller", values, ajaxOptions);
 
             // Assert
             mockResponse.Verify();
@@ -823,7 +891,7 @@
             mockResponse.Expect(response => response.Write(AjaxFormWithIdAndHtmlAttributes)).Verifiable();
 
             // Act
-            IDisposable form = ajaxHelper.Form("Action", "Controller", values, ajaxOptions, htmlAttributes);
+            IDisposable form = ajaxHelper.BeginForm("Action", "Controller", values, ajaxOptions, htmlAttributes);
 
             // Assert
             mockResponse.Verify();
@@ -840,7 +908,7 @@
             mockResponse.Expect(response => response.Write(AjaxFormWithTargetId)).Verifiable();
 
             // Act
-            IDisposable form = ajaxHelper.Form("Action", "Controller", ajaxOptions);
+            IDisposable form = ajaxHelper.BeginForm("Action", "Controller", ajaxOptions);
 
             // Assert
             mockResponse.Verify();
@@ -858,7 +926,7 @@
             mockResponse.Expect(response => response.Write(AjaxFormClose)).Verifiable();
 
             // Act
-            IDisposable form = ajaxHelper.Form("Action", "Controller", ajaxOptions);
+            IDisposable form = ajaxHelper.BeginForm("Action", "Controller", ajaxOptions);
             form.Dispose();
 
             // Assert
@@ -886,7 +954,7 @@
             RouteData rd = new RouteData();
             rd.Values.Add("controller", "home");
             rd.Values.Add("action", "oldaction");
-            ViewContext context = new ViewContext(httpcontext, rd, new Mock<ControllerBase>().Object, "view", new ViewDataDictionary(), new TempDataDictionary());
+            ViewContext context = new ViewContext(httpcontext, rd, new Mock<ControllerBase>().Object, new Mock<IView>().Object, new ViewDataDictionary(), new TempDataDictionary());
             AjaxHelper ajaxHelper = new AjaxHelper(context);
             ajaxHelper.RouteCollection = rt;
             return ajaxHelper;
@@ -902,11 +970,12 @@
             if (!String.IsNullOrEmpty(appPath)) {
                 mockRequest.Expect(o => o.ApplicationPath).Returns(appPath);
             }
+            mockRequest.Expect(o => o.Url).Returns(new Uri("http://foo.bar.baz"));
             mockRequest.Expect(o => o.PathInfo).Returns(String.Empty);
             mockContext.Expect(o => o.Request).Returns(mockRequest.Object);
             mockContext.Expect(o => o.Session).Returns((HttpSessionStateBase)null);
 
-            mockResponse.Expect(o => o.ApplyAppPathModifier(It.IsAny<string>())).Returns<string>(r => AppPathModifier + r);
+            mockResponse.Expect(o => o.ApplyAppPathModifier(It.IsAny<string>())).Returns<string>(r => HtmlHelperTest.AppPathModifier + r);
             mockContext.Expect(o => o.Response).Returns(mockResponse.Object);
 
             return mockContext.Object;

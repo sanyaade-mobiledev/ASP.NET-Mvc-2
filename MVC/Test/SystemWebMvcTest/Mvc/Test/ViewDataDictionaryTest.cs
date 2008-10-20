@@ -234,6 +234,44 @@
             Assert.AreEqual("Quux", vdd.Eval("Foo.Bar.Baz"));
         }
 
+        [TestMethod]
+        public void EvalFormatWithNullValueReturnsEmptyString() {
+            // Arrange
+            ViewDataDictionary vdd = new ViewDataDictionary();
+
+            // Act
+            string formattedValue = vdd.Eval("foo", "for{0}mat");
+
+            // Assert
+            Assert.AreEqual<string>(String.Empty, formattedValue);
+        }
+
+        [TestMethod]
+        public void EvalFormatWithEmptyFormatReturnsViewData() {
+            // Arrange
+            ViewDataDictionary vdd = new ViewDataDictionary();
+            vdd["foo"] = "value";
+
+            // Act
+            string formattedValue = vdd.Eval("foo", "");
+
+            // Assert
+            Assert.AreEqual<string>("value", formattedValue);
+        }
+
+        [TestMethod]
+        public void EvalFormatWithFormatReturnsFormattedViewData() {
+            // Arrange
+            ViewDataDictionary vdd = new ViewDataDictionary();
+            vdd["foo"] = "value";
+
+            // Act
+            string formattedValue = vdd.Eval("foo", "for{0}mat");
+
+            // Assert
+            Assert.AreEqual<string>("forvaluemat", formattedValue);
+        }
+
         public class Person : CustomTypeDescriptor {
             public override PropertyDescriptorCollection GetProperties() {
                 return new PropertyDescriptorCollection(new PersonPropertyDescriptor[] { new PersonPropertyDescriptor() });

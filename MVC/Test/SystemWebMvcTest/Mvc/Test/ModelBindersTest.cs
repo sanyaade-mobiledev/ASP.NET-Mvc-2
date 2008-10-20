@@ -1,4 +1,5 @@
 ﻿namespace System.Web.Mvc.Test {
+    using System;
     using System.Collections.Generic;
     using System.Web.Mvc;
     using System.Web.TestUtil;
@@ -8,25 +9,21 @@
     public class ModelBindersTest {
 
         [TestMethod]
-        public void ConvertersProperty() {
-            // The converters dictionary should come pre-populated with DateTime-specific converters
-
+        public void BindersProperty() {
             // Act
-            IDictionary<Type, IModelBinder> converters = ModelBinders.Binders;
+            IDictionary<Type, IModelBinder> binders = ModelBinders.Binders;
 
             // Assert
-            Assert.AreEqual(2, converters.Count);
-            Assert.IsInstanceOfType(converters[typeof(DateTime)], typeof(DateTimeModelBinder));
-            Assert.IsInstanceOfType(converters[typeof(DateTime?)], typeof(DateTimeModelBinder));
+            Assert.AreEqual(0, binders.Count);
         }
 
         [TestMethod]
-        public void DefaultConverterProperty() {
+        public void DefaultBinderProperty() {
             // Act
-            DefaultModelBinder converter = ModelBinders.DefaultBinder as DefaultModelBinder;
+            DefaultModelBinder binder = ModelBinders.DefaultBinder as DefaultModelBinder;
 
             // Assert
-            Assert.IsNotNull(converter);
+            Assert.IsNotNull(binder);
         }
 
         [TestMethod]

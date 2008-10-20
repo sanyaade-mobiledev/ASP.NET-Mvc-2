@@ -51,6 +51,22 @@
         }
 
         [TestMethod]
+        public void FindActionMethodReturnsMethodWithActionSelectionAttributeIfMultipleMethodsMatchRequest() {
+            // DevDiv Bugs 212062: If multiple action methods match a request, we should match only the methods with an
+            // [ActionMethod] attribute since we assume those methods are more specific.
+
+            // Arrange
+            Type controllerType = typeof(SelectionAttributeController);
+            ActionMethodSelector selector = new ActionMethodSelector(controllerType);
+
+            // Act
+            MethodInfo matchedMethod = selector.FindActionMethod(null, "ShouldMatchMethodWithSelectionAttribute");
+
+            // Assert
+            Assert.AreEqual("MethodHasSelectionAttribute1", matchedMethod.Name);
+        }
+
+        [TestMethod]
         public void FindActionMethodReturnsNullIfNoMethodMatches() {
             // Arrange
             Type controllerType = typeof(SelectionAttributeController);
@@ -74,9 +90,9 @@
                 delegate {
                     selector.FindActionMethod(null, "TwoMatch");
                 },
-                @"The current request for action 'TwoMatch' on controller type 'System.Web.Mvc.Test.ActionMethodSelectorTest+SelectionAttributeController' is ambiguous between the following action methods:
-Void TwoMatch2()
-Void TwoMatch()");
+                @"The current request for action 'TwoMatch' on controller type 'SelectionAttributeController' is ambiguous between the following action methods:
+Void TwoMatch2() on type System.Web.Mvc.Test.ActionMethodSelectorTest+SelectionAttributeController
+Void TwoMatch() on type System.Web.Mvc.Test.ActionMethodSelectorTest+SelectionAttributeController");
         }
 
         [TestMethod]
@@ -143,7 +159,7 @@ Void TwoMatch()");
 
         private class SelectionAttributeController : Controller {
 
-            [DontMatch]
+            [Match(false)]
             public void OneMatch() {
             }
 
@@ -157,9 +173,21 @@ Void TwoMatch()");
             public void TwoMatch2() {
             }
 
-            private class DontMatchAttribute : ActionSelectionAttribute {
+            [Match(true), ActionName("ShouldMatchMethodWithSelectionAttribute")]
+            public void MethodHasSelectionAttribute1() {
+            }
+
+            [ActionName("ShouldMatchMethodWithSelectionAttribute")]
+            public void MethodDoesNotHaveSelectionAttribute1() {
+            }
+
+            private class MatchAttribute : ActionMethodSelectorAttribute {
+                private bool _match;
+                public MatchAttribute(bool match) {
+                    _match = match;
+                }
                 public override bool IsValidForRequest(ControllerContext controllerContext, MethodInfo methodInfo) {
-                    return false;
+                    return _match;
                 }
             }
         }

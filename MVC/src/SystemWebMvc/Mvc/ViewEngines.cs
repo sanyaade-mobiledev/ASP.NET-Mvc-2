@@ -7,9 +7,9 @@
         private readonly static ViewEngineCollection _engines = new ViewEngineCollection {
             new WebFormViewEngine() 
         };
-        private readonly static CompositeViewEngine _defaultEngine = new CompositeViewEngine(_engines);
+        private readonly static AutoViewEngine _defaultEngine = new AutoViewEngine(_engines);
 
-        public static CompositeViewEngine DefaultEngine {
+        public static AutoViewEngine DefaultEngine {
             get {
                 return _defaultEngine;
             }

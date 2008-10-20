@@ -74,7 +74,7 @@
             tempDataProvider.Expect(provider => provider.SaveTempData(controller.ControllerContext, It.IsAny<IDictionary<string, object>>()));
 
             factory.Expect(f => f.CreateController(It.IsAny<RequestContext>(), It.IsAny<string>())).Returns(controller);
-            factory.Expect(f => f.DisposeController(It.IsAny<ControllerBase>()));
+            factory.Expect(f => f.ReleaseController(It.IsAny<ControllerBase>()));
 
             ControllerBuilder.Current.SetControllerFactory(factory.Object);
         }

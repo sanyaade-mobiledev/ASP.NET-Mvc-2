@@ -19,8 +19,8 @@ namespace System.Web.Mvc.Test {
 
             // Assert
             Assert.AreSame(exception, viewData.Exception);
-            Assert.AreEqual(controller, viewData.Controller);
-            Assert.AreEqual(action, viewData.Action);
+            Assert.AreEqual(controller, viewData.ControllerName);
+            Assert.AreEqual(action, viewData.ActionName);
         }
 
         [TestMethod]
@@ -28,7 +28,7 @@ namespace System.Web.Mvc.Test {
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     new HandleErrorInfo(new Exception(), "SomeController", String.Empty);
-                }, "action");
+                }, "actionName");
         }
 
         [TestMethod]
@@ -36,7 +36,7 @@ namespace System.Web.Mvc.Test {
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     new HandleErrorInfo(new Exception(), String.Empty, "SomeAction");
-                }, "controller");
+                }, "controllerName");
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ namespace System.Web.Mvc.Test {
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     new HandleErrorInfo(new Exception(), "SomeController", null /* action */);
-                }, "action");
+                }, "actionName");
         }
 
         [TestMethod]
@@ -52,7 +52,7 @@ namespace System.Web.Mvc.Test {
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
                 delegate {
                     new HandleErrorInfo(new Exception(), null /* controller */, "SomeAction");
-                }, "controller");
+                }, "controllerName");
         }
 
         [TestMethod]

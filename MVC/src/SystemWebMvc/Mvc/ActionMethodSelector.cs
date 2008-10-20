@@ -7,7 +7,7 @@
     using System.Text;
     using System.Web.Mvc.Resources;
 
-    internal class ActionMethodSelector {
+    internal sealed class ActionMethodSelector {
 
         public ActionMethodSelector(Type controllerType) {
             ControllerType = controllerType;
@@ -29,20 +29,22 @@
             private set;
         }
 
-        private InvalidOperationException CreateAmbiguousMatchException(List<MethodInfo> ambiguousMethods, string action) {
-            StringBuilder builder = new StringBuilder();
+        private InvalidOperationException CreateAmbiguousMatchException(List<MethodInfo> ambiguousMethods, string actionName) {
+            StringBuilder exceptionMessageBuilder = new StringBuilder();
             foreach (MethodInfo methodInfo in ambiguousMethods) {
-                builder.AppendLine();
-                builder.Append(Convert.ToString(methodInfo, CultureInfo.CurrentUICulture));
+                string controllerAction = Convert.ToString(methodInfo, CultureInfo.CurrentUICulture);
+                string controllerType = methodInfo.DeclaringType.FullName;
+                exceptionMessageBuilder.AppendLine();
+                exceptionMessageBuilder.AppendFormat(CultureInfo.CurrentUICulture, MvcResources.ActionMethodSelector_AmbiguousMatchType, controllerAction, controllerType);
             }
-            string message = String.Format(CultureInfo.CurrentUICulture, MvcResources.ActionMethodSelector_AmbigiousMatch,
-                action, ControllerType.FullName, builder);
+            string message = String.Format(CultureInfo.CurrentUICulture, MvcResources.ActionMethodSelector_AmbiguousMatch,
+                actionName, ControllerType.Name, exceptionMessageBuilder);
             return new InvalidOperationException(message);
         }
 
-        public MethodInfo FindActionMethod(ControllerContext controllerContext, string action) {
-            List<MethodInfo> methodsMatchingName = GetMatchingAliasedMethods(controllerContext, action);
-            methodsMatchingName.AddRange(NonAliasedMethods[action]);
+        public MethodInfo FindActionMethod(ControllerContext controllerContext, string actionName) {
+            List<MethodInfo> methodsMatchingName = GetMatchingAliasedMethods(controllerContext, actionName);
+            methodsMatchingName.AddRange(NonAliasedMethods[actionName]);
             List<MethodInfo> finalMethods = RunSelectionFilters(controllerContext, methodsMatchingName);
 
             switch (finalMethods.Count) {
@@ -53,23 +55,23 @@
                     return finalMethods[0];
 
                 default:
-                    throw CreateAmbiguousMatchException(finalMethods, action);
+                    throw CreateAmbiguousMatchException(finalMethods, actionName);
             }
         }
 
-        internal List<MethodInfo> GetMatchingAliasedMethods(ControllerContext controllerContext, string action) {
+        internal List<MethodInfo> GetMatchingAliasedMethods(ControllerContext controllerContext, string actionName) {
             // find all aliased methods which are opting in to this request
             // to opt in, all attributes defined on the method must return true
 
             var methods = from methodInfo in AliasedMethods
-                          let attrs = (ActionNameAttribute[])methodInfo.GetCustomAttributes(typeof(ActionNameAttribute), true /* inherit */)
-                          where attrs.All(attr => attr.IsValidForRequest(controllerContext, action, methodInfo))
+                          let attrs = (ActionNameSelectorAttribute[])methodInfo.GetCustomAttributes(typeof(ActionNameSelectorAttribute), true /* inherit */)
+                          where attrs.All(attr => attr.IsValidName(controllerContext, actionName, methodInfo))
                           select methodInfo;
             return methods.ToList();
         }
 
         private static bool IsMethodDecoratedWithAliasingAttribute(MethodInfo methodInfo) {
-            return methodInfo.IsDefined(typeof(ActionNameAttribute), true /* inherit */);
+            return methodInfo.IsDefined(typeof(ActionNameSelectorAttribute), true /* inherit */);
         }
 
         private static bool IsValidActionMethod(MethodInfo methodInfo) {
@@ -89,11 +91,22 @@
             // remove all methods which are opting out of this request
             // to opt out, at least one attribute defined on the method must return false
 
-            var methods = from methodInfo in methodInfos
-                          let attrs = (ActionSelectionAttribute[])methodInfo.GetCustomAttributes(typeof(ActionSelectionAttribute), true /* inherit */)
-                          where (attrs == null || attrs.All(attr => attr.IsValidForRequest(controllerContext, methodInfo)))
-                          select methodInfo;
-            return methods.ToList();
+            List<MethodInfo> matchesWithSelectionAttributes = new List<MethodInfo>();
+            List<MethodInfo> matchesWithoutSelectionAttributes = new List<MethodInfo>();
+
+            foreach (MethodInfo methodInfo in methodInfos) {
+                ActionMethodSelectorAttribute[] attrs = (ActionMethodSelectorAttribute[])methodInfo.GetCustomAttributes(typeof(ActionMethodSelectorAttribute), true /* inherit */);
+                if (attrs.Length == 0) {
+                    matchesWithoutSelectionAttributes.Add(methodInfo);
+                }
+                else if (attrs.All(attr => attr.IsValidForRequest(controllerContext, methodInfo))) {
+                    matchesWithSelectionAttributes.Add(methodInfo);
+                }
+            }
+
+            // if a matching action method had a selection attribute, consider it more specific than a matching action method
+            // without a selection attribute
+            return (matchesWithSelectionAttributes.Count > 0) ? matchesWithSelectionAttributes : matchesWithoutSelectionAttributes;
         }
 
     }

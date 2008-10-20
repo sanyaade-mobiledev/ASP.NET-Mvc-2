@@ -67,7 +67,7 @@
         private IList<ListItem> GetListItemsWithValueField() {
             HashSet<string> selectedValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             if (SelectedValues != null) {
-                selectedValues.UnionWith(from object value in SelectedValues select Convert.ToString(value, CultureInfo.InvariantCulture));
+                selectedValues.UnionWith(from object value in SelectedValues select Convert.ToString(value, CultureInfo.CurrentCulture));
             }
 
             var listItems = from object item in Items
@@ -99,7 +99,7 @@
             if (!String.IsNullOrEmpty(expression)) {
                 value = DataBinder.Eval(container, expression);
             }
-            return Convert.ToString(value, CultureInfo.InvariantCulture);
+            return Convert.ToString(value, CultureInfo.CurrentCulture);
         }
     }
 }

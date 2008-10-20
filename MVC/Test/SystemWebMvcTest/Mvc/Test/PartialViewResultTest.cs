@@ -31,15 +31,21 @@
                         Assert.AreSame(httpContext, controllerContext.HttpContext);
                         Assert.AreSame(routeData, controllerContext.RouteData);
                     })
-                .Returns(new ViewEngineResult(view.Object));
+                .Returns(new ViewEngineResult(view.Object, viewEngine.Object));
             view
                 .Expect(o => o.Render(It.IsAny<ViewContext>(), httpContext.Response.Output))
                 .Callback<ViewContext, TextWriter>(
                     (viewContext, writer) => {
-                        Assert.AreEqual(_viewName, viewContext.ViewName);
+                        Assert.AreSame(view.Object, viewContext.View);
                         Assert.AreSame(result.ViewData, viewContext.ViewData);
                         Assert.AreSame(result.TempData, viewContext.TempData);
                         Assert.AreSame(controller, viewContext.Controller);
+                    });
+            viewEngine
+                .Expect(e => e.ReleaseView(context, It.IsAny<IView>()))
+                .Callback<ControllerContext, IView>(
+                    (controllerContext, releasedView) => {
+                        Assert.AreSame(releasedView, view.Object);
                     });
 
             // Act
@@ -91,7 +97,7 @@
                 .Expect(o => o.Render(It.IsAny<ViewContext>(), httpContext.Response.Output))
                 .Callback<ViewContext, TextWriter>(
                     (viewContext, writer) => {
-                        Assert.AreEqual(_viewName, viewContext.ViewName);
+                        Assert.AreSame(view.Object, viewContext.View);
                         Assert.AreSame(result.ViewData, viewContext.ViewData);
                         Assert.AreSame(result.TempData, viewContext.TempData);
                         Assert.AreSame(controller, viewContext.Controller);
@@ -103,7 +109,13 @@
                         Assert.AreSame(httpContext, controllerContext.HttpContext);
                         Assert.AreSame(routeData, controllerContext.RouteData);
                     })
-                .Returns(new ViewEngineResult(view.Object));
+                .Returns(new ViewEngineResult(view.Object, viewEngine.Object));
+            viewEngine
+                .Expect(e => e.ReleaseView(context, It.IsAny<IView>()))
+                .Callback<ControllerContext, IView>(
+                    (controllerContext, releasedView) => {
+                        Assert.AreSame(releasedView, view.Object);
+                    });
 
             // Act
             result.ExecuteResult(context);
@@ -127,7 +139,7 @@
                 .Expect(o => o.Render(It.IsAny<ViewContext>(), httpContext.Response.Output))
                 .Callback<ViewContext, TextWriter>(
                     (viewContext, writer) => {
-                        Assert.AreSame(_viewName, viewContext.ViewName);
+                        Assert.AreSame(view.Object, viewContext.View);
                         Assert.AreSame(result.ViewData, viewContext.ViewData);
                         Assert.AreSame(result.TempData, viewContext.TempData);
                         Assert.AreSame(controller, viewContext.Controller);
@@ -140,56 +152,6 @@
             view.Verify();
         }
 
-        [TestMethod]
-        public void ExecuteResultWithNullControllerContextThrows() {
-            // Arrange
-            PartialViewResult result = new PartialViewResultHelper();
-
-            // Act & Assert
-            ExceptionHelper.ExpectArgumentNullException(
-                () => result.ExecuteResult(null),
-                "context");
-        }
-
-        [TestMethod]
-        public void TempDataProperty() {
-            // Arrange
-            TempDataDictionary newDict = new TempDataDictionary();
-            PartialViewResult result = new PartialViewResult();
-
-            // Act & Assert
-            MemberHelper.TestPropertyWithDefaultInstance(result, "TempData", newDict);
-        }
-
-        [TestMethod]
-        public void ViewDataProperty() {
-            // Arrange
-            ViewDataDictionary newDict = new ViewDataDictionary();
-            PartialViewResult result = new PartialViewResult();
-
-            // Act & Assert
-            MemberHelper.TestPropertyWithDefaultInstance(result, "ViewData", newDict);
-        }
-
-        [TestMethod]
-        public void ViewEngineProperty() {
-            // Arrange
-            IViewEngine newEngine = new Mock<IViewEngine>().Object;
-            PartialViewResult result = new PartialViewResult();
-
-            // Act & Assert
-            MemberHelper.TestPropertyWithDefaultInstance(result, "ViewEngine", newEngine, ViewEngines.DefaultEngine);
-        }
-
-        [TestMethod]
-        public void ViewNameProperty() {
-            // Arrange
-            PartialViewResult result = new PartialViewResult();
-
-            // Act & Assert
-            MemberHelper.TestStringProperty(result, "ViewName", String.Empty, false /* testDefaultValue */, true /* allowNullAndEmpty */);
-        }
-
         private static HttpContextBase CreateHttpContext() {
             TextWriter writer = new Mock<TextWriter>().Object;
             Mock<HttpResponseBase> httpResponse = new Mock<HttpResponseBase>();
@@ -199,10 +161,9 @@
             return result.Object;
         }
 
-
         private class PartialViewResultHelper : PartialViewResult {
             public PartialViewResultHelper() {
-                ViewEngine = new CompositeViewEngine(new ViewEngineCollection());
+                ViewEngine = new AutoViewEngine(new ViewEngineCollection());
             }
         }
 

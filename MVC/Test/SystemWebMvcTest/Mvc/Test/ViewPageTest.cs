@@ -1,10 +1,34 @@
 ﻿namespace System.Web.Mvc.Test {
+    using System.IO;
+    using System.Web.Mvc;
+    using System.Web.Routing;
     using System.Web.TestUtil;
     using System.Web.UI;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Moq;
 
     [TestClass]
     public class ViewPageTest {
+        private const string _fakeID = "fakeID";
+
+        [TestMethod]
+        public void RenderViewSetsID() {
+            // Arrange
+            ControllerBase controller = new Mock<ControllerBase>().Object;
+            HttpContextBase httpContext = CreateHttpContext();
+            RouteData routeData = new RouteData();
+            ControllerContext context = new ControllerContext(httpContext, routeData, controller);
+            Mock<IView> view = new Mock<IView>();
+            ViewContext viewContext = new ViewContext(httpContext, routeData, new Mock<ControllerBase>().Object, view.Object, new ViewDataDictionary(), new TempDataDictionary());
+            ViewPage viewPage = new IDViewPage();
+            viewPage.ViewContext = viewContext;
+
+            // Act
+            viewPage.RenderView(viewContext);
+
+            // Assert
+            Assert.AreNotEqual(_fakeID, viewPage.ID);
+        }
 
         [TestMethod]
         public void SetViewItemOnBaseClassPropagatesToDerivedClass() {
@@ -84,7 +108,26 @@
             WriterSetCorrectlyInternal(true /* throwException */);
         }
 
+        private static HttpContextBase CreateHttpContext() {
+            TextWriter writer = new Mock<TextWriter>().Object;
+            Mock<HttpResponseBase> httpResponse = new Mock<HttpResponseBase>();
+            httpResponse.Expect(r => r.Output).Returns(writer);
+            Mock<HttpContextBase> result = new Mock<HttpContextBase>();
+            result.Expect(c => c.Response).Returns(httpResponse.Object);
+            return result.Object;
+        }
+
+        private sealed class IDViewPage : ViewPage {
+           public override void ProcessRequest(HttpContext context) {
+                // Ignore the request, We're only interested in the ID being set by RenderView.
+            }
+        }
+
         private sealed class MockViewPage : ViewPage {
+
+            public MockViewPage() {
+                ID = _fakeID;
+            }
 
             public Action RenderCallback { get; set; }
 

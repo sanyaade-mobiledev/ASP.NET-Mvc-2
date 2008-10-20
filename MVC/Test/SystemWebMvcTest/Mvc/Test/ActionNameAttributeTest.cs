@@ -31,7 +31,7 @@
             ActionNameAttribute attr = new ActionNameAttribute("Bar");
 
             // Act
-            bool returned = attr.IsValidForRequest(null, "foo", null);
+            bool returned = attr.IsValidName(null, "foo", null);
 
             // Assert
             Assert.IsFalse(returned, "Given name should not have matched.");
@@ -43,7 +43,7 @@
             ActionNameAttribute attr = new ActionNameAttribute("Bar");
 
             // Act
-            bool returned = attr.IsValidForRequest(null, "bar", null);
+            bool returned = attr.IsValidName(null, "bar", null);
 
             // Assert
             Assert.IsTrue(returned, "Given name should have matched.");

@@ -96,8 +96,8 @@ namespace System.Web.Mvc.Test {
             HandleErrorInfo viewData = viewResult.ViewData.Model as HandleErrorInfo;
             Assert.IsNotNull(viewData, "The ViewData model should have been set to an instance of ExceptionViewData.");
             Assert.AreSame(exception, viewData.Exception);
-            Assert.AreEqual("SomeController", viewData.Controller);
-            Assert.AreEqual("SomeAction", viewData.Action);
+            Assert.AreEqual("SomeController", viewData.ControllerName);
+            Assert.AreEqual("SomeAction", viewData.ActionName);
         }
 
         [TestMethod]

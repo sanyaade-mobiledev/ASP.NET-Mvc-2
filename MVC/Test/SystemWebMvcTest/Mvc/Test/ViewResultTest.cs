@@ -32,15 +32,21 @@
                         Assert.AreSame(httpContext, controllerContext.HttpContext);
                         Assert.AreSame(routeData, controllerContext.RouteData);
                     })
-                .Returns(new ViewEngineResult(view.Object));
+                .Returns(new ViewEngineResult(view.Object, viewEngine.Object));
             view
                 .Expect(o => o.Render(It.IsAny<ViewContext>(), httpContext.Response.Output))
                 .Callback<ViewContext, TextWriter>(
                     (viewContext, writer) => {
-                        Assert.AreEqual(_viewName, viewContext.ViewName);
+                        Assert.AreSame(view.Object, viewContext.View);
                         Assert.AreSame(result.ViewData, viewContext.ViewData);
                         Assert.AreSame(result.TempData, viewContext.TempData);
                         Assert.AreSame(controller, viewContext.Controller);
+                    });
+            viewEngine
+                .Expect(e => e.ReleaseView(context, It.IsAny<IView>()))
+                .Callback<ControllerContext, IView>(
+                    (controllerContext, releasedView) => {
+                        Assert.AreSame(releasedView, view.Object);
                     });
 
             // Act
@@ -92,7 +98,7 @@
                 .Expect(o => o.Render(It.IsAny<ViewContext>(), httpContext.Response.Output))
                 .Callback<ViewContext, TextWriter>(
                     (viewContext, writer) => {
-                        Assert.AreEqual(_viewName, viewContext.ViewName);
+                        Assert.AreSame(view.Object, viewContext.View);
                         Assert.AreSame(result.ViewData, viewContext.ViewData);
                         Assert.AreSame(result.TempData, viewContext.TempData);
                         Assert.AreSame(controller, viewContext.Controller);
@@ -104,7 +110,13 @@
                         Assert.AreSame(httpContext, controllerContext.HttpContext);
                         Assert.AreSame(routeData, controllerContext.RouteData);
                     })
-                .Returns(new ViewEngineResult(view.Object));
+                .Returns(new ViewEngineResult(view.Object, viewEngine.Object));
+            viewEngine
+                .Expect(e => e.ReleaseView(context, It.IsAny<IView>()))
+                .Callback<ControllerContext, IView>(
+                    (controllerContext, releasedView) => {
+                        Assert.AreSame(releasedView, view.Object);
+                    });
 
             // Act
             result.ExecuteResult(context);
@@ -128,7 +140,7 @@
                 .Expect(o => o.Render(It.IsAny<ViewContext>(), httpContext.Response.Output))
                 .Callback<ViewContext, TextWriter>(
                     (viewContext, writer) => {
-                        Assert.AreSame(_viewName, viewContext.ViewName);
+                        Assert.AreSame(view.Object, viewContext.View);
                         Assert.AreSame(result.ViewData, viewContext.ViewData);
                         Assert.AreSame(result.TempData, viewContext.TempData);
                         Assert.AreSame(controller, viewContext.Controller);
@@ -174,7 +186,7 @@
         private class ViewResultHelper : ViewResult {
 
             public ViewResultHelper() {
-                ViewEngine = new CompositeViewEngine(new ViewEngineCollection());
+                ViewEngine = new AutoViewEngine(new ViewEngineCollection());
                 MasterName = _masterName;
             }
         }

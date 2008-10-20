@@ -47,7 +47,17 @@
             }
         }
 
-        private static object ExtractParameterFromDictionary(ParameterInfo parameterInfo, IDictionary<string, object> parameters) {
+        protected virtual ActionResult CreateActionResult(object actionReturnValue) {
+            if (actionReturnValue == null) {
+                return new EmptyResult();
+            }
+
+            ActionResult actionResult = (actionReturnValue as ActionResult) ??
+                new ContentResult { Content = Convert.ToString(actionReturnValue, CultureInfo.InvariantCulture) };
+            return actionResult;
+        }
+
+        private static object ExtractParameterFromDictionary(ParameterInfo parameterInfo, IDictionary<string, object> parameters, MethodInfo methodInfo) {
             object value;
             bool wasFound = parameters.TryGetValue(parameterInfo.Name, out value);
 
@@ -56,23 +66,23 @@
                 (!(value == null && TypeHelpers.TypeAllowsNullValue(parameterInfo.ParameterType)) &&
                 !parameterInfo.ParameterType.IsInstanceOfType(value))) {
                 string message = String.Format(CultureInfo.CurrentUICulture, MvcResources.ControllerActionInvoker_ParameterDictionaryContainsInvalidEntry,
-                    parameterInfo.ParameterType, parameterInfo.Name);
+                    parameterInfo.ParameterType, parameterInfo.Name, Convert.ToString(methodInfo, CultureInfo.CurrentUICulture), methodInfo.DeclaringType);
                 throw new InvalidOperationException(message);
             }
             return value;
         }
 
-        private IList<T> FiltersToTypedList<T>(IList<FilterAttribute> filters) where T : class {
-            List<T> typedList = new List<T>();
+        private IList<TFilter> FiltersToTypedList<TFilter>(IList<FilterAttribute> filters) where TFilter : class {
+            List<TFilter> typedList = new List<TFilter>();
 
             // always add the controller (if it's of the right type) first
-            T controllerFilter = ControllerContext.Controller as T;
+            TFilter controllerFilter = ControllerContext.Controller as TFilter;
             if (controllerFilter != null) {
                 typedList.Add(controllerFilter);
             }
 
             // then add filters of the right type
-            typedList.AddRange(filters.OfType<T>());
+            typedList.AddRange(filters.OfType<TFilter>());
             return typedList;
         }
 
@@ -93,6 +103,11 @@
             }
 
             return foundMatch;
+        }
+
+        private static string GetFieldPrefix(ParameterInfo parameterInfo) {
+            BindAttribute attr = (BindAttribute)Attribute.GetCustomAttribute(parameterInfo, typeof(BindAttribute));
+            return ((attr != null) && (attr.Prefix != null)) ? attr.Prefix : parameterInfo.Name;
         }
 
         protected virtual FilterInfo GetFiltersForActionMethod(MethodInfo methodInfo) {
@@ -139,12 +154,14 @@
                 throw new ArgumentNullException("parameterInfo");
             }
 
-            string parameterName = parameterInfo.Name;
             Type parameterType = parameterInfo.ParameterType;
             IModelBinder converter = GetModelBinder(parameterInfo);
+            string parameterName = GetFieldPrefix(parameterInfo);
+            Predicate<string> propertyFilter = GetPropertyFilter(parameterInfo);
 
-            object value = converter.GetValue(ControllerContext, parameterName, parameterType, ControllerContext.Controller.ViewData.ModelState);
-            return value;
+            ModelBindingContext bindingContext = new ModelBindingContext(ControllerContext, ControllerContext.Controller.ValueProvider, parameterType, parameterName, null /* modelProvider */, ControllerContext.Controller.ViewData.ModelState, propertyFilter);
+            ModelBinderResult result = converter.BindModel(bindingContext);
+            return (result != null) ? result.Value : null;
         }
 
         protected virtual IDictionary<string, object> GetParameterValues(MethodInfo methodInfo) {
@@ -160,6 +177,11 @@
                 parameterDict[parameterInfo.Name] = GetParameterValue(parameterInfo);
             }
             return parameterDict;
+        }
+
+        private static Predicate<string> GetPropertyFilter(ParameterInfo parameterInfo) {
+            BindAttribute attr = (BindAttribute)Attribute.GetCustomAttribute(parameterInfo, typeof(BindAttribute));
+            return (attr != null) ? (Predicate<string>)attr.IsPropertyAllowed : null;
         }
 
         public virtual bool InvokeAction(ControllerContext controllerContext, string actionName) {
@@ -221,11 +243,13 @@
 
             object[] parametersArray = (from parameterInfo
                                         in parameterInfos
-                                        select ExtractParameterFromDictionary(parameterInfo, parameters)).ToArray();
+                                        select ExtractParameterFromDictionary(parameterInfo, parameters, methodInfo)).ToArray();
 
             ActionMethodDispatcher dispatcher = DispatcherCache.GetDispatcher(methodInfo);
-            ActionResult result = dispatcher.Execute(ControllerContext.Controller, parametersArray);
-            return result;
+            object actionReturnValue = dispatcher.Execute(ControllerContext.Controller, parametersArray);
+
+            ActionResult actionResult = CreateActionResult(actionReturnValue);
+            return actionResult;
         }
 
         internal static ActionExecutedContext InvokeActionMethodFilter(IActionFilter filter, ActionExecutingContext preContext, Func<ActionExecutedContext> continuation) {

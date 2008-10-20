@@ -144,7 +144,7 @@ namespace System.Web.Mvc.Test {
                 return null;
             }
 
-            public void DisposeController(IController controller) {
+            public void ReleaseController(IController controller) {
             }
         }
 
@@ -153,7 +153,7 @@ namespace System.Web.Mvc.Test {
                 return null;
             }
 
-            public void DisposeController(IController controller) {
+            public void ReleaseController(IController controller) {
             }
         }
 
@@ -162,7 +162,7 @@ namespace System.Web.Mvc.Test {
                 throw new Exception("ControllerFactoryThrows");
             }
 
-            public void DisposeController(IController controller) {
+            public void ReleaseController(IController controller) {
             }
         }
 
@@ -172,7 +172,7 @@ namespace System.Web.Mvc.Test {
                 throw new NotImplementedException();
             }
 
-            public void DisposeController(IController controller) {
+            public void ReleaseController(IController controller) {
             }
         }
 

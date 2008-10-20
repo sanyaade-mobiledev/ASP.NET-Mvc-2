@@ -119,7 +119,7 @@
             ViewContext vc = new ViewContext(new Mock<HttpContextBase>().Object, 
                                              new RouteData(), 
                                              new Mock<ControllerBase>().Object, 
-                                             "view", 
+                                             new Mock<IView>().Object, 
                                              new ViewDataDictionary(), 
                                              new TempDataDictionary());
 
@@ -139,7 +139,7 @@
             ViewContext vc = new ViewContext(new Mock<HttpContextBase>().Object, 
                                              new RouteData(),
                                              new Mock<ControllerBase>().Object, 
-                                             "view", 
+                                             new Mock<IView>().Object, 
                                              new ViewDataDictionary(), 
                                              new TempDataDictionary());
             UrlHelper urlHelper = new UrlHelper(vc);

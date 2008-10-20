@@ -7,5 +7,6 @@
     public interface IViewEngine {
         ViewEngineResult FindPartialView(ControllerContext controllerContext, string partialViewName);
         ViewEngineResult FindView(ControllerContext controllerContext, string viewName, string masterName);
+        void ReleaseView(ControllerContext controllerContext, IView view);
     }
 }

@@ -7,10 +7,9 @@
     using System.Web.Routing;
     using Microsoft.Web.Mvc.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public class ExpressionHelper {
-        public static RouteValueDictionary GetRouteValuesFromExpression<T>(Expression<Action<T>> action) where T : Controller {
+    public static class ExpressionHelper {
+        public static RouteValueDictionary GetRouteValuesFromExpression<TController>(Expression<Action<TController>> action) where TController : Controller {
             if (action == null) {
                 throw new ArgumentNullException("action");
             }
@@ -20,7 +19,7 @@
                 throw new ArgumentException(MvcResources.ExpressionHelper_MustBeMethodCall, "action");
             }
 
-            string controllerName = typeof(T).Name;
+            string controllerName = typeof(TController).Name;
             if (!controllerName.EndsWith("Controller", StringComparison.OrdinalIgnoreCase)) {
                 throw new ArgumentException(MvcResources.ExpressionHelper_TargetMustEndInController, "action");
             }

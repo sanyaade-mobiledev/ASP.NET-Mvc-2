@@ -15,12 +15,16 @@ namespace System.Web.Mvc {
             SearchedLocations = searchedLocations;
         }
 
-        public ViewEngineResult(IView view) {
+        public ViewEngineResult(IView view, IViewEngine viewEngine) {
             if (view == null) {
                 throw new ArgumentNullException("view");
             }
+            if (viewEngine == null) {
+                throw new ArgumentNullException("viewEngine");
+            }
 
             View = view;
+            ViewEngine = viewEngine;
         }
 
         public IEnumerable<string> SearchedLocations {
@@ -29,6 +33,11 @@ namespace System.Web.Mvc {
         }
 
         public IView View {
+            get;
+            private set;
+        }
+
+        public IViewEngine ViewEngine {
             get;
             private set;
         }

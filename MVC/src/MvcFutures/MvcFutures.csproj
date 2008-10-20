@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.30630</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{D3CF7430-6DA4-42B0-BD90-CA39D16687B2}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -54,7 +54,6 @@
     <Compile Include="Internal\ExpressionHelper.cs" />
     <Compile Include="Mvc\ButtonBuilder.cs" />
     <Compile Include="Mvc\ButtonsAndLinkExtensions.cs" />
-    <Compile Include="Mvc\ComplexModelBinder.cs" />
     <Compile Include="Mvc\ContentTypeAttribute.cs" />
     <Compile Include="Mvc\CookieTempDataProvider.cs" />
     <Compile Include="Mvc\AntiForgeryExtensions.cs" />
@@ -62,24 +61,15 @@
     <Compile Include="Mvc\AntiForgeryTokenValidationException.cs" />
     <Compile Include="Mvc\AntiForgeryTokenSerializer.cs" />
     <Compile Include="Mvc\AntiForgeryHelper.cs" />
+    <Compile Include="Mvc\BinaryStreamResult.cs" />
     <Compile Include="Mvc\DefaultAntiForgeryTokenSerializer.cs" />
-    <Compile Include="Mvc\FormCollection.cs" />
-    <Compile Include="Mvc\FormCollectionModelBinder.cs" />
     <Compile Include="Mvc\FormExtensions.cs" />
-    <Compile Include="Mvc\FormMethod.cs" />
-    <Compile Include="Mvc\HtmlExtensionUtility.cs" />
-    <Compile Include="Mvc\HtmlTagType.cs" />
+    <Compile Include="Mvc\HtmlButtonType.cs" />
     <Compile Include="Mvc\LinkBuilder.cs" />
     <Compile Include="Mvc\LinkExtensions.cs" />
-    <Compile Include="Mvc\MvcControlDataBinder.cs" />
-    <Compile Include="Mvc\MvcForm`1.cs" />
-    <Compile Include="Mvc\RadioBuilder.cs" />
     <Compile Include="Mvc\RadioExtensions.cs" />
-    <Compile Include="Mvc\SimpleForm.cs" />
-    <Compile Include="Mvc\TagBuilder.cs" />
     <Compile Include="Mvc\ValidateAntiForgeryTokenAttribute.cs" />
-    <Compile Include="Mvc\FileResult.cs" />
-    <Compile Include="Mvc\HtmlInputType.cs" />
+    <Compile Include="Mvc\BinaryResult.cs" />
     <Compile Include="Mvc\ImageExtensions.cs" />
     <Compile Include="Mvc\MailToExtensions.cs" />
     <Compile Include="Mvc\ValidateInputAttribute.cs" />

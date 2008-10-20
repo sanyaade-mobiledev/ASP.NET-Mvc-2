@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
     using System.Reflection;
     using System.Web;
     using System.Web.Mvc.Resources;
@@ -78,6 +79,23 @@
             }
 
             return _evaluator.Eval(expression);
+        }
+
+        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Eval",
+            Justification = "Commonly used shorthand for Evaluate.")]
+        public string Eval(string expression, string format) {
+            object value = Eval(expression);
+
+            if (value == null) {
+                return String.Empty;
+            }
+
+            if (String.IsNullOrEmpty(format)) {
+                return Convert.ToString(value, CultureInfo.CurrentCulture);
+            }
+            else {
+                return String.Format(CultureInfo.CurrentCulture, format, value);
+            }
         }
 
         internal sealed class ViewDataEvaluator {

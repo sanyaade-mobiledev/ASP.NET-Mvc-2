@@ -63,9 +63,18 @@ namespace System.Web.Mvc.Resources {
         /// <summary>
         ///   Looks up a localized string similar to The current request for action &apos;{0}&apos; on controller type &apos;{1}&apos; is ambiguous between the following action methods:{2}.
         /// </summary>
-        internal static string ActionMethodSelector_AmbigiousMatch {
+        internal static string ActionMethodSelector_AmbiguousMatch {
             get {
-                return ResourceManager.GetString("ActionMethodSelector_AmbigiousMatch", resourceCulture);
+                return ResourceManager.GetString("ActionMethodSelector_AmbiguousMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} on type {1}.
+        /// </summary>
+        internal static string ActionMethodSelector_AmbiguousMatchType {
+            get {
+                return ResourceManager.GetString("ActionMethodSelector_AmbiguousMatchType", resourceCulture);
             }
         }
         
@@ -115,7 +124,7 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The value &apos;{0}&apos; is invalid for property &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The value &apos;{0}&apos; is invalid..
         /// </summary>
         internal static string Common_ValueNotValidForProperty {
             get {
@@ -160,15 +169,6 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The model of type &apos;{0}&apos; does not have a property named &apos;{1}&apos;..
-        /// </summary>
-        internal static string Controller_UpdateModel_PropertyNotFound {
-            get {
-                return ResourceManager.GetString("Controller_UpdateModel_PropertyNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The model of type &apos;{0}&apos; was not successfully updated..
         /// </summary>
         internal static string Controller_UpdateModel_UpdateUnsuccessful {
@@ -187,7 +187,7 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The parameters dictionary does not contain a valid value of type &apos;{0}&apos; for parameter &apos;{1}&apos;. To make a parameter optional its type should either be a reference type or a Nullable type..
+        ///   Looks up a localized string similar to The parameters dictionary does not contain a valid value of type &apos;{0}&apos; for parameter &apos;{1}&apos; which is required for method &apos;{2}&apos; in &apos;{3}&apos;. To make a parameter optional its type should either be a reference type or a Nullable type..
         /// </summary>
         internal static string ControllerActionInvoker_ParameterDictionaryContainsInvalidEntry {
             get {
@@ -201,15 +201,6 @@ namespace System.Web.Mvc.Resources {
         internal static string ControllerActionInvoker_ParameterDictionaryCountIncorrect {
             get {
                 return ResourceManager.GetString("ControllerActionInvoker_ParameterDictionaryCountIncorrect", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A value is required for parameter &apos;{0}&apos; in action &apos;{1}&apos;. The parameter either has no value or its value could not be converted. To make a parameter optional its type should either be a reference type or a Nullable type..
-        /// </summary>
-        internal static string ControllerActionInvoker_RequiredModelBinderFailed {
-            get {
-                return ResourceManager.GetString("ControllerActionInvoker_RequiredModelBinderFailed", resourceCulture);
             }
         }
         
@@ -286,20 +277,20 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The value &apos;{0}&apos; is not a valid &apos;{1}&apos;..
-        /// </summary>
-        internal static string DefaultModelBinder_CouldNotConvert {
-            get {
-                return ResourceManager.GetString("DefaultModelBinder_CouldNotConvert", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The parameter conversion from type &apos;{0}&apos; to type &apos;{1}&apos; failed because no TypeConverter can convert between these types..
         /// </summary>
         internal static string DefaultModelBinder_NoConverterExists {
             get {
                 return ResourceManager.GetString("DefaultModelBinder_NoConverterExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A value is required..
+        /// </summary>
+        internal static string DefaultModelBinder_ValueRequired {
+            get {
+                return ResourceManager.GetString("DefaultModelBinder_ValueRequired", resourceCulture);
             }
         }
         
@@ -385,47 +376,11 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The MvcHttpHandler does not work with the handler of type &apos;{0}&apos; since it does not derive from MvcHandler..
-        /// </summary>
-        internal static string MvcHttpHandler_DidNotReturnMvcHandler {
-            get {
-                return ResourceManager.GetString("MvcHttpHandler_DidNotReturnMvcHandler", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A valid value for &apos;{0}&apos; must be specified on the OutputCacheAttribute declaration or in a cache profile in the configuration file..
-        /// </summary>
-        internal static string OutputCacheAttribute_InvalidParameter {
-            get {
-                return ResourceManager.GetString("OutputCacheAttribute_InvalidParameter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The configuration file does not contain a cache profile with the name &apos;{0}&apos;..
-        /// </summary>
-        internal static string OutputCacheAttribute_ProfileNotFound {
-            get {
-                return ResourceManager.GetString("OutputCacheAttribute_ProfileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The provider requires SessionState to be enabled..
         /// </summary>
         internal static string SessionStateTempDataProvider_SessionStateDisabled {
             get {
                 return ResourceManager.GetString("SessionStateTempDataProvider_SessionStateDisabled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The model item passed into the dictionary is null but this dictionary requires a model item of non-nullable type &apos;{0}&apos;..
-        /// </summary>
-        internal static string ViewDataDictionary_NullTModel {
-            get {
-                return ResourceManager.GetString("ViewDataDictionary_NullTModel", resourceCulture);
             }
         }
         
@@ -439,56 +394,11 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The parameter must be set to an array of location format strings, such as &quot;~/Views/{1}/{0}.aspx&quot;..
-        /// </summary>
-        internal static string ViewLocator_LocationsRequired {
-            get {
-                return ResourceManager.GetString("ViewLocator_LocationsRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The master &apos;{0}&apos; could not be located at these paths: {1}.
-        /// </summary>
-        internal static string ViewLocator_MasterNotFound {
-            get {
-                return ResourceManager.GetString("ViewLocator_MasterNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The view &apos;{0}&apos; could not be located at these paths: {1}.
-        /// </summary>
-        internal static string ViewLocator_ViewNotFound {
-            get {
-                return ResourceManager.GetString("ViewLocator_ViewNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A ViewMasterPage can only be used with content pages that derive from ViewPage or ViewPage&lt;TViewItem&gt;..
         /// </summary>
         internal static string ViewMasterPage_RequiresViewPage {
             get {
                 return ResourceManager.GetString("ViewMasterPage_RequiresViewPage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A ViewMasterPage&lt;TViewItem&gt; can only be used with content pages that have a view item that can be cast to TViewItem..
-        /// </summary>
-        internal static string ViewMasterPage_RequiresViewPageTViewItem {
-            get {
-                return ResourceManager.GetString("ViewMasterPage_RequiresViewPageTViewItem", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The view data passed into the page is of type &apos;{0}&apos; but this page requires view data of type &apos;{1}&apos;..
-        /// </summary>
-        internal static string ViewPageTViewData_WrongViewDataType {
-            get {
-                return ResourceManager.GetString("ViewPageTViewData_WrongViewDataType", resourceCulture);
             }
         }
         
@@ -511,42 +421,6 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The view item for ViewUserControl &apos;{0}&apos; could not be found or is not of the type &apos;{1}&apos;..
-        /// </summary>
-        internal static string ViewUserControl_WrongTViewItemType {
-            get {
-                return ResourceManager.GetString("ViewUserControl_WrongTViewItemType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The view item passed into the ViewUserControl is null but this control requires a view item of non-nullable type &apos;{0}&apos;..
-        /// </summary>
-        internal static string ViewUserControlTViewItem_NullViewItemObject {
-            get {
-                return ResourceManager.GetString("ViewUserControlTViewItem_NullViewItemObject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The view item passed into the ViewUserControl is of type &apos;{0}&apos; but this control requires a view item of type &apos;{1}&apos;..
-        /// </summary>
-        internal static string ViewUserControlTViewItem_WrongViewItemType {
-            get {
-                return ResourceManager.GetString("ViewUserControlTViewItem_WrongViewItemType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The master &apos;{0}&apos; could not be found..
-        /// </summary>
-        internal static string WebFormViewEngine_MasterNotFound {
-            get {
-                return ResourceManager.GetString("WebFormViewEngine_MasterNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A master name cannot be specified when the view is a ViewUserControl..
         /// </summary>
         internal static string WebFormViewEngine_UserControlCannotHaveMaster {
@@ -561,15 +435,6 @@ namespace System.Web.Mvc.Resources {
         internal static string WebFormViewEngine_ViewCouldNotBeCreated {
             get {
                 return ResourceManager.GetString("WebFormViewEngine_ViewCouldNotBeCreated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The view &apos;{0}&apos; could not be found..
-        /// </summary>
-        internal static string WebFormViewEngine_ViewNotFound {
-            get {
-                return ResourceManager.GetString("WebFormViewEngine_ViewNotFound", resourceCulture);
             }
         }
         

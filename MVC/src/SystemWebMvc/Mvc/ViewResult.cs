@@ -7,8 +7,7 @@
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public class ViewResult : PartialViewResult {
-
+    public class ViewResult : ViewResultBase {
         private string _masterName;
 
         public string MasterName {
@@ -20,26 +19,10 @@
             }
         }
 
-        public override void ExecuteResult(ControllerContext context) {
-            if (context == null) {
-                throw new ArgumentNullException("context");
-            }
-            if (String.IsNullOrEmpty(ViewName)) {
-                ViewName = context.RouteData.GetRequiredString("action");
-            }
-
-            if (View == null) {
-                View = FindView(context);
-            }
-
-            ViewContext viewContext = new ViewContext(context, ViewName, ViewData, TempData);
-            View.Render(viewContext, context.HttpContext.Response.Output);
-        }
-
-        private IView FindView(ControllerContext controllerContext) {
-            ViewEngineResult result = ViewEngine.FindView(controllerContext, ViewName, MasterName);
+        protected override ViewEngineResult FindView(ControllerContext context) {
+            ViewEngineResult result = ViewEngine.FindView(context, ViewName, MasterName);
             if (result.View != null) {
-                return result.View;
+                return result;
             }
 
             // we need to generate an exception containing all the locations we searched
@@ -51,6 +34,5 @@
             throw new InvalidOperationException(String.Format(CultureInfo.CurrentUICulture,
                 MvcResources.Common_ViewNotFound, ViewName, locationsText));
         }
-
     }
 }

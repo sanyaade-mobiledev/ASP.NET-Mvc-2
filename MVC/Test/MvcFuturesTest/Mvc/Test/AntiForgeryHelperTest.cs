@@ -93,7 +93,7 @@
             mockHttpContext.Expect(c => c.Response).Returns(mockResponse.Object);
 
             ViewContext viewContext = new ViewContext(mockHttpContext.Object, new RouteData(),
-                new Mock<ControllerBase>().Object, "someView", new ViewDataDictionary(), new TempDataDictionary());
+                new Mock<ControllerBase>().Object, new Mock<IView>().Object, new ViewDataDictionary(), new TempDataDictionary());
             return new HtmlHelper(viewContext, new Mock<IViewDataContainer>().Object);
         }
 

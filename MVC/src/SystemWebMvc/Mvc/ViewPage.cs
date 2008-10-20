@@ -93,6 +93,8 @@
         public virtual void RenderView(ViewContext viewContext) {
             ViewContext = viewContext;
             InitHelpers();
+            // Tracing requires Page IDs to be unique.
+            ID = Guid.NewGuid().ToString();
             ProcessRequest(HttpContext.Current);
         }
 

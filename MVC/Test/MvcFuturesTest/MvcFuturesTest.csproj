@@ -54,16 +54,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Mvc\Test\ButtonTests.cs" />
-    <Compile Include="Mvc\Test\ComplexModelBinderTest.cs" />
     <Compile Include="Mvc\Test\ContentTypeAttributeTests.cs" />
     <Compile Include="Mvc\Test\CookieTempDataProviderTests.cs" />
     <Compile Include="Mvc\Test\AntiForgeryTokenTest.cs" />
     <Compile Include="Mvc\Test\AntiForgeryHelperTest.cs" />
-    <Compile Include="Mvc\Test\FormCollectionModelBinderTest.cs" />
-    <Compile Include="Mvc\Test\FormCollectionTest.cs" />
+    <Compile Include="Mvc\Test\BinaryStreamResultTest.cs" />
+    <Compile Include="Mvc\Test\FormExtensionsTest.cs" />
+    <Compile Include="Mvc\Test\RadioExtensionsTest.cs" />
     <Compile Include="Mvc\Test\ValidateAntiForgeryTokenAttributeTest.cs" />
     <Compile Include="Mvc\Test\ExpressionHelperTests.cs" />
-    <Compile Include="Mvc\Test\FileResultTests.cs" />
+    <Compile Include="Mvc\Test\BinaryResultTest.cs" />
     <Compile Include="Mvc\Test\PermissionTests.cs" />
     <Compile Include="Mvc\Test\MailToExtensionsTests.cs" />
     <Compile Include="Mvc\Test\RenderActionTests.cs" />

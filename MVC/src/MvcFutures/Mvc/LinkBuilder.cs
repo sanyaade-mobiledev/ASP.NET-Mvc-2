@@ -5,40 +5,21 @@
     using System.Web;
     using System.Web.Mvc;
     using System.Web.Routing;
+    using Microsoft.Web.Mvc.Internal;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class LinkBuilder {
         /// <summary>
         /// Builds a URL based on the Expression passed in
         /// </summary>
-        /// <typeparam name="T">Controller Type Only</typeparam>
+        /// <typeparam name="TController">Controller Type Only</typeparam>
         /// <param name="context">The current ViewContext</param>
         /// <param name="action">The action to invoke</param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1055:UriReturnValuesShouldNotBeStrings", Justification = "The return value is not a regular URL since it may contain ~/ ASP.NET-specific characters"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters", Justification = "Need to be sure the passed-in argument is of type Controller::Action")]
-        public static string BuildUrlFromExpression<T>(ViewContext context, Expression<Action<T>> action) where T : Controller {
-            MethodCallExpression call = action.Body as MethodCallExpression;
-            if (call == null) {
-                throw new InvalidOperationException("Expression must be a method call");
-            }
-            if (call.Object != action.Parameters[0]) {
-                throw new InvalidOperationException("Method call must target lambda argument");
-            }
-
-            string actionName = call.Method.Name;
-            // TODO: Use better logic to chop off the controller suffix
-            string controllerName = typeof(T).Name;
-            if (controllerName.EndsWith("Controller", StringComparison.OrdinalIgnoreCase)) {
-                controllerName = controllerName.Remove(controllerName.Length - 10, 10);
-            }
-
-            RouteValueDictionary values = BuildParameterValuesFromExpression(call);
-
-            values = values ?? new RouteValueDictionary();
-            values.Add("controller", controllerName);
-            values.Add("action", actionName);
-
-            VirtualPathData vpd = RouteTable.Routes.GetVirtualPath(context, values);
+        public static string BuildUrlFromExpression<TController>(ViewContext context, RouteCollection routeCollection, Expression<Action<TController>> action) where TController : Controller {
+            RouteValueDictionary values = ExpressionHelper.GetRouteValuesFromExpression(action);
+            VirtualPathData vpd = routeCollection.GetVirtualPath(context, values);
             return (vpd == null) ? null : vpd.VirtualPath;
         }
 
@@ -71,7 +52,7 @@
                         }
                         catch {
                             // ?????
-                            value = "";
+                            value = String.Empty;
                         }
                     }
                     // Code should be added here to appropriately escape the value string

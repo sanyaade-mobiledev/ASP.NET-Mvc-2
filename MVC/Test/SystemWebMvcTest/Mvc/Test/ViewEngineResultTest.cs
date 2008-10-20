@@ -27,8 +27,20 @@
             // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    new ViewEngineResult(view);
+                    new ViewEngineResult(view, null);
                 }, "view");
+        }
+
+        [TestMethod]
+        public void ConstructorThrowsIfViewEngineIsNull() {
+            // Arrange
+            IView view = new Mock<IView>().Object;
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentNullException(
+                delegate {
+                    new ViewEngineResult(view, null);
+                }, "viewEngine");
         }
 
         [TestMethod]
@@ -46,10 +58,23 @@
         public void ViewProperty() {
             // Arrange
             IView view = new Mock<IView>().Object;
-            ViewEngineResult result = new ViewEngineResult(view);
+            IViewEngine viewEngine = new Mock<IViewEngine>().Object;
+            ViewEngineResult result = new ViewEngineResult(view, viewEngine);
 
             // Act & Assert
             Assert.AreSame(view, result.View);
+            Assert.IsNull(result.SearchedLocations);
+        }
+
+        [TestMethod]
+        public void ViewEngineProperty() {
+            // Arrange
+            IView view = new Mock<IView>().Object;
+            IViewEngine viewEngine = new Mock<IViewEngine>().Object;
+            ViewEngineResult result = new ViewEngineResult(view, viewEngine);
+
+            // Act & Assert
+            Assert.AreSame(viewEngine, result.ViewEngine);
             Assert.IsNull(result.SearchedLocations);
         }
 

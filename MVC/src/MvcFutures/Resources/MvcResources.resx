@@ -123,9 +123,6 @@
   <data name="Common_NullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
-  <data name="DefaultModelBinder_CouldNotConvert" xml:space="preserve">
-    <value>The value '{0}' is not a valid '{1}'.</value>
-  </data>
   <data name="ExpressionHelper_CannotRouteToController" xml:space="preserve">
     <value>Cannot route to class named 'Controller'</value>
   </data>
@@ -135,7 +132,13 @@
   <data name="ExpressionHelper_TargetMustEndInController" xml:space="preserve">
     <value>Controller name must end in 'Controller'</value>
   </data>
-  <data name="ModelBinder_WrongModelType" xml:space="preserve">
-    <value>This model binder can only be used with models of type '{0}'.</value>
+  <data name="HtmlHelper_MissingSelectData" xml:space="preserve">
+    <value>There is no ViewData item with the key '{0}' of type '{1}'.</value>
+  </data>
+  <data name="HtmlHelper_WrongSelectDataType" xml:space="preserve">
+    <value>The ViewData item with the key '{0}' is of type '{1}' but needs to be of type '{2}'.</value>
+  </data>
+  <data name="ModelBindingContext_ModelTypeDoesNotMatchModelParameter" xml:space="preserve">
+    <value>The provided model must be an instance of type '{0}' but instead is of type '{1}'.</value>
   </data>
 </root>

@@ -1,6 +1,6 @@
 namespace System.Web.Mvc.Test {
     using System;
-    using System.Collections.Generic;
+    using System.Web.Mvc;
     using System.Web.TestUtil;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -68,7 +68,7 @@ namespace System.Web.Mvc.Test {
         }
 
         private class GoodConverter : IModelBinder {
-            object IModelBinder.GetValue(ControllerContext controllerContext, string parameterName, Type parameterType, ModelStateDictionary modelState) {
+            public ModelBinderResult BindModel(ModelBindingContext bindingContext) {
                 throw new NotImplementedException();
             }
         }
@@ -77,7 +77,7 @@ namespace System.Web.Mvc.Test {
             // no public parameterless constructor
             public BadConverter(string s) {
             }
-            object IModelBinder.GetValue(ControllerContext controllerContext, string parameterName, Type parameterType, ModelStateDictionary modelState) {
+            public ModelBinderResult BindModel(ModelBindingContext bindingContext) {
                 throw new NotImplementedException();
             }
         }

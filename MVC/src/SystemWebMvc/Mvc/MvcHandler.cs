@@ -66,7 +66,7 @@
                 controller.Execute(RequestContext);
             }
             finally {
-                factory.DisposeController(controller);
+                factory.ReleaseController(controller);
             }
         }
 

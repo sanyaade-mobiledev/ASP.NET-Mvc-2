@@ -11,6 +11,7 @@
     using Moq;
 
     [TestClass]
+    [CLSCompliant(false)]
     public class ControllerActionInvokerTest {
 
         [TestMethod]
@@ -293,9 +294,9 @@
                 delegate {
                     helper.PublicFindActionMethod("MethodOverloaded");
                 },
-                @"The current request for action 'MethodOverloaded' on controller type 'System.Web.Mvc.Test.ControllerActionInvokerTest+FindMethodController' is ambiguous between the following action methods:
-System.Web.Mvc.ActionResult MethodOverloaded()
-System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
+                @"The current request for action 'MethodOverloaded' on controller type 'FindMethodController' is ambiguous between the following action methods:
+System.Web.Mvc.ActionResult MethodOverloaded() on type System.Web.Mvc.Test.ControllerActionInvokerTest+FindMethodController
+System.Web.Mvc.ActionResult MethodOverloaded(System.String) on type System.Web.Mvc.Test.ControllerActionInvokerTest+FindMethodController");
         }
 
         [TestMethod]
@@ -402,6 +403,22 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
         }
 
         [TestMethod]
+        public void GetParameterValueAllowsAllSubpropertiesIfBindAttributeNotSpecified() {
+            // Arrange
+            CustomConverterController controller = new CustomConverterController() { ValueProvider = new Mock<IValueProvider>().Object };
+            ControllerContext controllerContext = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
+
+            ParameterInfo paramWithoutBindAttribute = typeof(CustomConverterController).GetMethod("ParameterWithoutBindAttribute").GetParameters()[0];
+
+            // Act
+            object valueWithoutBindAttribute = helper.PublicGetParameterValue(paramWithoutBindAttribute);
+
+            // Assert
+            Assert.AreEqual("foo=True&bar=True", valueWithoutBindAttribute);
+        }
+
+        [TestMethod]
         public void GetParameterValueResolvesConvertersInCorrectOrderOfPrecedence() {
             // Order of precedence:
             //   1. Attributes on the parameter itself
@@ -411,6 +428,7 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
             CustomConverterController controller = new CustomConverterController();
             Dictionary<string, object> values = new Dictionary<string, object> { { "foo", "fooValue" } };
             ControllerContext controllerContext = GetControllerContext(controller, values);
+            controller.ControllerContext = controllerContext;
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
 
             ParameterInfo paramWithOneConverter = typeof(CustomConverterController).GetMethod("ParameterHasOneConverter").GetParameters()[0];
@@ -426,10 +444,87 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
         }
 
         [TestMethod]
+        public void GetParameterValueRespectsBindAttribute() {
+            // Arrange
+            CustomConverterController controller = new CustomConverterController() { ValueProvider = new Mock<IValueProvider>().Object };
+            ControllerContext controllerContext = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
+
+            ParameterInfo paramWithBindAttribute = typeof(CustomConverterController).GetMethod("ParameterHasBindAttribute").GetParameters()[0];
+
+            // Act
+            object valueWithBindAttribute = helper.PublicGetParameterValue(paramWithBindAttribute);
+
+            // Assert
+            Assert.AreEqual("foo=True&bar=False", valueWithBindAttribute);
+        }
+
+        [TestMethod]
+        public void GetParameterValueRespectsBindAttributePrefix() {
+            // Arrange
+            CustomConverterController controller = new CustomConverterController();
+            Dictionary<string, object> values = new Dictionary<string, object> { { "foo", "fooValue" }, { "bar", "barValue" } };
+            ControllerContext controllerContext = GetControllerContext(controller, values);
+            controller.ControllerContext = controllerContext;
+
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
+
+            ParameterInfo paramWithFieldPrefix = typeof(CustomConverterController).GetMethod("ParameterHasFieldPrefix").GetParameters()[0];
+
+            // Act
+            object parameterValue = helper.PublicGetParameterValue(paramWithFieldPrefix);
+
+            // Assert
+            Assert.AreEqual("barValue", parameterValue);
+        }
+
+        [TestMethod]
+        public void GetParameterValueRespectsBindAttributeNullPrefix() {
+            // Arrange
+            CustomConverterController controller = new CustomConverterController();
+            Dictionary<string, object> values = new Dictionary<string, object> { { "foo", "fooValue" }, { "bar", "barValue" } };
+            ControllerContext controllerContext = GetControllerContext(controller, values);
+            controller.ControllerContext = controllerContext;
+
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
+
+            ParameterInfo paramWithFieldPrefix = typeof(CustomConverterController).GetMethod("ParameterHasNullFieldPrefix").GetParameters()[0];
+
+            // Act
+            object parameterValue = helper.PublicGetParameterValue(paramWithFieldPrefix);
+
+            // Assert
+            Assert.AreEqual("fooValue", parameterValue);
+        }
+
+        [TestMethod]
+        public void GetParameterValueRespectsBindAttributeEmptyPrefix() {
+            // Arrange
+            CustomConverterController controller = new CustomConverterController();
+            Dictionary<string, object> values = new Dictionary<string, object> { { "foo", "fooValue" }, { "bar", "barValue" }, { "intprop", "123" }, { "stringprop", "hello" } };
+            ControllerContext controllerContext = GetControllerContext(controller, values);
+            controller.ControllerContext = controllerContext;
+
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
+
+            ParameterInfo paramWithFieldPrefix = typeof(CustomConverterController).GetMethod("ParameterHasEmptyFieldPrefix").GetParameters()[0];
+
+            // Act
+            MySimpleModel parameterValue = helper.PublicGetParameterValue(paramWithFieldPrefix) as MySimpleModel;
+
+            // Assert
+            Assert.IsNotNull(parameterValue);
+            Assert.AreEqual<int>(123, parameterValue.IntProp);
+            Assert.AreEqual<string>("hello", parameterValue.StringProp);
+        }
+
+        [TestMethod]
         public void GetParameterValueReturnsNullIfCannotConvertNonRequiredParameter() {
             // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
+            controller.ControllerContext = context;
+
             Dictionary<string, object> dict = new Dictionary<string, object>() {
                 { "id", DateTime.Now } // cannot convert DateTime to Nullable<int>
             };
@@ -449,6 +544,8 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
             // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
+            controller.ControllerContext = context;
+
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("TakesNullableInt");
             ParameterInfo[] pis = mi.GetParameters();
@@ -465,6 +562,8 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
             // Arrange
             var controller = new ParameterTestingController();
             ControllerContext context = GetControllerContext(controller);
+            controller.ControllerContext = context;
+
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("Foo");
             ParameterInfo[] pis = mi.GetParameters();
@@ -530,6 +629,8 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
                 { "baz", "MyBaz" }
             };
             ControllerContext context = GetControllerContext(controller, dict);
+            controller.ControllerContext = context;
+
             ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(context);
             MethodInfo mi = typeof(ParameterTestingController).GetMethod("Foo");
 
@@ -624,6 +725,25 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
                     helper.PublicGetParameterValue(paramWithTwoConverters);
                 },
                 "The parameter 'foo' on method 'ParameterHasTwoConverters' contains multiple attributes inheriting from CustomModelBinderAttribute.");
+        }
+
+        [TestMethod]
+        public void GetParameterValueUsesControllerValueProviderAsValueProvider() {
+            // Arrange
+            Mock<IValueProvider> mockValueProvider = new Mock<IValueProvider>();
+            mockValueProvider.Expect(p => p.GetValue("foo")).Returns(new ValueProviderResult("fooValue", "fooValue", null));
+
+            CustomConverterController controller = new CustomConverterController() { ValueProvider = mockValueProvider.Object };
+            ControllerContext controllerContext = GetControllerContext(controller);
+            ControllerActionInvokerHelper helper = new ControllerActionInvokerHelper(controllerContext);
+
+            ParameterInfo parameter = typeof(CustomConverterController).GetMethod("ParameterHasNoConverters").GetParameters()[0];
+
+            // Act
+            object parameterValue = helper.PublicGetParameterValue(parameter);
+
+            // Assert
+            Assert.AreEqual("fooValue", parameterValue);
         }
 
         [TestMethod]
@@ -1137,8 +1257,9 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
                 delegate {
                     helper.PublicInvokeActionMethod(mi, parameters);
                 },
-                "The parameters dictionary does not contain a valid value of type 'System.Int32' for parameter 'id'. To"
-                + " make a parameter optional its type should either be a reference type or a Nullable type.");
+                "The parameters dictionary does not contain a valid value of type 'System.Int32' for parameter 'id'"
+                + " which is required for method 'Void TakesInt(Int32)' in 'System.Web.Mvc.Test.ControllerActionInvokerTest+ParameterTestingController'."
+                + " To make a parameter optional its type should either be a reference type or a Nullable type.");
         }
 
         [TestMethod]
@@ -1157,8 +1278,9 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
                 delegate {
                     helper.PublicInvokeActionMethod(mi, parameters);
                 },
-                "The parameters dictionary does not contain a valid value of type 'System.Int32' for parameter 'id'. To"
-                + " make a parameter optional its type should either be a reference type or a Nullable type.");
+                "The parameters dictionary does not contain a valid value of type 'System.Int32' for parameter 'id'"
+                + " which is required for method 'Void TakesInt(Int32)' in 'System.Web.Mvc.Test.ControllerActionInvokerTest+ParameterTestingController'."
+                + " To make a parameter optional its type should either be a reference type or a Nullable type.");
         }
 
         [TestMethod]
@@ -1177,8 +1299,9 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
                 delegate {
                     helper.PublicInvokeActionMethod(mi, parameters);
                 },
-                "The parameters dictionary does not contain a valid value of type 'System.Int32' for parameter 'id'. To"
-                + " make a parameter optional its type should either be a reference type or a Nullable type.");
+                "The parameters dictionary does not contain a valid value of type 'System.Int32' for parameter 'id'"
+                + " which is required for method 'Void TakesInt(Int32)' in 'System.Web.Mvc.Test.ControllerActionInvokerTest+ParameterTestingController'."
+                + " To make a parameter optional its type should either be a reference type or a Nullable type.");
         }
 
         [TestMethod]
@@ -1750,6 +1873,64 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
             Assert.AreSame(result, postContext);
         }
 
+        [TestMethod]
+        public void CreateActionResultWithActionResultParameterReturnsParameterUnchanged() {
+            // Arrange
+            ControllerActionInvokerHelper invoker = new ControllerActionInvokerHelper();
+            ActionResult originalResult = new JsonResult();
+
+            // Act
+            ActionResult returnedActionResult = invoker.PublicCreateActionResult(originalResult);
+
+            // Assert
+            Assert.AreSame(originalResult, returnedActionResult);
+        }
+
+        [TestMethod]
+        public void CreateActionResultWithNullParameterReturnsEmptyResult() {
+            // Arrange
+            ControllerActionInvokerHelper invoker = new ControllerActionInvokerHelper();
+
+            // Act
+            ActionResult returnedActionResult = invoker.PublicCreateActionResult(null);
+
+            // Assert
+            Assert.IsInstanceOfType(returnedActionResult, typeof(EmptyResult));
+        }
+
+        [TestMethod]
+        public void CreateActionResultWithObjectParameterReturnsContentResult() {
+            // Arrange
+            ControllerActionInvokerHelper invoker = new ControllerActionInvokerHelper();
+            object originalReturnValue = new CultureReflector();
+
+            // Act
+            ActionResult returnedActionResult = invoker.PublicCreateActionResult(originalReturnValue);
+
+            // Assert
+            Assert.IsInstanceOfType(returnedActionResult, typeof(ContentResult));
+            ContentResult contentResult = (ContentResult)returnedActionResult;
+            Assert.AreEqual("IVL", contentResult.Content);
+        }
+
+        [TestMethod]
+        public void InvokeMethodCallsOverriddenCreateActionResult() {
+            // Arrange
+            CustomResultInvokerController controller = new CustomResultInvokerController();
+            ControllerContext context = GetControllerContext(controller);
+            CustomResultInvoker helper = new CustomResultInvoker(context);
+            MethodInfo mi = typeof(CustomResultInvokerController).GetMethod("ReturnCustomResult");
+            IDictionary<string, object> parameters = new Dictionary<string, object>();
+
+            // Act
+            ActionResult actionResult = helper.PublicInvokeActionMethod(mi, parameters);
+
+            // Assert (arg got passed to method + back correctly)
+            Assert.IsInstanceOfType(actionResult, typeof(CustomResult));
+            CustomResult customResult = (CustomResult)actionResult;
+            Assert.AreEqual("abc123", customResult.ReturnValue);
+        }
+
         private static ControllerContext GetControllerContext(ControllerBase controller) {
             return GetControllerContext(controller, null);
         }
@@ -1873,6 +2054,36 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
         }
 
         private class BlankController : Controller {
+        }
+
+        private sealed class CustomResult : ActionResult {
+            public object ReturnValue {
+                get;
+                set;
+            }
+
+            public override void ExecuteResult(ControllerContext context) {
+                throw new NotImplementedException();
+            }
+        }
+
+        private sealed class CustomResultInvokerController : Controller {
+            public object ReturnCustomResult() {
+                return "abc123";
+            }
+
+        }
+
+        private sealed class CustomResultInvoker : ControllerActionInvokerHelper {
+            public CustomResultInvoker(ControllerContext controllerContext)
+                : base(controllerContext) {
+            }
+
+            protected override ActionResult CreateActionResult(object actionReturnValue) {
+                return new CustomResult {
+                    ReturnValue = actionReturnValue
+                };
+            }
         }
 
         private class ContinuationController : Controller {
@@ -2133,13 +2344,16 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
                 return base.InvokeExceptionFilters(exception, filters);
             }
 
+            public ActionResult PublicCreateActionResult(object result) {
+                return CreateActionResult(result);
+            }
+
             public struct FilterInfoHelper {
                 public IList<IActionFilter> ActionFilters;
                 public IList<IAuthorizationFilter> AuthorizationFilters;
                 public IList<IExceptionFilter> ExceptionFilters;
                 public IList<IResultFilter> ResultFilters;
             }
-
         }
 
         public class AuthorizationFilterHelper : IAuthorizationFilter {
@@ -2182,6 +2396,21 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
 
         private class CustomConverterController : Controller {
 
+            public void ParameterWithoutBindAttribute([PredicateReflector] string someParam) {
+            }
+
+            public void ParameterHasBindAttribute([Bind(Include = "foo"), PredicateReflector] string someParam) {
+            }
+
+            public void ParameterHasFieldPrefix([Bind(Prefix = "bar")] string foo) {
+            }
+
+            public void ParameterHasNullFieldPrefix([Bind(Include = "whatever")] string foo) {
+            }
+
+            public void ParameterHasEmptyFieldPrefix([Bind(Prefix = "")] MySimpleModel foo) {
+            }
+
             public void ParameterHasNoConverters(string foo) {
             }
 
@@ -2190,7 +2419,24 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
 
             public void ParameterHasTwoConverters([MyCustomConverter, MyCustomConverter] string foo) {
             }
+        }
 
+        public class MySimpleModel {
+            public int IntProp { get; set; }
+            public string StringProp { get; set; }
+        }
+
+        [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
+        private class PredicateReflectorAttribute : CustomModelBinderAttribute {
+            public override IModelBinder GetBinder() {
+                return new MyConverter();
+            }
+            private class MyConverter : IModelBinder {
+                public ModelBinderResult BindModel(ModelBindingContext bindingContext) {
+                    string s = String.Format("foo={0}&bar={1}", bindingContext.ShouldUpdateProperty("foo"), bindingContext.ShouldUpdateProperty("bar"));
+                    return new ModelBinderResult(s);
+                }
+            }
         }
 
         [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
@@ -2199,8 +2445,9 @@ System.Web.Mvc.ActionResult MethodOverloaded(System.String)");
                 return new MyConverter();
             }
             private class MyConverter : IModelBinder {
-                public object GetValue(ControllerContext controllerContext, string parameterName, Type parameterType, ModelStateDictionary modelState) {
-                    return parameterName + "_" + parameterType.Name;
+                public ModelBinderResult BindModel(ModelBindingContext bindingContext) {
+                    string s = bindingContext.ModelName + "_" + bindingContext.ModelType.Name;
+                    return new ModelBinderResult(s);
                 }
             }
         }

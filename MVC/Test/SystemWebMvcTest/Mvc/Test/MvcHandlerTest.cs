@@ -49,7 +49,7 @@ namespace System.Web.Mvc.Test {
             ControllerBuilder cb = new ControllerBuilder();
             Mock<IControllerFactory> controllerFactoryMock = new Mock<IControllerFactory>();
             controllerFactoryMock.Expect(o => o.CreateController(requestContext, "foo")).Returns(controllerMock.Object);
-            controllerFactoryMock.Expect(o => o.DisposeController(controllerMock.Object));
+            controllerFactoryMock.Expect(o => o.ReleaseController(controllerMock.Object));
             cb.SetControllerFactory(controllerFactoryMock.Object);
             mvcHandler.ControllerBuilder = cb;
 
@@ -122,7 +122,7 @@ namespace System.Web.Mvc.Test {
                 return _instance;
             }
 
-            public void DisposeController(IController controller) {
+            public void ReleaseController(IController controller) {
                 IDisposable disposable = controller as IDisposable;
                 if (disposable != null) {
                     disposable.Dispose();

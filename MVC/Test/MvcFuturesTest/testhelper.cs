@@ -23,7 +23,7 @@
             ViewContext viewContext = new ViewContext(httpContext, 
                                                       new RouteData(),
                                                       new Mock<ControllerBase>().Object, 
-                                                      "view", 
+                                                      new Mock<IView>().Object, 
                                                       new ViewDataDictionary(), 
                                                       new TempDataDictionary());
             return viewContext;

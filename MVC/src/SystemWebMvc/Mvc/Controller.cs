@@ -36,6 +36,12 @@
             }
         }
 
+        public ModelStateDictionary ModelState {
+            get {
+                return ViewData.ModelState;
+            }
+        }
+
         public HttpRequestBase Request {
             get {
                 return HttpContext == null ? null : HttpContext.Request;
@@ -88,6 +94,11 @@
             set {
                 _tempDataProvider = value;
             }
+        }
+
+        public UrlHelper Url {
+            get;
+            set;
         }
 
         public IPrincipal User {
@@ -164,6 +175,11 @@
                 ContentType = contentType,
                 ContentEncoding = contentEncoding
             };
+        }
+
+        protected override void Initialize(RequestContext requestContext) {
+            base.Initialize(requestContext);
+            Url = new UrlHelper(requestContext);
         }
 
         protected virtual void OnActionExecuting(ActionExecutingContext filterContext) {
@@ -285,76 +301,100 @@
             return new RedirectToRouteResult(routeName, newDict);
         }
 
-        protected internal bool TryUpdateModel(object model, string[] keys) {
-            return TryUpdateModel(model, keys, null /* objectPrefix */);
+        protected internal bool TryUpdateModel<TModel>(TModel model) where TModel : class {
+            return TryUpdateModel(model, null, null, null, ValueProvider);
         }
 
-        protected internal bool TryUpdateModel(object model, string[] keys, string objectPrefix) {
-            UpdateModelCore(model, keys, objectPrefix);
-            return ViewData.ModelState.IsValid;
+        protected internal bool TryUpdateModel<TModel>(TModel model, string prefix) where TModel : class {
+            return TryUpdateModel(model, prefix, null, null, ValueProvider);
         }
 
-        protected internal void UpdateModel(object model, string[] keys) {
-            UpdateModel(model, keys, null /* objectPrefix */);
+        protected internal bool TryUpdateModel<TModel>(TModel model, string[] includeProperties) where TModel : class {
+            return TryUpdateModel(model, null, includeProperties, null, ValueProvider);
         }
 
-        protected internal void UpdateModel(object model, string[] keys, string objectPrefix) {
-            UpdateModelCore(model, keys, objectPrefix);
-
-            if (!ViewData.ModelState.IsValid) {
-                string message = String.Format(CultureInfo.CurrentUICulture, MvcResources.Controller_UpdateModel_UpdateUnsuccessful,
-                    model.GetType().FullName);
-                throw new InvalidOperationException(message);
-            }
+        protected internal bool TryUpdateModel<TModel>(TModel model, string prefix, string[] includeProperties) where TModel : class {
+            return TryUpdateModel(model, prefix, includeProperties, null, ValueProvider);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes",
-            Justification = "We want to continue if a property setter errors out.")]
-        private void UpdateModelCore(object model, string[] keys, string objectPrefix) {
+        protected internal bool TryUpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, string[] excludeProperties) where TModel : class {
+            return TryUpdateModel(model, prefix, includeProperties, excludeProperties, ValueProvider);
+        }
+
+        protected internal bool TryUpdateModel<TModel>(TModel model, IValueProvider valueProvider) where TModel : class {
+            return TryUpdateModel(model, null, null, null, valueProvider);
+        }
+
+        protected internal bool TryUpdateModel<TModel>(TModel model, string prefix, IValueProvider valueProvider) where TModel : class {
+            return TryUpdateModel(model, prefix, null, null, valueProvider);
+        }
+
+        protected internal bool TryUpdateModel<TModel>(TModel model, string[] includeProperties, IValueProvider valueProvider) where TModel : class {
+            return TryUpdateModel(model, null, includeProperties, null, valueProvider);
+        }
+
+        protected internal bool TryUpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, IValueProvider valueProvider) where TModel : class {
+            return TryUpdateModel(model, prefix, includeProperties, null, valueProvider);
+        }
+
+        protected internal bool TryUpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, string[] excludeProperties, IValueProvider valueProvider) where TModel : class {
             if (model == null) {
                 throw new ArgumentNullException("model");
             }
-            if (keys == null || keys.Length == 0) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "keys");
+            if (valueProvider == null) {
+                throw new ArgumentNullException("valueProvider");
             }
 
-            PropertyDescriptorCollection propCollection = TypeDescriptor.GetProperties(model);
-            Dictionary<string, PropertyDescriptor> properties = new Dictionary<string, PropertyDescriptor>();
-            foreach (string key in keys) {
-                if (String.IsNullOrEmpty(key)) {
-                    continue;
-                }
+            Predicate<string> propertyFilter = propertyName => BindAttribute.IsPropertyAllowed(propertyName, includeProperties, excludeProperties);
+            IModelBinder binder = ModelBinders.GetBinder(typeof(TModel));
 
-                // locate the property descriptor for each property and prepend the prefix (if exists) to the key name
-                PropertyDescriptor propDescriptor = propCollection.Find(key, true /* ignoreCase */);
-                if (propDescriptor == null) {
-                    string message = String.Format(CultureInfo.CurrentUICulture, MvcResources.Controller_UpdateModel_PropertyNotFound,
-                        model.GetType().FullName, key);
-                    throw new ArgumentException(message, "keys");
-                }
+            ModelBindingContext bindingContext = new ModelBindingContext(ControllerContext, valueProvider, typeof(TModel), prefix, () => model, ModelState, propertyFilter);
+            binder.BindModel(bindingContext);
+            return ModelState.IsValid;
+        }
 
-                string fieldName = (String.IsNullOrEmpty(objectPrefix)) ? key : objectPrefix + "." + key;
-                properties[fieldName] = propDescriptor;
-            }
+        protected internal void UpdateModel<TModel>(TModel model) where TModel : class {
+            UpdateModel(model, null, null, null, ValueProvider);
+        }
 
-            foreach (var property in properties) {
-                string fieldName = property.Key;
-                PropertyDescriptor propDescriptor = property.Value;
+        protected internal void UpdateModel<TModel>(TModel model, string prefix) where TModel : class {
+            UpdateModel(model, prefix, null, null, ValueProvider);
+        }
 
-                IModelBinder converter = ModelBinders.GetBinder(propDescriptor.PropertyType);
-                object convertedValue = converter.GetValue(ControllerContext, fieldName, propDescriptor.PropertyType, ViewData.ModelState);
-                if (convertedValue != null) {
-                    try {
-                        propDescriptor.SetValue(model, convertedValue);
-                    }
-                    catch {
-                        // want to use the current culture since this message is potentially displayed to the end user
-                        string message = String.Format(CultureInfo.CurrentCulture, MvcResources.Common_ValueNotValidForProperty,
-                            convertedValue, propDescriptor.Name);
-                        string attemptedValue = Convert.ToString(convertedValue, CultureInfo.CurrentCulture);
-                        ViewData.ModelState.AddModelError(fieldName, attemptedValue, message);
-                    }
-                }
+        protected internal void UpdateModel<TModel>(TModel model, string[] includeProperties) where TModel : class {
+            UpdateModel(model, null, includeProperties, null, ValueProvider);
+        }
+
+        protected internal void UpdateModel<TModel>(TModel model, string prefix, string[] includeProperties) where TModel : class {
+            UpdateModel(model, prefix, includeProperties, null, ValueProvider);
+        }
+
+        protected internal void UpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, string[] excludeProperties) where TModel : class {
+            UpdateModel(model, prefix, includeProperties, excludeProperties, ValueProvider);
+        }
+
+        protected internal void UpdateModel<TModel>(TModel model, IValueProvider valueProvider) where TModel : class {
+            UpdateModel(model, null, null, null, valueProvider);
+        }
+
+        protected internal void UpdateModel<TModel>(TModel model, string prefix, IValueProvider valueProvider) where TModel : class {
+            UpdateModel(model, prefix, null, null, valueProvider);
+        }
+
+        protected internal void UpdateModel<TModel>(TModel model, string[] includeProperties, IValueProvider valueProvider) where TModel : class {
+            UpdateModel(model, null, includeProperties, null, valueProvider);
+        }
+
+        protected internal void UpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, IValueProvider valueProvider) where TModel : class {
+            UpdateModel(model, prefix, includeProperties, null, valueProvider);
+        }
+
+        protected internal void UpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, string[] excludeProperties, IValueProvider valueProvider) where TModel : class {
+            bool success = TryUpdateModel(model, prefix, includeProperties, excludeProperties, valueProvider);
+            if (!success) {
+                string message = String.Format(CultureInfo.CurrentUICulture, MvcResources.Controller_UpdateModel_UpdateUnsuccessful,
+                    typeof(TModel).FullName);
+                throw new InvalidOperationException(message);
             }
         }
 

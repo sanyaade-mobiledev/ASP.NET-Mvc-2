@@ -9,7 +9,7 @@
         [TestMethod]
         public void DefaultEngineProperty() {
             // Act
-            CompositeViewEngine engine = ViewEngines.DefaultEngine;
+            AutoViewEngine engine = ViewEngines.DefaultEngine;
 
             // Assert
             Assert.IsNotNull(engine);

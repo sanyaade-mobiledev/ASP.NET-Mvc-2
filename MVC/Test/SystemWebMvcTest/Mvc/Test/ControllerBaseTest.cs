@@ -64,6 +64,26 @@
         }
 
         [TestMethod]
+        public void ValueProviderProperty() {
+            // Arrange
+            ControllerBase controller = new ControllerBaseHelper();
+            controller.ControllerContext = new ControllerContext(new Mock<HttpContextBase>().Object, new RouteData(), controller);
+            IValueProvider valueProvider = new Mock<IValueProvider>().Object;
+
+            // Act & assert
+            MemberHelper.TestPropertyWithDefaultInstance(controller, "ValueProvider", valueProvider);
+        }
+
+        [TestMethod]
+        public void ValueProviderPropertyReturnsNullIfNoControllerContext() {
+            // Arrange
+            ControllerBase controller = new ControllerBaseHelper();
+
+            // Act & assert
+            Assert.IsNull(controller.ValueProvider);
+        }
+
+        [TestMethod]
         public void ViewDataProperty() {
             // Arrange
             ControllerBase controller = new ControllerBaseHelper();

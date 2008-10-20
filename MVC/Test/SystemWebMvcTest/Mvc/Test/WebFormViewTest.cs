@@ -168,7 +168,7 @@
             return new ViewContext(new Mock<HttpContextBase>().Object,
                                    new RouteData(),
                                    new Mock<ControllerBase>().Object,
-                                   "view",
+                                   new Mock<IView>().Object,
                                    new ViewDataDictionary(),
                                    null);
         }

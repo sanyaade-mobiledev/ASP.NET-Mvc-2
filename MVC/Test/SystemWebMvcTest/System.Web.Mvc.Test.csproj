@@ -13,8 +13,6 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <SignAssembly>false</SignAssembly>
-    <DelaySign>true</DelaySign>
-    <AssemblyOriginatorKeyFile>..\..\src\FinalPublicKey.snk</AssemblyOriginatorKeyFile>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -54,26 +52,36 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Mvc\Test\CompositeViewEngineTest.cs" />
+    <Compile Include="Mvc\Test\AutoViewEngineTest.cs" />
+    <Compile Include="Mvc\Test\BindAttributeTest.cs" />
     <Compile Include="Mvc\Test\ControllerBaseTest.cs" />
     <Compile Include="Mvc\Test\ActionMethodSelectorTest.cs" />
     <Compile Include="Mvc\Test\ActionMethodSelectorCacheTest.cs" />
     <Compile Include="Mvc\Test\ActionNameAttributeTest.cs" />
     <Compile Include="Mvc\Test\AcceptVerbsAttributeTest.cs" />
-    <Compile Include="Mvc\Test\DateTimeModelBinderTest.cs" />
+    <Compile Include="Mvc\Test\ModelBinderResultTest.cs" />
+    <Compile Include="Mvc\Test\MvcFormTest.cs" />
     <Compile Include="Mvc\Test\DefaultModelBinderTest.cs" />
+    <Compile Include="Mvc\Test\DefaultValueProviderTest.cs" />
+    <Compile Include="Mvc\Test\FormCollectionTest.cs" />
+    <Compile Include="Mvc\Test\ModelBindingContextTest.cs" />
+    <Compile Include="Mvc\Test\ValueProviderResultTest.cs" />
+    <Compile Include="Mvc\Test\HtmlLinkExtensionsTest.cs" />
+    <Compile Include="Mvc\Test\HtmlFormExtensionsTest.cs" />
+    <Compile Include="Mvc\Test\HtmlRenderPartialExtensionsTest.cs" />
+    <Compile Include="Mvc\Test\HtmlSelectExtensionsTest.cs" />
+    <Compile Include="Mvc\Test\HtmlTextAreaExtensionsTest.cs" />
+    <Compile Include="Mvc\Test\HtmlValidationExtensionsTest.cs" />
+    <Compile Include="Mvc\Test\HtmlInputExtensionsTest.cs" />
     <Compile Include="Mvc\Test\ModelBinderAttributeTest.cs" />
     <Compile Include="Mvc\Test\ModelBindersInfoTest.cs" />
     <Compile Include="Mvc\Test\ModelBindersTest.cs" />
     <Compile Include="Mvc\Test\ViewEngineResultTest.cs" />
     <Compile Include="Mvc\Test\NonActionAttributeTest.cs" />
-    <Compile Include="Mvc\Test\MethodSelectionAttributeTest.cs" />
     <Compile Include="Mvc\Test\ModelStateDictionaryTest.cs" />
     <Compile Include="Mvc\Test\ModelStateTest.cs" />
     <Compile Include="Mvc\Test\ModelErrorCollectionTest.cs" />
     <Compile Include="Mvc\Test\ModelErrorTest.cs" />
-    <Compile Include="Mvc\Test\HtmlHelperTest.CheckBox.cs" />
-    <Compile Include="Mvc\Test\HtmlHelperTest.Radio.cs" />
     <Compile Include="Mvc\Test\AjaxHelperTest.cs" />
     <Compile Include="Mvc\Test\AspNetHostingPermissionAttributeTest.cs" />
     <Compile Include="Mvc\Test\AuthorizeAttributeTest.cs" />
@@ -89,11 +97,10 @@
     <Compile Include="Mvc\Test\AjaxOptionsTest.cs" />
     <Compile Include="Mvc\Test\ActionMethodDispatcherTest.cs" />
     <Compile Include="Mvc\Test\ActionMethodDispatcherCacheTest.cs" />
-    <Compile Include="Mvc\Test\HtmlHelperTest.RenderPartial.cs" />
     <Compile Include="Mvc\Test\PartialViewResultTest.cs" />
     <Compile Include="Mvc\Test\ViewEngineCollectionTest.cs" />
+    <Compile Include="Mvc\Test\ViewResultBaseTest.cs" />
     <Compile Include="Mvc\Test\WebFormViewTest.cs" />
-    <Compile Include="Mvc\Test\HtmlHelperTest.TextArea.cs" />
     <Compile Include="Mvc\Test\MvcHttpHandlerTest.cs" />
     <Compile Include="Mvc\Test\HandleErrorAttributeTest.cs" />
     <Compile Include="Mvc\Test\HandleErrorInfoTest.cs" />
@@ -103,10 +110,6 @@
     <Compile Include="Mvc\Test\ExceptionContextTest.cs" />
     <Compile Include="Mvc\Test\JsonResultTest.cs" />
     <Compile Include="Mvc\Test\NameValueCollectionExtensionsTest.cs" />
-    <Compile Include="Mvc\Test\HtmlHelperTest.Hidden.cs" />
-    <Compile Include="Mvc\Test\HtmlHelperTest.Password.cs" />
-    <Compile Include="Mvc\Test\HtmlHelperTest.Select.cs" />
-    <Compile Include="Mvc\Test\HtmlHelperTest.TextBox.cs" />
     <Compile Include="Mvc\Test\MockBuildManager.cs" />
     <Compile Include="Mvc\Test\DefaultControllerFactoryTest.cs" />
     <Compile Include="Mvc\Test\HtmlHelperTest.cs" />

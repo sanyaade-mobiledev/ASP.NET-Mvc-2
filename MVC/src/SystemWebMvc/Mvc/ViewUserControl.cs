@@ -140,6 +140,8 @@
             // TODO: Remove this hack. Without it, the browser appears to always load cached output
             viewContext.HttpContext.Response.Cache.SetExpires(DateTime.Now);
             ViewUserControlContainerPage containerPage = new ViewUserControlContainerPage(this);
+            // Tracing requires Page IDs to be unique.
+            ID = Guid.NewGuid().ToString();
             containerPage.RenderView(viewContext);
         }
 

@@ -8,11 +8,6 @@
     public class TypeHelpersTest {
 
         [TestMethod]
-        public void TypeAllowsNullValueReturnsFalseForGenericDefinitionType() {
-            Assert.IsFalse(TypeHelpers.TypeAllowsNullValue(typeof(Nullable<>)));
-        }
-
-        [TestMethod]
         public void TypeAllowsNullValueReturnsFalseForNonNullableGenericType() {
             Assert.IsFalse(TypeHelpers.TypeAllowsNullValue(typeof(KeyValuePair<int, string>)));
         }

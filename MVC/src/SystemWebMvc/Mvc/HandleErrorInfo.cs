@@ -7,28 +7,28 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class HandleErrorInfo {
 
-        public HandleErrorInfo(Exception exception, string controller, string action) {
+        public HandleErrorInfo(Exception exception, string controllerName, string actionName) {
             if (exception == null) {
                 throw new ArgumentNullException("exception");
             }
-            if (String.IsNullOrEmpty(controller)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "controller");
+            if (String.IsNullOrEmpty(controllerName)) {
+                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "controllerName");
             }
-            if (string.IsNullOrEmpty(action)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "action");
+            if (string.IsNullOrEmpty(actionName)) {
+                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
             }
 
             Exception = exception;
-            Controller = controller;
-            Action = action;
+            ControllerName = controllerName;
+            ActionName = actionName;
         }
 
-        public string Action {
+        public string ActionName {
             get;
             private set;
         }
 
-        public string Controller {
+        public string ControllerName {
             get;
             private set;
         }

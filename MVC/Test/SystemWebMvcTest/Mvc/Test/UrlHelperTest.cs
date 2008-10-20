@@ -14,23 +14,33 @@ namespace System.Web.Mvc.Test {
                 new Mock<HttpContextBase>().Object,
                 new RouteData(),
                 new Mock<ControllerBase>().Object,
-                "view",
+                new Mock<IView>().Object,
                 new ViewDataDictionary(),
                 new TempDataDictionary());
             UrlHelper urlHelper = new UrlHelper(viewContext);
 
             // Assert
-            Assert.AreEqual(urlHelper.ViewContext, viewContext);
+            Assert.AreEqual(urlHelper.RequestContext, viewContext);
         }
 
         [TestMethod]
-        public void ConstructorWithNullViewContextThrows() {
+        public void ConstructorWithNullRequestContextThrows() {
             // Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
                     new UrlHelper(null);
                 },
-                "viewContext");
+                "requestContext");
+        }
+
+        [TestMethod]
+        public void ConstructorWithNullRouteCollectionThrows() {
+            // Assert
+            ExceptionHelper.ExpectArgumentNullException(
+                delegate {
+                    new UrlHelper(GetRequestContext(), null);
+                },
+                "routeCollection");
         }
 
         [TestMethod]
@@ -423,6 +433,12 @@ namespace System.Web.Mvc.Test {
                 "The provided object or dictionary already contains a definition for 'controller'.\r\nParameter name: controllerName");
         }
 
+        private static RequestContext GetRequestContext() {
+            HttpContextBase httpcontext = HtmlHelperTest.GetHttpContext("/app/", null, null);
+            RouteData rd = new RouteData();
+            return new RequestContext(httpcontext, rd);
+        }
+
         private static UrlHelper GetUrlHelper() {
             HttpContextBase httpcontext = HtmlHelperTest.GetHttpContext("/app/", null, null);
             RouteCollection rt = new RouteCollection();
@@ -431,9 +447,8 @@ namespace System.Web.Mvc.Test {
             RouteData rd = new RouteData();
             rd.Values.Add("controller", "home");
             rd.Values.Add("action", "oldaction");
-            ViewContext context = new ViewContext(httpcontext, rd, new Mock<ControllerBase>().Object, "view", new ViewDataDictionary(), new TempDataDictionary());
-            UrlHelper urlHelper = new UrlHelper(context);
-            urlHelper.RouteCollection = rt;
+            ViewContext context = new ViewContext(httpcontext, rd, new Mock<ControllerBase>().Object, new Mock<IView>().Object, new ViewDataDictionary(), new TempDataDictionary());
+            UrlHelper urlHelper = new UrlHelper(context, rt);
             return urlHelper;
         }
     }

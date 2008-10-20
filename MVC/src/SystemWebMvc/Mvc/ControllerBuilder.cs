@@ -62,7 +62,7 @@
 
             _factoryThunk = delegate() {
                 try {
-                    return (IControllerFactory) Activator.CreateInstance(controllerFactoryType);
+                    return (IControllerFactory)Activator.CreateInstance(controllerFactoryType);
                 }
                 catch (Exception ex) {
                     throw new InvalidOperationException(

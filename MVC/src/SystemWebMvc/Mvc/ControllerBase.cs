@@ -9,6 +9,7 @@
     public abstract class ControllerBase : IController {
 
         private TempDataDictionary _tempDataDictionary;
+        private IValueProvider _valueProvider;
         private ViewDataDictionary _viewDataDictionary;
 
         public ControllerContext ControllerContext {
@@ -27,6 +28,18 @@
             }
             set {
                 _tempDataDictionary = value;
+            }
+        }
+
+        public IValueProvider ValueProvider {
+            get {
+                if (_valueProvider == null && ControllerContext != null) {
+                    _valueProvider = new DefaultValueProvider(ControllerContext);
+                }
+                return _valueProvider;
+            }
+            set {
+                _valueProvider = value;
             }
         }
 

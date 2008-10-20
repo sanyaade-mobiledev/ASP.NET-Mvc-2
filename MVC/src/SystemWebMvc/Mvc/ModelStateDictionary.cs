@@ -11,7 +11,7 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable",
-        Justification="We need to refactor this type to implement IDictionary<,> rather than subclass Dictionary<,>.")]
+        Justification = "We need to refactor this type to implement IDictionary<,> rather than subclass Dictionary<,>.")]
     public class ModelStateDictionary : Dictionary<string, ModelState> {
 
         public ModelStateDictionary()
@@ -28,17 +28,15 @@
             }
         }
 
-        public void AddModelError(string key, string attemptedValue, Exception exception) {
-            ModelState modelState = GetModelStateForKey(key, attemptedValue);
-            modelState.Errors.Add(exception);
+        public void AddModelError(string key, Exception exception) {
+            GetModelStateForKey(key).Errors.Add(exception);
         }
 
-        public void AddModelError(string key, string attemptedValue, string errorMessage) {
-            ModelState modelState = GetModelStateForKey(key, attemptedValue);
-            modelState.Errors.Add(errorMessage);
+        public void AddModelError(string key, string errorMessage) {
+            GetModelStateForKey(key).Errors.Add(errorMessage);
         }
 
-        private ModelState GetModelStateForKey(string key, string attemptedValue) {
+        private ModelState GetModelStateForKey(string key) {
             if (String.IsNullOrEmpty(key)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "key");
             }
@@ -49,8 +47,17 @@
                 this[key] = modelState;
             }
 
-            modelState.AttemptedValue = attemptedValue;
             return modelState;
+        }
+
+        internal void Merge(ModelStateDictionary dictionary) {
+            foreach (var entry in dictionary) {
+                this[entry.Key] = entry.Value;
+            }
+        }
+
+        public void SetAttemptedValue(string key, string attemptedValue) {
+            GetModelStateForKey(key).AttemptedValue = attemptedValue;
         }
 
     }

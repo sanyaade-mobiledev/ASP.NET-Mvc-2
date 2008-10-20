@@ -7,7 +7,7 @@
 
     // The methods in this class don't perform error checking; that is the responsibility of the
     // caller.
-    internal class ActionMethodDispatcher {
+    internal sealed class ActionMethodDispatcher {
 
         private delegate object ActionExecutor(ControllerBase controller, object[] parameters);
         private delegate void VoidActionExecutor(ControllerBase controller, object[] parameters);
@@ -24,10 +24,8 @@
             private set;
         }
 
-        public ActionResult Execute(ControllerBase controller, object[] parameters) {
-            object result = _executor(controller, parameters);
-            ActionResult actionResult = ObjectToActionResult(result);
-            return actionResult;
+        public object Execute(ControllerBase controller, object[] parameters) {
+            return _executor(controller, parameters);
         }
 
         private static ActionExecutor GetExecutor(MethodInfo methodInfo) {
@@ -64,16 +62,6 @@
                 Expression<ActionExecutor> lambda = Expression.Lambda<ActionExecutor>(castMethodCall, controllerParameter, parametersParameter);
                 return lambda.Compile();
             }
-        }
-
-        public static ActionResult ObjectToActionResult(object result) {
-            if (result == null) {
-                return new EmptyResult();
-            }
-
-            ActionResult actionResult = (result as ActionResult) ??
-                new ContentResult { Content = Convert.ToString(result, CultureInfo.InvariantCulture) };
-            return actionResult;
         }
 
         private static ActionExecutor WrapVoidAction(VoidActionExecutor executor) {

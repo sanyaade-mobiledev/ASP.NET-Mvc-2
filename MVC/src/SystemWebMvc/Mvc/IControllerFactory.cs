@@ -6,6 +6,6 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public interface IControllerFactory {
         IController CreateController(RequestContext requestContext, string controllerName);
-        void DisposeController(IController controller);
+        void ReleaseController(IController controller);
     }
 }

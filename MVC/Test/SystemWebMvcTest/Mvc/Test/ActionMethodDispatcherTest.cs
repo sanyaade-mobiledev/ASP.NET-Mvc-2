@@ -2,7 +2,6 @@
     using System;
     using System.Reflection;
     using System.Web.Mvc;
-    using System.Web.TestUtil;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -17,12 +16,12 @@
             ActionMethodDispatcher dispatcher = new ActionMethodDispatcher(methodInfo);
 
             // Act
-            ActionResult result = dispatcher.Execute(controller, parameters);
+            object returnValue = dispatcher.Execute(controller, parameters);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(ContentResult));
-            ContentResult contentResult = (ContentResult)result;
-            Assert.AreEqual("Hello from NormalAction!", contentResult.Content);
+            Assert.IsInstanceOfType(returnValue, typeof(string));
+            string stringResult = (string)returnValue;
+            Assert.AreEqual("Hello from NormalAction!", stringResult);
 
             Assert.AreEqual(5, controller._i);
             Assert.AreEqual("some string", controller._s);
@@ -38,12 +37,12 @@
             ActionMethodDispatcher dispatcher = new ActionMethodDispatcher(methodInfo);
 
             // Act
-            ActionResult result = dispatcher.Execute(controller, parameters);
+            object returnValue = dispatcher.Execute(controller, parameters);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(ContentResult));
-            ContentResult contentResult = (ContentResult)result;
-            Assert.AreEqual("53", contentResult.Content);
+            Assert.IsInstanceOfType(returnValue, typeof(int));
+            int intResult = (int)returnValue;
+            Assert.AreEqual(53, intResult);
         }
 
         [TestMethod]
@@ -55,10 +54,10 @@
             ActionMethodDispatcher dispatcher = new ActionMethodDispatcher(methodInfo);
 
             // Act
-            ActionResult result = dispatcher.Execute(controller, parameters);
+            object returnValue = dispatcher.Execute(controller, parameters);
 
             // Assert
-            Assert.IsInstanceOfType(result, typeof(EmptyResult));
+            Assert.IsNull(returnValue);
             Assert.AreEqual(5, controller._i);
             Assert.AreEqual("some string", controller._s);
             Assert.AreEqual(new DateTime(2001, 1, 1), controller._dt);
@@ -75,41 +74,6 @@
 
             // Assert
             Assert.AreSame(original, returned);
-        }
-
-        [TestMethod]
-        public void ObjectToActionResultWithActionResultParameterReturnsParameterUnchanged() {
-            // Arrange
-            ActionResult original = new JsonResult();
-
-            // Act
-            ActionResult returned = ActionMethodDispatcher.ObjectToActionResult(original);
-
-            // Assert
-            Assert.AreSame(original, returned);
-        }
-
-        [TestMethod]
-        public void ObjectToActionResultWithNullParameterReturnsEmptyResult() {
-            // Act
-            ActionResult actionResult = ActionMethodDispatcher.ObjectToActionResult(null);
-
-            // Assert
-            Assert.IsInstanceOfType(actionResult, typeof(EmptyResult));
-        }
-
-        [TestMethod]
-        public void ObjectToActionResultWithObjectParameterReturnsContentResult() {
-            // Arrange
-            object original = new CultureReflector();
-
-            // Act
-            ActionResult returned = ActionMethodDispatcher.ObjectToActionResult(original);
-
-            // Assert
-            Assert.IsInstanceOfType(returned, typeof(ContentResult));
-            ContentResult contentResult = (ContentResult)returned;
-            Assert.AreEqual("IVL", contentResult.Content);
         }
 
         private class DispatcherController : Controller {

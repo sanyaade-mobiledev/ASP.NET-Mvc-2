@@ -84,7 +84,7 @@ namespace System.Web.Mvc.Test {
             mockDisposable.Expect(d => d.Dispose()).Verifiable();
 
             // Act
-            factory.DisposeController(mockController.Object);
+            factory.ReleaseController(mockController.Object);
 
             // Assert
             mockDisposable.Verify();

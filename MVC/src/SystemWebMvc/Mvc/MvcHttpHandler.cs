@@ -12,17 +12,8 @@
             if (httpHandler == null) {
                 throw new ArgumentNullException("httpHandler");
             }
-            MvcHandler mvcHandler = httpHandler as MvcHandler;
-            if (mvcHandler == null) {
-                throw new ArgumentException(
-                    String.Format(
-                        CultureInfo.CurrentUICulture,
-                        MvcResources.MvcHttpHandler_DidNotReturnMvcHandler,
-                        httpHandler.GetType().FullName),
-                    "httpHandler");
-            }
 
-            mvcHandler.ProcessRequest(httpContext);
+            httpHandler.ProcessRequest(HttpContext.Current);
         }
     }
 }

@@ -8,23 +8,23 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ViewContext : ControllerContext {
 
-        public ViewContext(HttpContextBase httpContext, RouteData routeData, ControllerBase controller, string viewName, ViewDataDictionary viewData, TempDataDictionary tempData)
+        public ViewContext(HttpContextBase httpContext, RouteData routeData, ControllerBase controller, IView view, ViewDataDictionary viewData, TempDataDictionary tempData)
             : base(httpContext, routeData, controller) {
-            if (String.IsNullOrEmpty(viewName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "viewName");
+            if (view == null) {
+                throw new ArgumentNullException("view");
             }
 
             ViewData = viewData;
             TempData = tempData;
-            ViewName = viewName;
+            View = view;
         }
 
-        public ViewContext(ControllerContext controllerContext, string viewName, ViewDataDictionary viewData, TempDataDictionary tempData)
-            : this(GetControllerContext(controllerContext).HttpContext, 
-                   GetControllerContext(controllerContext).RouteData, 
-                   GetControllerContext(controllerContext).Controller, 
-                   viewName, 
-                   viewData, 
+        public ViewContext(ControllerContext controllerContext, IView view, ViewDataDictionary viewData, TempDataDictionary tempData)
+            : this(GetControllerContext(controllerContext).HttpContext,
+                   GetControllerContext(controllerContext).RouteData,
+                   GetControllerContext(controllerContext).Controller,
+                   view,
+                   viewData,
                    tempData) {
         }
 
@@ -33,15 +33,14 @@
             private set;
         }
 
+        public IView View {
+            get;
+            private set;
+        }
+
         public ViewDataDictionary ViewData {
             get;
             private set;
         }
-
-        public string ViewName {
-            get;
-            private set;
-        }
-
     }
 }

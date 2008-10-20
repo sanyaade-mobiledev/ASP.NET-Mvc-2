@@ -2,6 +2,7 @@
     using System.Web.Routing;
     using System.Web.TestUtil;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Moq;
 
     [TestClass]
     public class RouteCollectionExtensionsTest {
@@ -220,6 +221,20 @@
             Assert.IsNull(route.Defaults);
             Assert.AreEqual(1, route.Constraints.Count);
             Assert.AreEqual("DefaultFoo", route.Constraints["Foo"]);
+        }
+
+        [TestMethod]
+        public void IgnoreRouteInternalNeverMatchesUrlGeneration() {
+            // Arrange
+            RouteCollection routes = new RouteCollection();
+            routes.IgnoreRoute("SomeUrl");
+            Route route = routes[0] as Route;
+
+            // Act
+            VirtualPathData vpd = route.GetVirtualPath(new RequestContext(new Mock<HttpContextBase>().Object, new RouteData()), null);
+
+            // Assert
+            Assert.IsNull(vpd);
         }
     }
 }

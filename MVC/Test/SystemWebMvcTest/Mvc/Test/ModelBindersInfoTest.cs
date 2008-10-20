@@ -9,111 +9,118 @@
     public class ModelBindersInfoTest {
 
         [TestMethod]
-        public void ConvertersProperty() {
+        public void BindersProperty() {
             // Arrange
-            ModelBindersInfo convertersInfo = new ModelBindersInfo();
+            ModelBindersInfo bindersInfo = new ModelBindersInfo();
 
             // Act
-            IDictionary<Type, IModelBinder> converters = convertersInfo.Binders;
+            IDictionary<Type, IModelBinder> binders = bindersInfo.Binders;
 
             // Assert
-            Assert.IsNotNull(converters);
+            Assert.IsNotNull(binders);
         }
 
         [TestMethod]
-        public void DefaultConverterPropertyExplicitlySet() {
+        public void DefaultBinderProperty() {
             // Arrange
-            IModelBinder converter = new Mock<IModelBinder>().Object;
-            ModelBindersInfo convertersInfo = new ModelBindersInfo();
+            ModelBindersInfo bindersInfo = new ModelBindersInfo();
+            IModelBinder binder = new Mock<IModelBinder>().Object;
 
-            // Act
-            convertersInfo.DefaultBinder = converter;
-            IModelBinder returned = convertersInfo.DefaultBinder;
-
-            // Assert
-            Assert.AreSame(converter, returned);
+            // Act & assert
+            MemberHelper.TestPropertyWithDefaultInstance(bindersInfo, "DefaultBinder", binder);
         }
 
         [TestMethod]
-        public void DefaultConverterPropertyReturnsDefaultConverterIfNull() {
-            // Arrange
-            ModelBindersInfo convertersInfo = new ModelBindersInfo();
-
-            // Act
-            convertersInfo.DefaultBinder = null;
-            IModelBinder returned = convertersInfo.DefaultBinder;
-
-            // Assert
-            Assert.IsInstanceOfType(returned, typeof(DefaultModelBinder));
-        }
-
-        [TestMethod]
-        public void GetConverterResolvesConvertersWithCorrectPrecedence() {
+        public void GetBinderDoesNotReturnDefaultBinderIfAskedNotTo() {
             // Proper order of precedence:
-            // 1. Converter registered in the global table
-            // 2. Converter attribute defined on the type
-            // 3. Default converter
+            // 1. Binder registered in the global table
+            // 2. Binder attribute defined on the type
+            // 3. <null>
 
             // Arrange
-            ModelBindersInfo convertersInfo = new ModelBindersInfo();
+            ModelBindersInfo bindersInfo = new ModelBindersInfo();
 
-            IModelBinder registeredFirstConverter = new Mock<IModelBinder>().Object;
-            convertersInfo.Binders[typeof(MyFirstConvertibleType)] = registeredFirstConverter;
-
-            IModelBinder defaultConverter = new Mock<IModelBinder>().Object;
-            convertersInfo.DefaultBinder = defaultConverter;
+            IModelBinder registeredFirstBinder = new Mock<IModelBinder>().Object;
+            bindersInfo.Binders[typeof(MyFirstConvertibleType)] = registeredFirstBinder;
 
             // Act
-            IModelBinder converter1 = convertersInfo.GetBinder(typeof(MyFirstConvertibleType));
-            IModelBinder converter2 = convertersInfo.GetBinder(typeof(MySecondConvertibleType));
-            IModelBinder converter3 = convertersInfo.GetBinder(typeof(object));
+            IModelBinder binder1 = bindersInfo.GetBinder(typeof(MyFirstConvertibleType), false /* fallbackToDefault */);
+            IModelBinder binder2 = bindersInfo.GetBinder(typeof(MySecondConvertibleType), false /* fallbackToDefault */);
+            IModelBinder binder3 = bindersInfo.GetBinder(typeof(object), false /* fallbackToDefault */);
 
             // Assert
-            Assert.AreSame(registeredFirstConverter, converter1, "First converter should have been matched in the registered converters table.");
-            Assert.IsInstanceOfType(converter2, typeof(MySecondConverter), "Second converter should have been matched on the type.");
-            Assert.AreSame(defaultConverter, converter3, "Third converter should have been the fallback.");
+            Assert.AreSame(registeredFirstBinder, binder1, "First binder should have been matched in the registered binders table.");
+            Assert.IsInstanceOfType(binder2, typeof(MySecondBinder), "Second binder should have been matched on the type.");
+            Assert.IsNull(binder3, "Third binder should have returned null since asked not to use default.");
         }
 
         [TestMethod]
-        public void GetConverterThrowsIfParameterTypeContainsMultipleAttributes() {
+        public void GetBinderResolvesBindersWithCorrectPrecedence() {
+            // Proper order of precedence:
+            // 1. Binder registered in the global table
+            // 2. Binder attribute defined on the type
+            // 3. Default binder
+
             // Arrange
-            ModelBindersInfo convertersInfo = new ModelBindersInfo();
+            ModelBindersInfo bindersInfo = new ModelBindersInfo();
+
+            IModelBinder registeredFirstBinder = new Mock<IModelBinder>().Object;
+            bindersInfo.Binders[typeof(MyFirstConvertibleType)] = registeredFirstBinder;
+
+            IModelBinder defaultBinder = new Mock<IModelBinder>().Object;
+            bindersInfo.DefaultBinder = defaultBinder;
+
+            // Act
+            IModelBinder binder1 = bindersInfo.GetBinder(typeof(MyFirstConvertibleType), true /* fallbackToDefault */);
+            IModelBinder binder2 = bindersInfo.GetBinder(typeof(MySecondConvertibleType), true /* fallbackToDefault */);
+            IModelBinder binder3 = bindersInfo.GetBinder(typeof(object), true /* fallbackToDefault */);
+
+            // Assert
+            Assert.AreSame(registeredFirstBinder, binder1, "First binder should have been matched in the registered binders table.");
+            Assert.IsInstanceOfType(binder2, typeof(MySecondBinder), "Second binder should have been matched on the type.");
+            Assert.AreSame(defaultBinder, binder3, "Third binder should have been the fallback.");
+        }
+
+        [TestMethod]
+        public void GetBinderThrowsIfModelTypeContainsMultipleAttributes() {
+            // Arrange
+            ModelBindersInfo bindersInfo = new ModelBindersInfo();
 
             // Act & Assert
             ExceptionHelper.ExpectInvalidOperationException(
                 delegate {
-                    convertersInfo.GetBinder(typeof(ConvertibleTypeWithSeveralConverters));
+                    bindersInfo.GetBinder(typeof(ConvertibleTypeWithSeveralBinders), true /* fallbackToDefault */);
                 },
-                "The type 'System.Web.Mvc.Test.ModelBindersInfoTest+ConvertibleTypeWithSeveralConverters'"
+                "The type 'System.Web.Mvc.Test.ModelBindersInfoTest+ConvertibleTypeWithSeveralBinders'"
                 + " contains multiple attributes inheriting from CustomModelBinderAttribute.");
         }
 
-        [ModelBinder(typeof(MyFirstConverter))]
+        [ModelBinder(typeof(MyFirstBinder))]
         private class MyFirstConvertibleType {
         }
 
-        private class MyFirstConverter : IModelBinder {
-            public object GetValue(ControllerContext controllerContext, string parameterName, Type parameterType, ModelStateDictionary modelState) {
+        private class MyFirstBinder : IModelBinder {
+            public ModelBinderResult BindModel(ModelBindingContext bindingContext) {
                 throw new NotImplementedException();
             }
         }
 
-        [ModelBinder(typeof(MySecondConverter))]
+        [ModelBinder(typeof(MySecondBinder))]
         private class MySecondConvertibleType {
         }
 
-        private class MySecondConverter : IModelBinder {
-            public object GetValue(ControllerContext controllerContext, string parameterName, Type parameterType, ModelStateDictionary modelState) {
+        private class MySecondBinder : IModelBinder {
+            public ModelBinderResult BindModel(ModelBindingContext bindingContext) {
                 throw new NotImplementedException();
             }
         }
 
-        [ModelBinder(typeof(MySecondConverter))]
-        [MySubclassedConverter]
-        private class ConvertibleTypeWithSeveralConverters {
+        [ModelBinder(typeof(MySecondBinder))]
+        [MySubclassedBinder]
+        private class ConvertibleTypeWithSeveralBinders {
         }
 
-        private class MySubclassedConverterAttribute : CustomModelBinderAttribute {
+        private class MySubclassedBinderAttribute : CustomModelBinderAttribute {
             public override IModelBinder GetBinder() {
                 throw new NotImplementedException();
             }

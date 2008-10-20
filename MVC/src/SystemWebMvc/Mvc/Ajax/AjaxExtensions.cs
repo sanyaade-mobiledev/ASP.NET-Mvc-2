@@ -4,6 +4,7 @@
     using System.ComponentModel;
     using System.Globalization;
     using System.Web;
+    using System.Web.Mvc.Html;
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
 
@@ -74,45 +75,85 @@
             return GenerateLink(linkText, targetUrl, ajaxOptions, htmlAttributes);
         }
 
-        public static IDisposable Form(this AjaxHelper ajaxHelper, string actionName, AjaxOptions ajaxOptions) {
-            return Form(ajaxHelper, actionName, (string)null /* controllerName */, ajaxOptions);
-        }
-
-        public static IDisposable Form(this AjaxHelper ajaxHelper, string actionName, object values, AjaxOptions ajaxOptions) {
-            return Form(ajaxHelper, actionName, (string)null /* controllerName */, values, ajaxOptions);
-        }
-
-        public static IDisposable Form(this AjaxHelper ajaxHelper, string actionName, object values, AjaxOptions ajaxOptions, object htmlAttributes) {
-            return Form(ajaxHelper, actionName, (string)null /* controllerName */, values, ajaxOptions, htmlAttributes);
-        }
-
-        public static IDisposable Form(this AjaxHelper ajaxHelper, string actionName, RouteValueDictionary values, AjaxOptions ajaxOptions) {
-            return Form(ajaxHelper, actionName, (string)null /* controllerName */, values, ajaxOptions);
-        }
-
-        public static IDisposable Form(this AjaxHelper ajaxHelper, string actionName, RouteValueDictionary values, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
-            return Form(ajaxHelper, actionName, (string)null /* controllerName */, values, ajaxOptions, htmlAttributes);
-        }
-
-        public static IDisposable Form(this AjaxHelper ajaxHelper, string actionName, string controllerName, AjaxOptions ajaxOptions) {
-            return Form(ajaxHelper, actionName, controllerName, null /* values */, ajaxOptions, null /* htmlAttributes */);
-        }
-
-        public static IDisposable Form(this AjaxHelper ajaxHelper, string actionName, string controllerName, object values, AjaxOptions ajaxOptions) {
-            return Form(ajaxHelper, actionName, controllerName, values, ajaxOptions, null /* htmlAttributes */);
-        }
-
-        public static IDisposable Form(this AjaxHelper ajaxHelper, string actionName, string controllerName, object values, AjaxOptions ajaxOptions, object htmlAttributes) {
+        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, string protocol, string hostName, string fragment, object values, AjaxOptions ajaxOptions, object htmlAttributes) {
             RouteValueDictionary newValues = new RouteValueDictionary(values);
             Dictionary<string, object> newAttributes = ObjectToCaseSensitiveDictionary(htmlAttributes);
-            return Form(ajaxHelper, actionName, controllerName, newValues, ajaxOptions, newAttributes);
+            return ActionLink(ajaxHelper, linkText, actionName, controllerName, protocol, hostName, fragment, newValues, ajaxOptions, newAttributes);
         }
 
-        public static IDisposable Form(this AjaxHelper ajaxHelper, string actionName, string controllerName, RouteValueDictionary values, AjaxOptions ajaxOptions) {
-            return Form(ajaxHelper, actionName, controllerName, values, ajaxOptions, null /* htmlAttributes */);
+        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, string protocol, string hostName, string fragment, RouteValueDictionary values, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
+            if (String.IsNullOrEmpty(linkText)) {
+                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "linkText");
+            }
+            if (String.IsNullOrEmpty(actionName)) {
+                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
+            }
+            if (ajaxOptions == null) {
+                throw new ArgumentNullException("ajaxOptions");
+            }
+
+            string targetUrl = UrlHelper.GenerateUrl(null /* routeName */, actionName, controllerName, protocol, hostName, fragment, values ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext);
+
+            return GenerateLink(linkText, targetUrl, ajaxOptions, htmlAttributes);
         }
 
-        public static IDisposable Form(this AjaxHelper ajaxHelper, string actionName, string controllerName, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, AjaxOptions ajaxOptions) {
+            if (ajaxOptions == null) {
+                throw new ArgumentNullException("ajaxOptions");
+            }
+
+            string actionName = ajaxHelper.ViewContext.HttpContext.Request.Url.ToString();
+
+            TagBuilder builder = new TagBuilder("form");
+
+            builder.MergeAttribute("action", actionName);
+            builder.MergeAttribute("method", "post");
+            builder.MergeAttribute("onsubmit", GenerateAjaxScript(ajaxOptions, FormOnSubmitFormat));
+
+            HttpResponseBase response = ajaxHelper.ViewContext.HttpContext.Response;
+            response.Write(builder.ToString(TagRenderMode.StartTag));
+            return new MvcForm(response);
+        }
+
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, AjaxOptions ajaxOptions) {
+            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, ajaxOptions);
+        }
+
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, object values, AjaxOptions ajaxOptions) {
+            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, values, ajaxOptions);
+        }
+
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, object values, AjaxOptions ajaxOptions, object htmlAttributes) {
+            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, values, ajaxOptions, htmlAttributes);
+        }
+
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, RouteValueDictionary values, AjaxOptions ajaxOptions) {
+            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, values, ajaxOptions);
+        }
+
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, RouteValueDictionary values, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
+            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, values, ajaxOptions, htmlAttributes);
+        }
+
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, AjaxOptions ajaxOptions) {
+            return BeginForm(ajaxHelper, actionName, controllerName, null /* values */, ajaxOptions, null /* htmlAttributes */);
+        }
+
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, object values, AjaxOptions ajaxOptions) {
+            return BeginForm(ajaxHelper, actionName, controllerName, values, ajaxOptions, null /* htmlAttributes */);
+        }
+
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, object values, AjaxOptions ajaxOptions, object htmlAttributes) {
+            RouteValueDictionary newValues = new RouteValueDictionary(values);
+            Dictionary<string, object> newAttributes = ObjectToCaseSensitiveDictionary(htmlAttributes);
+            return BeginForm(ajaxHelper, actionName, controllerName, newValues, ajaxOptions, newAttributes);
+        }
+
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, RouteValueDictionary values, AjaxOptions ajaxOptions) {
+            return BeginForm(ajaxHelper, actionName, controllerName, values, ajaxOptions, null /* htmlAttributes */);
+        }
+
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
             if (String.IsNullOrEmpty(actionName)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
             }
@@ -132,7 +173,7 @@
 
             HttpResponseBase response = ajaxHelper.ViewContext.HttpContext.Response;
             response.Write(builder.ToString(TagRenderMode.StartTag));
-            return new DisposableForm(response);
+            return new MvcForm(response);
         }
 
         public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, object values, AjaxOptions ajaxOptions) {
@@ -212,6 +253,23 @@
             return GenerateLink(linkText, targetUrl, ajaxOptions, htmlAttributes);
         }
 
+        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, string protocol, string hostName, string fragment, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions, object htmlAttributes) {
+            return RouteLink(ajaxHelper, linkText, routeName, protocol, hostName, fragment, valuesDictionary, ajaxOptions, ObjectToCaseSensitiveDictionary(htmlAttributes));
+        }
+
+        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, string protocol, string hostName, string fragment, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
+            if (String.IsNullOrEmpty(linkText)) {
+                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "linkText");
+            }
+            if (ajaxOptions == null) {
+                throw new ArgumentNullException("ajaxOptions");
+            }
+
+            string targetUrl = UrlHelper.GenerateUrl(routeName, null /* actionName */, null /* controllerName */, protocol, hostName, fragment, valuesDictionary ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext);
+
+            return GenerateLink(linkText, targetUrl, ajaxOptions, htmlAttributes);
+        }
+
         internal static string InsertionModeToString(InsertionMode insertionMode) {
             switch (insertionMode) {
                 case InsertionMode.Replace:
@@ -251,16 +309,6 @@
         private static string GenerateAjaxScript(AjaxOptions ajaxOptions, string scriptFormat) {
             string optionsString = ajaxOptions.ToJavascriptString();
             return String.Format(CultureInfo.InvariantCulture, scriptFormat, optionsString);
-        }
-
-        private sealed class DisposableForm : IDisposable {
-            private HttpResponseBase _response;
-            public DisposableForm(HttpResponseBase response) {
-                _response = response;
-            }
-            public void Dispose() {
-                _response.Write("</form>");
-            }
         }
     }
 }

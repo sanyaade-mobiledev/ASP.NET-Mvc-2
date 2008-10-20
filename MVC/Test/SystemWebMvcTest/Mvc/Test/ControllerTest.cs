@@ -84,6 +84,15 @@
         }
 
         [TestMethod]
+        public void ModelStateProperty() {
+            // Arrange
+            Controller controller = new EmptyController();
+
+            // Act & assert
+            Assert.AreSame(controller.ViewData.ModelState, controller.ModelState);
+        }
+
+        [TestMethod]
         public void RequestProperty() {
             var c = new EmptyController();
             Assert.IsNull(c.Request, "Property should be null before Context is set");
@@ -129,6 +138,19 @@
             contextMock.Expect(o => o.Session).Returns(sessionMock.Object);
             c.ControllerContext = new ControllerContext(contextMock.Object, new RouteData(), c);
             Assert.AreSame(sessionMock.Object, c.Session, "Property should equal the value on the Context.");
+        }
+
+        [TestMethod]
+        public void UrlProperty() {
+            // Arrange
+            EmptyController controller = new EmptyController();
+            RequestContext requestContext = new RequestContext(new Mock<HttpContextBase>().Object, new RouteData());
+
+            // Act
+            controller.PublicInitialize(requestContext);
+
+            // Assert
+            Assert.IsNotNull(controller.Url);
         }
 
         [TestMethod]
@@ -888,164 +910,190 @@
         }
 
         [TestMethod]
-        public void TryUpdateModelReturnsFalseIfUpdateUnsuccessful() {
+        public void TryUpdateModelCallsModelBinderForModel() {
             // Arrange
+            MyModel myModel = new MyModelSubclassed();
+            IValueProvider valueProvider = new Mock<IValueProvider>().Object;
+
             Controller controller = new EmptyController();
-            MyModel model = new MyModel();
-            string[] keys = new string[] { "EmployeePropertyFails" };
+            controller.ControllerContext = GetControllerContext("someAction");
 
             // Act
-            bool success = controller.TryUpdateModel(model, keys);
+            bool returned = controller.TryUpdateModel(myModel, "somePrefix", new[] { "prop1", "prop2" }, null, valueProvider);
 
             // Assert
-            Assert.IsFalse(success);
-            Assert.IsFalse(controller.ViewData.ModelState.IsValid);
-            Assert.AreEqual("EmployeePropertyFailsValue", controller.ViewData.ModelState["EmployeePropertyFails"].AttemptedValue);
-            Assert.AreEqual("Conversion failed.", controller.ViewData.ModelState["EmployeePropertyFails"].Errors[0].ErrorMessage);
+            Assert.IsTrue(returned);
+            Assert.AreEqual(valueProvider, myModel.ValueProvider);
+            Assert.AreEqual("somePrefix", myModel.ModelName);
+            Assert.AreEqual(controller.ModelState, myModel.ModelState);
+            Assert.AreEqual(typeof(MyModel), myModel.ModelType);
+            Assert.IsTrue(myModel.PropertyFilter("prop1"), "Incorrect filter applied.");
+            Assert.IsTrue(myModel.PropertyFilter("prop2"), "Incorrect filter applied.");
+            Assert.IsFalse(myModel.PropertyFilter("prop3"), "Incorrect filter applied.");
         }
 
         [TestMethod]
-        public void TryUpdateModelReturnsTrueOnSuccess() {
+        public void TryUpdateModelReturnsFalseIfModelStateInvalid() {
             // Arrange
+            MyModel myModel = new MyModelSubclassed();
+            IValueProvider valueProvider = new Mock<IValueProvider>().Object;
+
             Controller controller = new EmptyController();
-            MyModel model = new MyModel();
-            string[] keys = new string[] { "EmployeeProperty" };
+            controller.ControllerContext = GetControllerContext("someAction");
+            controller.ModelState.AddModelError("key", "some exception message");
 
             // Act
-            bool success = controller.TryUpdateModel(model, keys);
+            bool returned = controller.TryUpdateModel(myModel);
 
             // Assert
-            Assert.IsTrue(success);
-            Assert.IsTrue(controller.ViewData.ModelState.IsValid);
-            Assert.AreEqual("EmployeePropertyValue", model.EmployeeProperty.Value);
+            Assert.IsFalse(returned);
         }
 
         [TestMethod]
-        public void TryUpdateModelContinuesIfPropertySetterThrows() {
+        public void TryUpdateModelSuppliesControllerValueProviderIfNoValueProviderSpecified() {
             // Arrange
-            RouteData rd = new RouteData();
-            rd.Values["SomeBadInteger"] = 42;
-            rd.Values["SomeBadInteger2"] = 84;
-            Controller controller = new EmptyController();
-            controller.ControllerContext = new ControllerContext(new Mock<HttpContextBase>().Object, rd, controller);
+            MyModel myModel = new MyModelSubclassed();
+            IValueProvider valueProvider = new Mock<IValueProvider>().Object;
 
-            MyModel model = new MyModel();
-            string[] keys = new string[] { "SomeBadInteger", "SomeBadInteger2" };
+            Controller controller = new EmptyController();
+            controller.ControllerContext = GetControllerContext("someAction");
+            controller.ValueProvider = valueProvider;
 
             // Act
-            bool succeeded = controller.TryUpdateModel(model, keys);
+            bool returned = controller.TryUpdateModel(myModel, "somePrefix", new[] { "prop1", "prop2" });
 
             // Assert
-            Assert.IsFalse(succeeded, "TryUpdateModel() should have returned false if a property setter threw.");
-            Assert.AreEqual(2, controller.ViewData.ModelState.Count, "TryUpdateModel() should continue to update the model, even if early properties throw.");
-            Assert.AreEqual("42", controller.ViewData.ModelState["SomeBadInteger"].AttemptedValue);
-            Assert.AreEqual(1, controller.ViewData.ModelState["SomeBadInteger"].Errors.Count);
-            Assert.AreEqual("The value '42' is invalid for property 'SomeBadInteger'.", controller.ViewData.ModelState["SomeBadInteger"].Errors[0].ErrorMessage);
-            Assert.AreEqual("84", controller.ViewData.ModelState["SomeBadInteger2"].AttemptedValue);
-            Assert.AreEqual(1, controller.ViewData.ModelState["SomeBadInteger2"].Errors.Count);
-            Assert.AreEqual("The value '84' is invalid for property 'SomeBadInteger2'.", controller.ViewData.ModelState["SomeBadInteger2"].Errors[0].ErrorMessage);
+            Assert.IsTrue(returned);
+            Assert.AreEqual(valueProvider, myModel.ValueProvider);
         }
 
         [TestMethod]
-        public void UpdateModelSuccess() {
+        public void TryUpdateModelSuppliesEmptyModelNameIfNoPrefixSpecified() {
             // Arrange
+            MyModel myModel = new MyModelSubclassed();
+            IValueProvider valueProvider = new Mock<IValueProvider>().Object;
+
             Controller controller = new EmptyController();
-            MyModel model = new MyModel();
-            string[] keys = new string[] { "EmployeeProperty" };
+            controller.ControllerContext = GetControllerContext("someAction");
 
             // Act
-            controller.UpdateModel(model, keys);
+            bool returned = controller.TryUpdateModel(myModel, new[] { "prop1", "prop2" });
 
             // Assert
-            Assert.IsTrue(controller.ViewData.ModelState.IsValid);
-            Assert.AreEqual("EmployeePropertyValue", model.EmployeeProperty.Value);
+            Assert.IsTrue(returned);
+            Assert.AreEqual(String.Empty, myModel.ModelName);
         }
 
         [TestMethod]
-        public void UpdateModelThrowsIfKeysIsEmpty() {
-            // Arrange
-            Controller controller = new EmptyController();
-
-            // Act & Assert
-            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
-                delegate {
-                    controller.UpdateModel(new object(), new string[0]);
-                }, "keys");
-        }
-
-        [TestMethod]
-        public void UpdateModelThrowsIfKeysIsNull() {
-            // Arrange
-            Controller controller = new EmptyController();
-
-            // Act & Assert
-            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
-                delegate {
-                    controller.UpdateModel(new object(), null);
-                }, "keys");
-        }
-
-        [TestMethod]
-        public void UpdateModelThrowsIfModelIsNull() {
+        public void TryUpdateModelThrowsIfModelIsNull() {
             // Arrange
             Controller controller = new EmptyController();
 
             // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    controller.UpdateModel(null, new string[0]);
+                    controller.TryUpdateModel<object>(null);
                 }, "model");
         }
 
         [TestMethod]
-        public void UpdateModelThrowsIfPropertyNotFound() {
+        public void TryUpdateModelThrowsIfValueProviderIsNull() {
             // Arrange
             Controller controller = new EmptyController();
-            MyModel model = new MyModel();
-            string[] keys = new string[] { "nonexistentProperty" };
 
             // Act & Assert
-            ExceptionHelper.ExpectArgumentException(
+            ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    controller.UpdateModel(model, keys);
-                },
-                @"The model of type 'System.Web.Mvc.Test.ControllerTest+MyModel' does not have a property named 'nonexistentProperty'.
-Parameter name: keys");
+                    controller.TryUpdateModel(new object(), null, null, null, null);
+                }, "valueProvider");
         }
 
         [TestMethod]
-        public void UpdateModelThrowsIfUpdateUnsuccessful() {
+        public void UpdateModelReturnsIfModelStateValid() {
             // Arrange
+            MyModel myModel = new MyModelSubclassed();
+            IValueProvider valueProvider = new Mock<IValueProvider>().Object;
+
             Controller controller = new EmptyController();
-            MyModel model = new MyModel();
-            string[] keys = new string[] { "EmployeePropertyFails" };
+            controller.ControllerContext = GetControllerContext("someAction");
 
             // Act
+            controller.UpdateModel(myModel);
+
+            // Assert
+            // nothing to do - if we got here, the test passed
+        }
+
+        [TestMethod]
+        public void TryUpdateModelWithoutBindPropertiesImpliesAllPropertiesAreUpdateable() {
+            // Arrange
+            MyModel myModel = new MyModelSubclassed();
+            IValueProvider valueProvider = new Mock<IValueProvider>().Object;
+
+            Controller controller = new EmptyController();
+            controller.ControllerContext = GetControllerContext("someAction");
+
+            // Act
+            bool returned = controller.TryUpdateModel(myModel, "somePrefix");
+
+            // Assert
+            Assert.IsTrue(returned);
+            Assert.IsTrue(myModel.PropertyFilter("prop1"), "Incorrect filter applied.");
+            Assert.IsTrue(myModel.PropertyFilter("prop2"), "Incorrect filter applied.");
+            Assert.IsTrue(myModel.PropertyFilter("prop3"), "Incorrect filter applied.");
+        }
+
+        [TestMethod]
+        public void UpdateModelSuppliesControllerValueProviderIfNoValueProviderSpecified() {
+            // Arrange
+            MyModel myModel = new MyModelSubclassed();
+            IValueProvider valueProvider = new Mock<IValueProvider>().Object;
+
+            Controller controller = new EmptyController();
+            controller.ControllerContext = GetControllerContext("someAction");
+            controller.ValueProvider = valueProvider;
+
+            // Act
+            controller.UpdateModel(myModel, "somePrefix", new[] { "prop1", "prop2" });
+
+            // Assert
+            Assert.AreEqual(valueProvider, myModel.ValueProvider);
+        }
+
+        [TestMethod]
+        public void UpdateModelThrowsIfModelStateInvalid() {
+            // Arrange
+            MyModel myModel = new MyModelSubclassed();
+            IValueProvider valueProvider = new Mock<IValueProvider>().Object;
+
+            Controller controller = new EmptyController();
+            controller.ControllerContext = GetControllerContext("someAction");
+            controller.ModelState.AddModelError("key", "some exception message");
+
+            // Act & assert
             ExceptionHelper.ExpectInvalidOperationException(
                 delegate {
-                    controller.UpdateModel(model, keys);
+                    controller.UpdateModel(myModel);
                 },
                 "The model of type 'System.Web.Mvc.Test.ControllerTest+MyModel' was not successfully updated.");
-
-            // Assert
-            Assert.IsFalse(controller.ViewData.ModelState.IsValid);
-            Assert.AreEqual("EmployeePropertyFailsValue", controller.ViewData.ModelState["EmployeePropertyFails"].AttemptedValue);
-            Assert.AreEqual("Conversion failed.", controller.ViewData.ModelState["EmployeePropertyFails"].Errors[0].ErrorMessage);
         }
 
         [TestMethod]
-        public void UpdateModelWithPrefix() {
+        public void UpdateModelWithoutBindPropertiesImpliesAllPropertiesAreUpdateable() {
             // Arrange
+            MyModel myModel = new MyModelSubclassed();
+            IValueProvider valueProvider = new Mock<IValueProvider>().Object;
+
             Controller controller = new EmptyController();
-            MyModel model = new MyModel();
-            string[] keys = new string[] { "EmployeeProperty" };
+            controller.ControllerContext = GetControllerContext("someAction");
 
             // Act
-            controller.UpdateModel(model, keys, "SomePrefix");
+            controller.UpdateModel(myModel, "somePrefix");
 
             // Assert
-            Assert.IsTrue(controller.ViewData.ModelState.IsValid);
-            Assert.AreEqual("SomePrefix.EmployeePropertyValue", model.EmployeeProperty.Value);
+            Assert.IsTrue(myModel.PropertyFilter("prop1"), "Incorrect filter applied.");
+            Assert.IsTrue(myModel.PropertyFilter("prop2"), "Incorrect filter applied.");
+            Assert.IsTrue(myModel.PropertyFilter("prop3"), "Incorrect filter applied.");
         }
 
         private static ControllerContext GetControllerContext(string actionName) {
@@ -1110,6 +1158,10 @@ Parameter name: keys");
             public new void HandleUnknownAction(string actionName) {
                 base.HandleUnknownAction(actionName);
             }
+
+            public void PublicInitialize(RequestContext requestContext) {
+                base.Initialize(requestContext);
+            }
         }
 
         private sealed class UnknownActionController : Controller {
@@ -1157,53 +1209,29 @@ Parameter name: keys");
             }
         }
 
+        [ModelBinder(typeof(MyModelBinder))]
         private class MyModel {
-            public Employee EmployeeProperty {
-                get;
-                set;
-            }
-
-            public Employee EmployeePropertyFails {
-                get;
-                set;
-            }
-
-            public int SomeBadInteger {
-                get {
-                    return 0;
-                }
-                set {
-                    throw new Exception("Property setter threw!");
-                }
-            }
-
-            public int SomeBadInteger2 {
-                get {
-                    return 0;
-                }
-                set {
-                    throw new Exception("Property setter threw!");
-                }
-            }
+            public ControllerContext ControllerContext;
+            public IValueProvider ValueProvider;
+            public string ModelName;
+            public Type ModelType;
+            public ModelStateDictionary ModelState;
+            public Predicate<string> PropertyFilter;
         }
 
-        [ModelBinder(typeof(EmployeeConverter))]
-        private class Employee {
-            public string Value {
-                get;
-                set;
-            }
+        private class MyModelSubclassed : MyModel {
         }
 
-        private class EmployeeConverter : IModelBinder {
-            public object GetValue(ControllerContext controllerContext, string parameterName, Type parameterType, ModelStateDictionary modelState) {
-                if (parameterName.EndsWith("EmployeeProperty")) {
-                    return new Employee() { Value = parameterName + "Value" };
-                }
-                else {
-                    modelState.AddModelError(parameterName, parameterName + "Value", "Conversion failed.");
-                    return null;
-                }
+        private class MyModelBinder : IModelBinder {
+            public ModelBinderResult BindModel(ModelBindingContext bindingContext) {
+                MyModel myModel = (MyModel)bindingContext.Model;
+                myModel.ControllerContext = bindingContext;
+                myModel.ValueProvider = bindingContext.ValueProvider;
+                myModel.ModelName = bindingContext.ModelName;
+                myModel.ModelType = bindingContext.ModelType;
+                myModel.ModelState = bindingContext.ModelState;
+                myModel.PropertyFilter = bindingContext.ShouldUpdateProperty;
+                return new ModelBinderResult(myModel);
             }
         }
     }

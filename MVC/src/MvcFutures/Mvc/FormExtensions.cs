@@ -1,57 +1,41 @@
 ﻿namespace Microsoft.Web.Mvc {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq.Expressions;
     using System.Web;
     using System.Web.Mvc;
+    using System.Web.Mvc.Html;
     using System.Web.Routing;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class FormExtensions {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
-        public static IDisposable Form<T>(this HtmlHelper helper, Expression<Action<T>> postAction) where T : Controller {
-            return Form<T>(helper, postAction, FormMethod.Post, null);
+        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
+        public static MvcForm BeginForm<TController>(this HtmlHelper helper, Expression<Action<TController>> action) where TController : Controller {
+            return BeginForm<TController>(helper, action, FormMethod.Post, null);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
-        public static IDisposable Form<T>(this HtmlHelper helper, Expression<Action<T>> postAction, FormMethod method) where T : Controller {
-            return Form<T>(helper, postAction, method, null);
+        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
+        public static MvcForm BeginForm<TController>(this HtmlHelper helper, Expression<Action<TController>> action, FormMethod method) where TController : Controller {
+            return BeginForm<TController>(helper, action, method, null);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
-        public static IDisposable Form<T>(this HtmlHelper helper, Expression<Action<T>> postAction, FormMethod method, object htmlAttributes) where T : Controller {
-            MvcForm<T> form = new MvcForm<T>(helper, helper.ViewContext.HttpContext, postAction, method, new RouteValueDictionary(htmlAttributes));
-            form.WriteStartTag();
-            return form;
+        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
+        public static MvcForm BeginForm<TController>(this HtmlHelper helper, Expression<Action<TController>> action, FormMethod method, object htmlAttributes) where TController : Controller {
+            return BeginForm<TController>(helper, action, method, new RouteValueDictionary(htmlAttributes));
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
-        public static IDisposable Form<T>(this HtmlHelper helper, Expression<Action<T>> postAction, FormMethod method, IDictionary<string, object> htmlAttributes) where T : Controller {
-            MvcForm<T> form = new MvcForm<T>(helper, helper.ViewContext.HttpContext, postAction, method, (htmlAttributes == null) ? new RouteValueDictionary() : new RouteValueDictionary(htmlAttributes));
-            form.WriteStartTag();
-            return form;
-        }
-
-        public static IDisposable Form(this HtmlHelper helper, string controllerName, string actionName) {
-            return Form(helper, controllerName, actionName, FormMethod.Post, null);
-        }
-
-        public static IDisposable Form(this HtmlHelper helper, string controllerName, string actionName, FormMethod method) {
-            return Form(helper, controllerName, actionName, method, null);
-        }
-
-        public static IDisposable Form(this HtmlHelper helper, string controllerName, string actionName, FormMethod method, IDictionary<string, object> htmlAttributes) {
-            RouteValueDictionary values = new RouteValueDictionary();
-
-            values.Add("controller", controllerName);
-            values.Add("action", actionName);
-
-            VirtualPathData vpd = RouteTable.Routes.GetVirtualPath(helper.ViewContext, values);
-            string formAction = (vpd == null) ? null : vpd.VirtualPath;
-
-            SimpleForm form = new SimpleForm(helper.ViewContext.HttpContext, formAction, method, (htmlAttributes == null) ? new RouteValueDictionary() : new RouteValueDictionary(htmlAttributes));
-            form.WriteStartTag();
-            return form;
+        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
+        public static MvcForm BeginForm<TController>(this HtmlHelper helper, Expression<Action<TController>> action, FormMethod method, IDictionary<string, object> htmlAttributes) where TController : Controller {
+            TagBuilder tagBuilder = new TagBuilder("form");
+            tagBuilder.MergeAttributes(htmlAttributes);
+            string formAction = LinkExtensions.BuildUrlFromExpression(helper, action);
+            tagBuilder.MergeAttribute("action", formAction);
+            tagBuilder.MergeAttribute("method", HtmlHelper.GetFormMethodString(method));
+         
+            HttpResponseBase httpResponse = helper.ViewContext.HttpContext.Response;
+            httpResponse.Write(tagBuilder.ToString(TagRenderMode.StartTag));
+            return new MvcForm(helper.ViewContext.HttpContext.Response);
         }
     }
 }

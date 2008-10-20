@@ -23,7 +23,7 @@
                 throw new ArgumentNullException("url");
             }
 
-            Route route = new Route(url, new StopRoutingHandler()) {
+            IgnoreRouteInternal route = new IgnoreRouteInternal(url) {
                 Constraints = new RouteValueDictionary(constraints)
             };
 
@@ -83,6 +83,18 @@
             routes.Add(name, route);
 
             return route;
+        }
+
+        private sealed class IgnoreRouteInternal : Route {
+            public IgnoreRouteInternal(string url)
+                : base(url, new StopRoutingHandler()) {
+            }
+
+            public override VirtualPathData GetVirtualPath(RequestContext requestContext, RouteValueDictionary values) {
+                // Never match during route generation. This avoids the scenario where an IgnoreRoute with
+                // fairly relaxed constraints ends up eagerly matching all generated URLs.
+                return null;
+            }
         }
     }
 }

@@ -8,37 +8,36 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class UrlHelper {
-        private RouteCollection _routeCollection;
-
-        internal RouteCollection RouteCollection {
-            get {
-                if (_routeCollection == null) {
-                    _routeCollection = RouteTable.Routes;
-                }
-                return _routeCollection;
-            }
-            set {
-                _routeCollection = value;
-            }
+        public UrlHelper(RequestContext requestContext)
+            : this(requestContext, RouteTable.Routes) {
         }
 
-        public ViewContext ViewContext {
+        public UrlHelper(RequestContext requestContext, RouteCollection routeCollection) {
+            if (requestContext == null) {
+                throw new ArgumentNullException("requestContext");
+            }
+            if (routeCollection == null) {
+                throw new ArgumentNullException("routeCollection");
+            }
+            RequestContext = requestContext;
+            RouteCollection = routeCollection;
+        }
+
+        public RequestContext RequestContext {
             get;
             private set;
         }
 
-        public UrlHelper(ViewContext viewContext) {
-            if (viewContext == null) {
-                throw new ArgumentNullException("viewContext");
-            }
-            ViewContext = viewContext;
+        public RouteCollection RouteCollection {
+            get;
+            private set;
         }
 
         public string Action(string actionName) {
             if (String.IsNullOrEmpty(actionName)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
             }
-            string controllerName = ViewContext.RouteData.GetRequiredString("controller");
+            string controllerName = RequestContext.RouteData.GetRequiredString("controller");
             return GenerateUrl(null /* routeName */, actionName, controllerName, new RouteValueDictionary());
         }
 
@@ -91,7 +90,7 @@
             if (valuesDictionary == null) {
                 throw new ArgumentNullException("valuesDictionary");
             }
-            return GenerateUrl(null /* routeName */, actionName, controllerName, protocol, hostName, null /* fragment */, new RouteValueDictionary(valuesDictionary), RouteCollection, ViewContext);
+            return GenerateUrl(null /* routeName */, actionName, controllerName, protocol, hostName, null /* fragment */, new RouteValueDictionary(valuesDictionary), RouteCollection, RequestContext);
         }
 
         public string Content(string contentPath) {
@@ -100,7 +99,7 @@
             }
 
             if (contentPath[0] == '~') {
-                return VirtualPathUtility.ToAbsolute(contentPath, ViewContext.HttpContext.Request.ApplicationPath);
+                return VirtualPathUtility.ToAbsolute(contentPath, RequestContext.HttpContext.Request.ApplicationPath);
             }
             else {
                 return contentPath;
@@ -119,11 +118,11 @@
         }
 
         private string GenerateUrl(string routeName, string actionName, string controllerName, RouteValueDictionary valuesDictionary) {
-            return GenerateUrl(routeName, actionName, controllerName, valuesDictionary, RouteCollection, ViewContext);
+            return GenerateUrl(routeName, actionName, controllerName, valuesDictionary, RouteCollection, RequestContext);
         }
 
-        internal static string GenerateUrl(string routeName, string actionName, string controllerName, string protocol, string hostName, string fragment, RouteValueDictionary valuesDictionary, RouteCollection routeCollection, ViewContext viewContext) {
-            string url = GenerateUrl(routeName, actionName, controllerName, valuesDictionary, routeCollection, viewContext);
+        internal static string GenerateUrl(string routeName, string actionName, string controllerName, string protocol, string hostName, string fragment, RouteValueDictionary valuesDictionary, RouteCollection routeCollection, RequestContext requestContext) {
+            string url = GenerateUrl(routeName, actionName, controllerName, valuesDictionary, routeCollection, requestContext);
 
             if (url != null) {
                 if (!String.IsNullOrEmpty(fragment)) {
@@ -131,16 +130,25 @@
                 }
 
                 if (!String.IsNullOrEmpty(protocol) || !String.IsNullOrEmpty(hostName)) {
-                    protocol = (!String.IsNullOrEmpty(protocol)) ? protocol : "http";
-                    hostName = (!String.IsNullOrEmpty(hostName)) ? hostName : viewContext.HttpContext.Request.Url.Host;
-                    url = protocol + "://" + hostName + url;
+                    Uri requestUrl = requestContext.HttpContext.Request.Url;
+                    protocol = (!String.IsNullOrEmpty(protocol)) ? protocol : Uri.UriSchemeHttp;
+                    hostName = (!String.IsNullOrEmpty(hostName)) ? hostName : requestUrl.Host;
+
+                    string port = String.Empty;
+                    string requestProtocol = requestUrl.Scheme;
+
+                    if (String.Equals(protocol, requestProtocol, StringComparison.OrdinalIgnoreCase)) {
+                        port = requestUrl.IsDefaultPort ? String.Empty : (":" + Convert.ToString(requestUrl.Port, CultureInfo.CurrentUICulture));
+                    }
+
+                    url = protocol + Uri.SchemeDelimiter + hostName + port + url;
                 }
             }
 
             return url;
         }
 
-        internal static string GenerateUrl(string routeName, string actionName, string controllerName, RouteValueDictionary valuesDictionary, RouteCollection routeCollection, ViewContext viewContext) {
+        internal static string GenerateUrl(string routeName, string actionName, string controllerName, RouteValueDictionary valuesDictionary, RouteCollection routeCollection, RequestContext requestContext) {
             if (actionName != null) {
                 if (valuesDictionary.ContainsKey("action")) {
                     throw new ArgumentException(
@@ -166,10 +174,10 @@
 
             VirtualPathData vpd;
             if (routeName != null) {
-                vpd = routeCollection.GetVirtualPath(viewContext, routeName, valuesDictionary);
+                vpd = routeCollection.GetVirtualPath(requestContext, routeName, valuesDictionary);
             }
             else {
-                vpd = routeCollection.GetVirtualPath(viewContext, valuesDictionary);
+                vpd = routeCollection.GetVirtualPath(requestContext, valuesDictionary);
             }
 
             if (vpd != null) {
@@ -238,7 +246,7 @@
             if (valuesDictionary == null) {
                 throw new ArgumentNullException("valuesDictionary");
             }
-            return GenerateUrl(routeName, null /* actionName */, null /* controllerName */, protocol, hostName, null /* fragment */, new RouteValueDictionary(valuesDictionary), RouteCollection, ViewContext);
+            return GenerateUrl(routeName, null /* actionName */, null /* controllerName */, protocol, hostName, null /* fragment */, new RouteValueDictionary(valuesDictionary), RouteCollection, RequestContext);
         }
     }
 }
