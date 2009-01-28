@@ -1,5 +1,6 @@
 ﻿namespace System.Web.Mvc {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Web;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
@@ -8,21 +9,36 @@
 
         private ActionResult _result;
 
-        public ActionExecutedContext(ControllerContext controllerContext, bool canceled, Exception exception)
-            : base(controllerContext) {
+        // parameterless constructor used for mocking
+        public ActionExecutedContext() {
+        }
 
+        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors",
+            Justification = "The virtual property setters are only to support mocking frameworks, in which case this constructor shouldn't be called anyway.")]
+        public ActionExecutedContext(ControllerContext controllerContext, ActionDescriptor actionDescriptor, bool canceled, Exception exception)
+            : base(controllerContext) {
+            if (actionDescriptor == null) {
+                throw new ArgumentNullException("actionDescriptor");
+            }
+
+            ActionDescriptor = actionDescriptor;
             Canceled = canceled;
             Exception = exception;
         }
 
-        public bool Canceled {
+        public virtual ActionDescriptor ActionDescriptor {
             get;
-            private set;
+            set;
         }
 
-        public Exception Exception {
+        public virtual bool Canceled {
             get;
-            private set;
+            set;
+        }
+
+        public virtual Exception Exception {
+            get;
+            set;
         }
 
         public bool ExceptionHandled {
@@ -38,5 +54,6 @@
                 _result = value;
             }
         }
+
     }
 }

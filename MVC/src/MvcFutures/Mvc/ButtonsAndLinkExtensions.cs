@@ -90,7 +90,7 @@
             if (imageSrc == null) {
                 throw new ArgumentNullException("imageSrc");
             }
-            UrlHelper urlHelper = new UrlHelper(helper.ViewContext); // TODO: Why do I need to do this?
+            UrlHelper urlHelper = new UrlHelper(helper.ViewContext.RequestContext); // TODO: Why do I need to do this?
             string resolvedUrl = urlHelper.Content(imageSrc);
             
             return ButtonBuilder.SubmitImage(name, resolvedUrl, htmlAttributes).ToString(TagRenderMode.SelfClosing);

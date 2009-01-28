@@ -7,9 +7,11 @@
     using System.Web.Mvc.Resources;
     using System.Web.UI;
 
+    [FileLevelControlBuilder(typeof(ViewUserControlControlBuilder))]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ViewUserControl : UserControl, IViewDataContainer {
+        private AjaxHelper _ajaxHelper;
         private HtmlHelper _htmlHelper;
         private ViewContext _viewContext;
         private ViewDataDictionary _viewData;
@@ -17,7 +19,10 @@
 
         public AjaxHelper Ajax {
             get {
-                return ViewPage.Ajax;
+                if (_ajaxHelper == null) {
+                    _ajaxHelper = new AjaxHelper(ViewContext, this);
+                }
+                return _ajaxHelper;
             }
         }
 
@@ -27,6 +32,12 @@
                     _htmlHelper = new HtmlHelper(ViewContext, this);
                 }
                 return _htmlHelper;
+            }
+        }
+
+        public object Model {
+            get {
+                return ViewData.Model;
             }
         }
 
@@ -142,7 +153,18 @@
             ViewUserControlContainerPage containerPage = new ViewUserControlContainerPage(this);
             // Tracing requires Page IDs to be unique.
             ID = Guid.NewGuid().ToString();
+
+            RenderViewAndRestoreContentType(containerPage, viewContext);
+        }
+
+        internal static void RenderViewAndRestoreContentType(ViewPage containerPage, ViewContext viewContext) {
+            // We need to restore the Content-Type since Page.SetIntrinsics() will reset it. It's not possible
+            // to work around the call to SetIntrinsics() since the control's render method requires the
+            // containing page's Response property to be non-null, and SetIntrinsics() is the only way to set
+            // this.
+            string savedContentType = viewContext.HttpContext.Response.ContentType;
             containerPage.RenderView(viewContext);
+            viewContext.HttpContext.Response.ContentType = savedContentType;
         }
 
         private sealed class ViewUserControlContainerPage : ViewPage {

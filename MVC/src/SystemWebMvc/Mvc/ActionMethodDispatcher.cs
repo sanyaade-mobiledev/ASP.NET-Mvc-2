@@ -1,7 +1,6 @@
 ﻿namespace System.Web.Mvc {
     using System;
     using System.Collections.Generic;
-    using System.Globalization;
     using System.Linq.Expressions;
     using System.Reflection;
 
@@ -46,8 +45,8 @@
             }
 
             // Call method
-            UnaryExpression controllerCast = Expression.Convert(controllerParameter, methodInfo.ReflectedType);
-            MethodCallExpression methodCall = Expression.Call(controllerCast, methodInfo, parameters);
+            UnaryExpression instanceCast = (!methodInfo.IsStatic) ? Expression.Convert(controllerParameter, methodInfo.ReflectedType) : null;
+            MethodCallExpression methodCall = methodCall = Expression.Call(instanceCast, methodInfo, parameters);
 
             // methodCall is "((TController) controller) method((T0) parameters[0], (T1) parameters[1], ...)"
             // Create function

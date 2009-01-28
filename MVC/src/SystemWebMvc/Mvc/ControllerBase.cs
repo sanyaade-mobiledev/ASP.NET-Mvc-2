@@ -1,15 +1,17 @@
 ﻿namespace System.Web.Mvc {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Web;
     using System.Web.Routing;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public abstract class ControllerBase : IController {
+    public abstract class ControllerBase : MarshalByRefObject, IController {
 
         private TempDataDictionary _tempDataDictionary;
-        private IValueProvider _valueProvider;
+        private bool _validateRequest = true;
+        private IDictionary<string, ValueProviderResult> _valueProvider;
         private ViewDataDictionary _viewDataDictionary;
 
         public ControllerContext ControllerContext {
@@ -31,10 +33,21 @@
             }
         }
 
-        public IValueProvider ValueProvider {
+        public bool ValidateRequest {
             get {
-                if (_valueProvider == null && ControllerContext != null) {
-                    _valueProvider = new DefaultValueProvider(ControllerContext);
+                return _validateRequest;
+            }
+            set {
+                _validateRequest = value;
+            }
+        }
+
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
+            Justification = "This property is settable so that unit tests can provide mock implementations.")]
+        public IDictionary<string, ValueProviderResult> ValueProvider {
+            get {
+                if (_valueProvider == null) {
+                    _valueProvider = new ValueProviderDictionary(ControllerContext);
                 }
                 return _valueProvider;
             }

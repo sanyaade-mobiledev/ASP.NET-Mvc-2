@@ -1,13 +1,10 @@
 namespace System.Web.Mvc {
     using System.Web;
 
-    // TODO: This interface should be refactored to make it more usable before we make it public.
-
-    /// <summary>
-    /// Describes a location cache used by <see cref="VirtualPathProviderViewEngine"/>.
-    /// </summary>
-    internal interface IViewLocationCache {
-        string Get(string cacheKey);
-        void Set(string cacheKey, string virtualPath);
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
+    public interface IViewLocationCache {
+        string GetViewLocation(HttpContextBase httpContext, string key);
+        void InsertViewLocation(HttpContextBase httpContext, string key, string virtualPath);
     }
 }

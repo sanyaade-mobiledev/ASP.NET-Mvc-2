@@ -6,25 +6,43 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class AjaxHelper {
-        private RouteCollection _routeCollection;
 
-        public AjaxHelper(ViewContext viewContext) {
+        public AjaxHelper(ViewContext viewContext, IViewDataContainer viewDataContainer)
+            : this(viewContext, viewDataContainer, RouteTable.Routes) {
+        }
+
+        public AjaxHelper(ViewContext viewContext, IViewDataContainer viewDataContainer, RouteCollection routeCollection) {
             if (viewContext == null) {
                 throw new ArgumentNullException("viewContext");
             }
+            if (viewDataContainer == null) {
+                throw new ArgumentNullException("viewDataContainer");
+            }
+            if (routeCollection == null) {
+                throw new ArgumentNullException("routeCollection");
+            }
             ViewContext = viewContext;
+            ViewDataContainer = viewDataContainer;
+            RouteCollection = routeCollection;
         }
 
-        internal RouteCollection RouteCollection {
-            get {
-                return _routeCollection ?? RouteTable.Routes;
-            }
-            set {
-                _routeCollection = value;
-            }
+        public RouteCollection RouteCollection {
+            get;
+            private set;
         }
 
         public ViewContext ViewContext {
+            get;
+            private set;
+        }
+
+        public ViewDataDictionary ViewData {
+            get {
+                return ViewDataContainer.ViewData;
+            }
+        }
+
+        public IViewDataContainer ViewDataContainer {
             get;
             private set;
         }

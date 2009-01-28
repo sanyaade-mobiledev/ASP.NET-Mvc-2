@@ -25,11 +25,15 @@
         }
 
         public static string CheckBox(this HtmlHelper htmlHelper, string name, IDictionary<string, object> htmlAttributes) {
-            return htmlHelper.InputHelper("checkbox", name, "true", true /* useViewData */, false /* isChecked */, true /* setId */, htmlAttributes);
+            return htmlHelper.InputHelper(InputType.CheckBox, name, "true", true /* useViewData */, false /* isChecked */, true /* setId */, false /* isExplicitValue */, htmlAttributes);
         }
 
         public static string CheckBox(this HtmlHelper htmlHelper, string name, bool isChecked, IDictionary<string, object> htmlAttributes) {
-            return htmlHelper.InputHelper("checkbox", name, "true", false /* useViewData */, isChecked, true /* setId */, htmlAttributes);
+            // checked is an explicit parameter, but the value attribute is implicit so the dictionary's must take
+            // precedence.
+            RouteValueDictionary attributes = htmlAttributes == null ? new RouteValueDictionary() : new RouteValueDictionary(htmlAttributes);
+            attributes.Remove("checked");
+            return htmlHelper.InputHelper(InputType.CheckBox, name, "true", false /* useViewData */, isChecked, true /* setId */, false /* isExplicitValue */, attributes);
         }
 
         public static string Hidden(this HtmlHelper htmlHelper, string name) {
@@ -45,7 +49,7 @@
         }
 
         public static string Hidden(this HtmlHelper htmlHelper, string name, object value, IDictionary<string, object> htmlAttributes) {
-            return InputHelper(htmlHelper, "hidden", name, value, (value == null) /* useViewData */, false /* isChecked */, true /* setId */, htmlAttributes);
+            return InputHelper(htmlHelper, InputType.Hidden, name, value, (value == null) /* useViewData */, false /* isChecked */, true /* setId */, true /* isExplicitValue */, htmlAttributes);
         }
 
         public static string Password(this HtmlHelper htmlHelper, string name) {
@@ -61,7 +65,7 @@
         }
 
         public static string Password(this HtmlHelper htmlHelper, string name, object value, IDictionary<string, object> htmlAttributes) {
-            return InputHelper(htmlHelper, "password", name, value, (value == null) /* useViewData */, false /* isChecked */, true /* setId */, htmlAttributes);
+            return InputHelper(htmlHelper, InputType.Password, name, value, false /* useViewData */, false /* isChecked */, true /* setId */, true /* isExplicitValue */, htmlAttributes);
         }
 
         public static string RadioButton(this HtmlHelper htmlHelper, string name, object value) {
@@ -74,8 +78,14 @@
 
         public static string RadioButton(this HtmlHelper htmlHelper, string name, object value, IDictionary<string, object> htmlAttributes) {
             // Determine whether or not to render the checked attribute based on the contents of ViewData.
-            string valueString = Convert.ToString(value, CultureInfo.CurrentUICulture);
+            string valueString = Convert.ToString(value, CultureInfo.CurrentCulture);
             bool isChecked = (!String.IsNullOrEmpty(name)) && (String.Equals(htmlHelper.EvalString(name), valueString, StringComparison.OrdinalIgnoreCase));
+            // checked attributes is implicit, so we need to ensure that the dictionary takes precedence.
+            RouteValueDictionary attributes = htmlAttributes == null ? new RouteValueDictionary() : new RouteValueDictionary(htmlAttributes);
+            if (attributes.ContainsKey("checked")) {
+                return htmlHelper.InputHelper(InputType.Radio, name, value, false, false, true, true /* isExplicitValue */, attributes);
+            }
+
             return RadioButton(htmlHelper, name, value, isChecked, htmlAttributes);
         }
 
@@ -94,7 +104,10 @@
             if (value == null) {
                 throw new ArgumentNullException("value");
             }
-            return htmlHelper.InputHelper("radio", name, Convert.ToString(value, CultureInfo.CurrentUICulture), false, isChecked, true, htmlAttributes);
+            // checked attribute is an explicit parameter so it takes precedence.
+            RouteValueDictionary attributes = htmlAttributes == null ? new RouteValueDictionary() : new RouteValueDictionary(htmlAttributes);
+            attributes.Remove("checked");
+            return htmlHelper.InputHelper(InputType.Radio, name, value, false, isChecked, true, true /* isExplicitValue */, attributes);
         }
 
         public static string TextBox(this HtmlHelper htmlHelper, string name) {
@@ -110,42 +123,45 @@
         }
 
         public static string TextBox(this HtmlHelper htmlHelper, string name, object value, IDictionary<string, object> htmlAttributes) {
-            return InputHelper(htmlHelper, "text", name, value, (value == null) /* useViewData */, false /* isChecked */, true /* setId */, htmlAttributes);
+            return InputHelper(htmlHelper, InputType.Text, name, value, (value == null) /* useViewData */, false /* isChecked */, true /* setId */, true /* isExplicitValue */, htmlAttributes);
         }
 
-        private static string InputHelper(this HtmlHelper htmlHelper, string inputType, string name, object value, bool useViewData, bool isChecked, bool setId, IDictionary<string, object> htmlAttributes) {
+        private static string InputHelper(this HtmlHelper htmlHelper, InputType inputType, string name, object value, bool useViewData, bool isChecked, bool setId, bool isExplicitValue, IDictionary<string, object> htmlAttributes) {
             if (String.IsNullOrEmpty(name)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "name");
             }
 
-            bool isRadio = String.Equals("radio", inputType, StringComparison.OrdinalIgnoreCase);
-            bool isCheckBox = String.Equals("checkbox", inputType, StringComparison.OrdinalIgnoreCase);
-
             TagBuilder tagBuilder = new TagBuilder("input");
             tagBuilder.MergeAttributes(htmlAttributes);
-            tagBuilder.MergeAttribute("type", inputType);
-            tagBuilder.MergeAttribute("name", name);
+            tagBuilder.MergeAttribute("type", HtmlHelper.GetInputTypeString(inputType));
+            tagBuilder.MergeAttribute("name", name, true);
 
-            string attemptedValue = htmlHelper.GetModelAttemptedValue(name);
+            string valueParameter = Convert.ToString(value, CultureInfo.CurrentCulture);
 
-            if (isCheckBox) {
-                // Helpers that take isChecked as parameter should never look at ViewData
-                if (useViewData) {
-                    isChecked = htmlHelper.EvalBoolean(name);
-                }
-                tagBuilder.MergeAttribute("value", Convert.ToString(value, CultureInfo.CurrentUICulture));
-            }
-            else {
-                tagBuilder.MergeAttribute("value", attemptedValue ?? ((useViewData) ? htmlHelper.EvalString(name) : Convert.ToString(value, CultureInfo.CurrentUICulture)));
+            switch (inputType) {
+                case InputType.CheckBox:
+                case InputType.Radio:
+                    if (useViewData) {
+                        isChecked = htmlHelper.EvalBoolean(name);
+                    }
+                    if (isChecked) {
+                        tagBuilder.MergeAttribute("checked", "checked");
+                    }
+                    tagBuilder.MergeAttribute("value", valueParameter, isExplicitValue);
+                    break;
+                case InputType.Password:
+                    if (value != null) {
+                        tagBuilder.MergeAttribute("value", valueParameter, isExplicitValue);
+                    }
+                    break;
+                default:
+                    string attemptedValue = (string)htmlHelper.GetModelStateValue(name, typeof(string));
+                    tagBuilder.MergeAttribute("value", attemptedValue ?? ((useViewData) ? htmlHelper.EvalString(name) : valueParameter), isExplicitValue);
+                    break;
             }
 
             if (setId) {
-                tagBuilder.MergeAttribute("id", name);
-            }
-
-            // Add attributes common to radio and checkbox
-            if ((isRadio || isCheckBox) && (isChecked)) {
-                tagBuilder.MergeAttribute("checked", "checked");
+                tagBuilder.GenerateId(name);
             }
 
             // If there are any errors for a named field, we add the css attribute.
@@ -156,20 +172,19 @@
                 }
             }
 
-            if (isCheckBox) {
+            if (inputType == InputType.CheckBox) {
                 // Render an additional <input type="hidden".../> for checkboxes. This
                 // addresses scenarios where unchecked checkboxes are not sent in the request.
                 // Sending a hidden input makes it possible to know that the checkbox was present
                 // on the page when the request was submitted.
                 StringBuilder inputItemBuilder = new StringBuilder();
-                inputItemBuilder.AppendLine(tagBuilder.ToString(TagRenderMode.SelfClosing));
+                inputItemBuilder.Append(tagBuilder.ToString(TagRenderMode.SelfClosing));
 
                 TagBuilder hiddenInput = new TagBuilder("input");
-                hiddenInput.MergeAttributes(htmlAttributes);
-                hiddenInput.MergeAttribute("type", "hidden");
+                hiddenInput.MergeAttribute("type", HtmlHelper.GetInputTypeString(InputType.Hidden));
                 hiddenInput.MergeAttribute("name", name);
                 hiddenInput.MergeAttribute("value", "false");
-                inputItemBuilder.AppendLine(hiddenInput.ToString(TagRenderMode.SelfClosing));
+                inputItemBuilder.Append(hiddenInput.ToString(TagRenderMode.SelfClosing));
                 return inputItemBuilder.ToString();
             }
 

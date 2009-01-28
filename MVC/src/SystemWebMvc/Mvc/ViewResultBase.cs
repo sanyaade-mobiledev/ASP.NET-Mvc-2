@@ -7,7 +7,7 @@
     public abstract class ViewResultBase : ActionResult {
         private TempDataDictionary _tempData;
         private ViewDataDictionary _viewData;
-        private IViewEngine _viewEngine;
+        private ViewEngineCollection _viewEngineCollection;
         private string _viewName;
 
         [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
@@ -43,12 +43,14 @@
             }
         }
 
-        public IViewEngine ViewEngine {
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
+            Justification = "This entire type is meant to be mutable.")]
+        public ViewEngineCollection ViewEngineCollection {
             get {
-                return _viewEngine ?? ViewEngines.DefaultEngine;
+                return _viewEngineCollection ?? ViewEngines.Engines;
             }
             set {
-                _viewEngine = value;
+                _viewEngineCollection = value;
             }
         }
 

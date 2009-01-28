@@ -10,6 +10,7 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class TagBuilder {
+        private string _idAttributeDotReplacement;
 
         private const string _attributeFormat = @" {0}=""{1}""";
         private const string _elementFormatEndTag = "</{0}>";
@@ -31,6 +32,18 @@
         public IDictionary<string, string> Attributes {
             get;
             private set;
+        }
+
+        public string IdAttributeDotReplacement {
+            get {
+                if (String.IsNullOrEmpty(_idAttributeDotReplacement)) {
+                    _idAttributeDotReplacement = HtmlHelper.IdAttributeDotReplacement;
+                }
+                return _idAttributeDotReplacement;
+            }
+            set {
+                _idAttributeDotReplacement = value;
+            }
         }
 
         public string InnerHtml {
@@ -55,6 +68,12 @@
             }
             else {
                 Attributes["class"] = value;
+            }
+        }
+
+        public void GenerateId(string name) {
+            if (!String.IsNullOrEmpty(name)) {
+                MergeAttribute("id", name.Replace(".", IdAttributeDotReplacement));
             }
         }
 
@@ -117,12 +136,5 @@
                     return String.Format(CultureInfo.InvariantCulture, _elementFormatNormal, TagName, GetAttributesString(), InnerHtml);
             }
         }
-    }
-
-    public enum TagRenderMode {
-        Normal,
-        StartTag,
-        EndTag,
-        SelfClosing
     }
 }

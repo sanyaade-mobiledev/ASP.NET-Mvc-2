@@ -38,11 +38,12 @@
         }
 
         // This method must be thread-safe since it is called by the thread-safe OnCacheAuthorization() method.
-        protected virtual bool AuthorizeCore(IPrincipal user) {
-            if (user == null) {
-                throw new ArgumentNullException("user");
+        protected virtual bool AuthorizeCore(HttpContextBase httpContext) {
+            if (httpContext == null) {
+                throw new ArgumentNullException("httpContext");
             }
 
+            IPrincipal user = httpContext.User;
             if (!user.Identity.IsAuthenticated) {
                 return false;
             }
@@ -67,7 +68,7 @@
                 throw new ArgumentNullException("filterContext");
             }
 
-            if (AuthorizeCore(filterContext.HttpContext.User)) {
+            if (AuthorizeCore(filterContext.HttpContext)) {
                 // ** IMPORTANT **
                 // Since we're performing authorization at the action level, the authorization code runs
                 // after the output caching module. In the worst case this could allow an authorized user
@@ -82,9 +83,7 @@
             }
             else {
                 // auth failed, redirect to login page
-                filterContext.Cancel = true;
                 filterContext.Result = new HttpUnauthorizedResult();
-                return;
             }
         }
 
@@ -94,7 +93,7 @@
                 throw new ArgumentNullException("httpContext");
             }
 
-            bool isAuthorized = AuthorizeCore(httpContext.User);
+            bool isAuthorized = AuthorizeCore(httpContext);
             return (isAuthorized) ? HttpValidationStatus.Valid : HttpValidationStatus.IgnoreThisRequest;
         }
 

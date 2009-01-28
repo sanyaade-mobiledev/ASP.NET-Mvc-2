@@ -1,5 +1,6 @@
 ﻿namespace System.Web.Mvc {
     using System;
+    using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
@@ -13,7 +14,7 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [FormCollectionBinder]
-    public class FormCollection : NameValueCollection, IValueProvider {
+    public class FormCollection : NameValueCollection {
 
         public FormCollection() {
         }
@@ -24,6 +25,21 @@
             }
 
             Add(collection);
+        }
+
+        public IDictionary<string, ValueProviderResult> ToValueProvider() {
+            CultureInfo currentCulture = CultureInfo.CurrentCulture;
+
+            Dictionary<string, ValueProviderResult> dict = new Dictionary<string, ValueProviderResult>(StringComparer.OrdinalIgnoreCase);
+            string[] keys = AllKeys;
+            foreach (string key in keys) {
+                string[] rawValue = GetValues(key);
+                string attemptedValue = this[key];
+                ValueProviderResult vpResult = new ValueProviderResult(rawValue, attemptedValue, currentCulture);
+                dict[key] = vpResult;
+            }
+
+            return dict;
         }
 
         public virtual ValueProviderResult GetValue(string name) {
@@ -52,12 +68,12 @@
 
             // this class is used for generating a FormCollection object
             private sealed class FormCollectionModelBinder : IModelBinder {
-                public ModelBinderResult BindModel(ModelBindingContext bindingContext) {
-                    if (bindingContext == null) {
-                        throw new ArgumentNullException("bindingContext");
+                public object BindModel(ControllerContext controllerContext, ModelBindingContext bindingContext) {
+                    if (controllerContext == null) {
+                        throw new ArgumentNullException("controllerContext");
                     }
 
-                    return new ModelBinderResult(new FormCollection(bindingContext.HttpContext.Request.Form));
+                    return new FormCollection(controllerContext.HttpContext.Request.Form);
                 }
             }
         }

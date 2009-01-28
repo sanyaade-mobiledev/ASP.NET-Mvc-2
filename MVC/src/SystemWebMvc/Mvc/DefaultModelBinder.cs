@@ -14,244 +14,275 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class DefaultModelBinder : IModelBinder {
 
-        public virtual ModelBinderResult BindModel(ModelBindingContext bindingContext) {
-            if (bindingContext == null) {
-                throw new ArgumentNullException("bindingContext");
-            }
+        private ModelBinderDictionary _binders;
 
-            // see if the value provider already returns an instance of the requested data type; if so, we can short-circuit
-            // the evaluation and just return that instance.
-            if (!String.IsNullOrEmpty(bindingContext.ModelName)) {
-                ValueProviderResult result = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
-                if (result != null && bindingContext.ModelType.IsInstanceOfType(result.RawValue)) {
-                    bindingContext.ModelState.SetAttemptedValue(bindingContext.ModelName, result.AttemptedValue);
-                    return new ModelBinderResult(result.RawValue);
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
+            Justification = "Property is settable so that the dictionary can be provided for unit testing purposes.")]
+        protected internal ModelBinderDictionary Binders {
+            get {
+                if (_binders == null) {
+                    _binders = ModelBinders.Binders;
                 }
+                return _binders;
             }
-
-            if (IsSimpleType(bindingContext.ModelType)) {
-                // basic types (int, etc.) generally have string -> type converters, so just use those converters
-                ModelBinderResult simpleResult = GetSimpleType(bindingContext);
-                if (simpleResult != null || !bindingContext.ModelType.IsArray) {
-                    return simpleResult;
-                }
+            set {
+                _binders = value;
             }
-
-            if (bindingContext.ModelType.IsArray) {
-                return new ModelBinderResult(CreateArray(bindingContext, bindingContext.ModelType.GetElementType()));
-            }
-
-            // the new context creates the model if one doesn't already exist
-            Func<object> modelProvider = () => bindingContext.Model ?? CreateModel(bindingContext, bindingContext.ModelType);
-            ModelBindingContext newContext = new ModelBindingContext(bindingContext, bindingContext.ValueProvider, bindingContext.ModelType, bindingContext.ModelName, modelProvider, bindingContext.ModelState, bindingContext.ShouldUpdateProperty);
-
-            // if ICollection<T> where T is a simple type, use simple list binding logic rather than custom list binding logic
-            object simpleCollection = TryUpdateSimpleCollection(newContext);
-            if (simpleCollection != null) {
-                return new ModelBinderResult(simpleCollection);
-            }
-
-            // the BindModelCore() method contains the user's custom logic (or our own, if not subclassed)
-            return BindModelCore(newContext);
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes",
-            Justification = "We note that the property setter threw and invalidate the ModelState as a result.")]
-        protected virtual ModelBinderResult BindModelCore(ModelBindingContext bindingContext) {
+        internal void BindComplexElementalModel(ControllerContext controllerContext, ModelBindingContext bindingContext, object model) {
+            // need to replace the property filter + model object and create an inner binding context
+            BindAttribute bindAttr = (BindAttribute)TypeDescriptor.GetAttributes(bindingContext.ModelType)[typeof(BindAttribute)];
+            Predicate<string> newPropertyFilter = (bindAttr != null)
+                ? propertyName => bindAttr.IsPropertyAllowed(propertyName) && bindingContext.PropertyFilter(propertyName)
+                : bindingContext.PropertyFilter;
+
+            ModelBindingContext newBindingContext = new ModelBindingContext() {
+                Model = model,
+                ModelName = bindingContext.ModelName,
+                ModelState = bindingContext.ModelState,
+                ModelType = bindingContext.ModelType,
+                PropertyFilter = newPropertyFilter,
+                ValueProvider = bindingContext.ValueProvider
+            };
+
+            // validation
+            if (OnModelUpdating(controllerContext, newBindingContext)) {
+                BindProperties(controllerContext, newBindingContext);
+                OnModelUpdated(controllerContext, newBindingContext);
+            }
+        }
+
+        internal object BindComplexModel(ControllerContext controllerContext, ModelBindingContext bindingContext) {
+            object model = bindingContext.Model;
+            Type modelType = bindingContext.ModelType;
+            
+            // if we're being asked to create an array, create a list instead, then coerce to an array after the list is created
+            if (model == null && modelType.IsArray) {
+                Type elementType = modelType.GetElementType();
+                Type listType = typeof(List<>).MakeGenericType(elementType);
+                object collection = CreateModel(controllerContext, bindingContext, listType);
+
+                ModelBindingContext arrayBindingContext = new ModelBindingContext() {
+                    Model = collection,
+                    ModelName = bindingContext.ModelName,
+                    ModelState = bindingContext.ModelState,
+                    ModelType = listType,
+                    PropertyFilter = bindingContext.PropertyFilter,
+                    ValueProvider = bindingContext.ValueProvider
+                };
+                IList list = (IList)UpdateCollection(controllerContext, arrayBindingContext, elementType);
+
+                if (list == null) {
+                    return null;
+                }
+
+                Array array = Array.CreateInstance(elementType, list.Count);
+                list.CopyTo(array, 0);
+                return array;
+            }
+
+            if (model == null) {
+                model = CreateModel(controllerContext,bindingContext,modelType);
+            }
+
             // special-case IDictionary<,> and ICollection<>
-            Type dictionaryType = bindingContext.ModelType.GetInterfaces().FirstOrDefault(IsDictionaryInterface);
+            Type dictionaryType = ExtractGenericInterface(modelType, typeof(IDictionary<,>));
             if (dictionaryType != null) {
                 Type[] genericArguments = dictionaryType.GetGenericArguments();
                 Type keyType = genericArguments[0];
                 Type valueType = genericArguments[1];
-                ModelBinderResult dictionary = UpdateDictionary(bindingContext, keyType, valueType);
+
+                ModelBindingContext dictionaryBindingContext = new ModelBindingContext() {
+                    Model = model,
+                    ModelName = bindingContext.ModelName,
+                    ModelState = bindingContext.ModelState,
+                    ModelType = modelType,
+                    PropertyFilter = bindingContext.PropertyFilter,
+                    ValueProvider = bindingContext.ValueProvider
+                };
+                object dictionary = UpdateDictionary(controllerContext, dictionaryBindingContext, keyType, valueType);
                 return dictionary;
             }
 
-            Type collectionType = bindingContext.ModelType.GetInterfaces().FirstOrDefault(IsCollectionInterface);
-            if (collectionType != null) {
-                Type itemType = collectionType.GetGenericArguments()[0];
-                ModelBinderResult collection = UpdateCollection(bindingContext, itemType);
-                return collection;
-            }
+            Type enumerableType = ExtractGenericInterface(modelType, typeof(IEnumerable<>));
+            if (enumerableType != null) {
+                Type elementType = enumerableType.GetGenericArguments()[0];
 
-            Predicate<string> propFilter;
-            BindAttribute bindAttr = (BindAttribute)TypeDescriptor.GetAttributes(bindingContext.ModelType)[typeof(BindAttribute)];
-            if (bindAttr != null) {
-                propFilter = property => bindAttr.IsPropertyAllowed(property) && bindingContext.ShouldUpdateProperty(property);
-            }
-            else {
-                propFilter = bindingContext.ShouldUpdateProperty;
-            }
-
-            bool triedToSetModelProperty = false;
-
-            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(bindingContext.ModelType);
-            foreach (PropertyDescriptor property in properties) {
-
-                // compare the current property against the list of allowed properties for this type
-                if (!propFilter(property.Name)) {
-                    continue;
-                }
-
-                // we can't update value type properties that are read-only
-                if (property.PropertyType.IsValueType && property.IsReadOnly) {
-                    continue;
-                }
-
-                // use PropertyType rather than GetType() since we only want to update properties as
-                // seen by the typed reference to the model
-                ModelStateDictionary propertyState = new ModelStateDictionary();
-                ModelBindingContext propertyContext = new ModelBindingContext(bindingContext, bindingContext.ValueProvider, bindingContext.ModelType, bindingContext.ModelName, null /* modelProvider */, propertyState, null /* propertyFilter */);
-                ModelBinderResult propertyResult = BindProperty(propertyContext, property.PropertyType, () => property.GetValue(bindingContext.Model), property.Name);
-                bindingContext.ModelState.Merge(propertyState);
-
-                // if there wasn't even a form value for this property, just move on
-                if (propertyResult == null) {
-                    continue;
-                }
-
-                triedToSetModelProperty = true;
-                bool shouldCallSetValue = false;
-                string subPropertyName = CreateSubPropertyName(bindingContext.ModelName, property.Name);
-
-                if (propertyResult.Value != null) {
-                    if (!property.IsReadOnly) {
-                        shouldCallSetValue = true;
-                    }
-                }
-                else {
-                    if (TypeHelpers.TypeAllowsNullValue(property.PropertyType)) {
-                        // user probably explicitly wanted this value to be set to null
-                        shouldCallSetValue = true;
-                    }
-                    else {
-                        if (propertyState.IsValid) {
-                            // user didn't type a value, but we can't set a value type to null
-                            bindingContext.ModelState.AddModelError(subPropertyName, MvcResources.DefaultModelBinder_ValueRequired);
-                        }
-                    }
-                }
-
-                if (shouldCallSetValue) {
-                    try {
-                        property.SetValue(bindingContext.Model, propertyResult.Value);
-                    }
-                    catch {
-                        // note that there was an error and just move on to the next property
-
-                        // use CurrentCulture since this error message is displayed to the user browsing the site
-                        string message = String.Format(CultureInfo.CurrentCulture, MvcResources.Common_ValueNotValidForProperty, propertyResult.Value);
-                        bindingContext.ModelState.AddModelError(subPropertyName, message);
-                    }
+                Type collectionType = typeof(ICollection<>).MakeGenericType(elementType);
+                if (collectionType.IsInstanceOfType(model)) {
+                    ModelBindingContext collectionBindingContext = new ModelBindingContext() {
+                        Model = model,
+                        ModelName = bindingContext.ModelName,
+                        ModelState = bindingContext.ModelState,
+                        ModelType = modelType,
+                        PropertyFilter = bindingContext.PropertyFilter,
+                        ValueProvider = bindingContext.ValueProvider
+                    };
+                    object collection = UpdateCollection(controllerContext, collectionBindingContext, elementType);
+                    return collection;
                 }
             }
 
-            return (triedToSetModelProperty) ? new ModelBinderResult(bindingContext.Model) : null;
+            // otherwise, just update the properties on the complex type
+            BindComplexElementalModel(controllerContext, bindingContext, model);
+            return model;
         }
 
-        protected ModelBinderResult BindProperty(ModelBindingContext parentContext, Type propertyType, Func<object> propertyValueProvider, string propertyName) {
-            // the property name as understood by the value provider
-            string newName = CreateSubPropertyName(parentContext.ModelName, propertyName);
-
-            IModelBinder binder = GetBinder(propertyType);
-            ModelBindingContext newContext = new ModelBindingContext(parentContext, parentContext.ValueProvider, propertyType, newName, propertyValueProvider, parentContext.ModelState, null /* propertyFilter */);
-            ModelBinderResult result = binder.BindModel(newContext);
-            return result;
-        }
-
-        protected static object ConvertSimpleArrayType(CultureInfo culture, object value, Type destinationType) {
-            if (value == null || destinationType.IsInstanceOfType(value)) {
-                return value;
+        public virtual object BindModel(ControllerContext controllerContext, ModelBindingContext bindingContext) {
+            if (bindingContext == null) {
+                throw new ArgumentNullException("bindingContext");
             }
 
-            // array conversion results in four cases, as below
-            Array valueAsArray = value as Array;
-            if (destinationType.IsArray) {
-                Type destinationElementType = destinationType.GetElementType();
-                if (valueAsArray != null) {
-                    // case 1: both destination + source type are arrays, so convert each element
-                    IList converted = Array.CreateInstance(destinationElementType, valueAsArray.Length);
-                    for (int i = 0; i < valueAsArray.Length; i++) {
-                        converted[i] = ConvertSimpleType(culture, valueAsArray.GetValue(i), destinationElementType);
-                    }
-                    return converted;
+            bool performedFallback = false;
+
+            if (!String.IsNullOrEmpty(bindingContext.ModelName) && !DictionaryHelpers.DoesAnyKeyHavePrefix(bindingContext.ValueProvider, bindingContext.ModelName)) {
+                // We couldn't find any entry that began with the prefix. If this is the top-level element, fall back
+                // to the empty prefix.
+                if (bindingContext.FallbackToEmptyPrefix) {
+                    bindingContext = new ModelBindingContext() {
+                        Model = bindingContext.Model,
+                        ModelState = bindingContext.ModelState,
+                        ModelType = bindingContext.ModelType,
+                        PropertyFilter = bindingContext.PropertyFilter,
+                        ValueProvider = bindingContext.ValueProvider
+                    };
+                    performedFallback = true;
                 }
                 else {
-                    // case 2: destination type is array but source is single element, so wrap element in array + convert
-                    object element = ConvertSimpleType(culture, value, destinationElementType);
-                    IList converted = Array.CreateInstance(destinationElementType, 1);
-                    converted[0] = element;
-                    return converted;
-                }
-            }
-            else if (valueAsArray != null) {
-                // case 3: destination type is single element but source is array, so extract first element + convert
-                if (valueAsArray.Length > 0) {
-                    value = valueAsArray.GetValue(0);
-                    return ConvertSimpleType(culture, value, destinationType);
-                }
-                else {
-                    // case 3(a): source is empty array, so can't perform conversion
                     return null;
                 }
             }
-            // case 4: both destination + source type are single elements, so convert
-            return ConvertSimpleType(culture, value, destinationType);
-        }
 
-        protected static object ConvertSimpleType(CultureInfo culture, object value, Type destinationType) {
-            if (value == null || destinationType.IsInstanceOfType(value)) {
-                return value;
+            // Simple model = int, string, etc.; determined by calling TypeConverter.CanConvertFrom(typeof(string))
+            // or by seeing if a value in the request exactly matches the name of the model we're binding.
+            // Complex type = everything else.
+            if (!performedFallback) {
+                ValueProviderResult vpResult;
+                bindingContext.ValueProvider.TryGetValue(bindingContext.ModelName, out vpResult);
+                if (vpResult != null) {
+                    return BindSimpleModel(controllerContext, bindingContext, vpResult);
+                }
             }
-
-            // if this is a user-input value but the user didn't type anything, return no value
-            string valueAsString = value as string;
-            if (valueAsString != null && valueAsString.Length == 0) {
+            if (TypeDescriptor.GetConverter(bindingContext.ModelType).CanConvertFrom(typeof(string))) {
                 return null;
             }
 
-            TypeConverter converter = TypeDescriptor.GetConverter(destinationType);
-            bool canConvertFrom = converter.CanConvertFrom(value.GetType());
-            if (!canConvertFrom) {
-                converter = TypeDescriptor.GetConverter(value.GetType());
+            return BindComplexModel(controllerContext, bindingContext);
+        }
+
+        private void BindProperties(ControllerContext controllerContext, ModelBindingContext bindingContext) {
+            PropertyDescriptorCollection properties = GetModelProperties(controllerContext, bindingContext);
+            foreach (PropertyDescriptor property in properties) {
+                BindProperty(controllerContext, bindingContext, property);
             }
-            if (!(canConvertFrom || converter.CanConvertTo(destinationType))) {
-                string message = String.Format(CultureInfo.CurrentUICulture, MvcResources.DefaultModelBinder_NoConverterExists,
-                    value.GetType().FullName, destinationType.FullName);
-                throw new InvalidOperationException(message);
+        }
+
+        protected virtual void BindProperty(ControllerContext controllerContext, ModelBindingContext bindingContext, PropertyDescriptor propertyDescriptor) {
+            // need to skip properties that aren't part of the request, else we might hit a StackOverflowException
+            string fullPropertyKey = CreateSubPropertyName(bindingContext.ModelName, propertyDescriptor.Name);
+            if (!DictionaryHelpers.DoesAnyKeyHavePrefix(bindingContext.ValueProvider, fullPropertyKey)) {
+                return;
             }
 
+            // call into the property's model binder
+            IModelBinder propertyBinder = Binders.GetBinder(propertyDescriptor.PropertyType);
+            object originalPropertyValue = propertyDescriptor.GetValue(bindingContext.Model);
+            ModelBindingContext innerBindingContext = new ModelBindingContext() {
+                Model = originalPropertyValue,
+                ModelName = fullPropertyKey,
+                ModelState = bindingContext.ModelState,
+                ModelType = propertyDescriptor.PropertyType,
+                ValueProvider = bindingContext.ValueProvider
+            };
+            object newPropertyValue = propertyBinder.BindModel(controllerContext, innerBindingContext);
+
+            // validation
+            if (OnPropertyValidating(controllerContext, bindingContext, propertyDescriptor, newPropertyValue)) {
+                SetProperty(controllerContext, bindingContext, propertyDescriptor, newPropertyValue);
+                OnPropertyValidated(controllerContext, bindingContext, propertyDescriptor, newPropertyValue);
+            }
+        }
+
+        internal object BindSimpleModel(ControllerContext controllerContext, ModelBindingContext bindingContext, ValueProviderResult valueProviderResult) {
+            bindingContext.ModelState.SetModelValue(bindingContext.ModelName, valueProviderResult);
+
+            // if the value provider returns an instance of the requested data type, we can just short-circuit
+            // the evaluation and return that instance
+            if (bindingContext.ModelType.IsInstanceOfType(valueProviderResult.RawValue)) {
+                return valueProviderResult.RawValue;
+            }
+
+            // since a string is an IEnumerable<char>, we want it to skip the two checks immediately following
+            if (bindingContext.ModelType != typeof(string)) {
+
+                // conversion results in 3 cases, as below
+                if (bindingContext.ModelType.IsArray) {
+                    // case 1: user asked for an array
+                    // ValueProviderResult.ConvertTo() understands array types, so pass in the array type directly
+                    object modelArray = ConvertProviderResult(bindingContext.ModelState, bindingContext.ModelName, valueProviderResult, bindingContext.ModelType);
+                    return modelArray;
+                }
+
+                Type enumerableType = ExtractGenericInterface(bindingContext.ModelType, typeof(IEnumerable<>));
+                if (enumerableType != null) {
+                    // case 2: user asked for a collection rather than an array
+                    // need to call ConvertTo() on the array type, then copy the array to the collection
+                    object modelCollection = CreateModel(controllerContext, bindingContext, bindingContext.ModelType);
+                    Type elementType = enumerableType.GetGenericArguments()[0];
+                    Type arrayType = elementType.MakeArrayType();
+                    object modelArray = ConvertProviderResult(bindingContext.ModelState, bindingContext.ModelName, valueProviderResult, arrayType);
+
+                    Type collectionType = typeof(ICollection<>).MakeGenericType(elementType);
+                    if (collectionType.IsInstanceOfType(modelCollection)) {
+                        CollectionHelpers.ReplaceCollection(elementType, modelCollection, modelArray);
+                    }
+                    return modelCollection;
+                }
+            }
+
+            // case 3: user asked for an individual element
+            object model = ConvertProviderResult(bindingContext.ModelState, bindingContext.ModelName, valueProviderResult, bindingContext.ModelType);
+            return model;
+        }
+
+        private static bool CanUpdateReadonlyTypedReference(Type type) {
+            // value types aren't strictly immutable, but because they have copy-by-value semantics
+            // we can't update a value type that is marked readonly
+            if (type.IsValueType) {
+                return false;
+            }
+
+            // arrays are mutable, but because we can't change their length we shouldn't try
+            // to update an array that is referenced readonly
+            if (type.IsArray) {
+                return false;
+            }
+
+            // special-case known common immutable types
+            if (type == typeof(string)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        [SuppressMessage("Microsoft.Globalization", "CA1304:SpecifyCultureInfo", MessageId = "System.Web.Mvc.ValueProviderResult.ConvertTo(System.Type)",
+            Justification = "The target object should make the correct culture determination, not this method.")]
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes",
+            Justification = "We're recording this exception so that we can act on it later.")]
+        private static object ConvertProviderResult(ModelStateDictionary modelState, string modelStateKey, ValueProviderResult valueProviderResult, Type destinationType) {
             try {
-                object convertedValue = (canConvertFrom) ?
-                     converter.ConvertFrom(null /* context */, culture, value) :
-                     converter.ConvertTo(null /* context */, culture, value, destinationType);
+                object convertedValue = valueProviderResult.ConvertTo(destinationType);
                 return convertedValue;
             }
             catch (Exception ex) {
-                string message = String.Format(CultureInfo.CurrentUICulture, MvcResources.DefaultModelBinder_ConversionThrew,
-                    value.GetType().FullName, destinationType.FullName);
-                throw new InvalidOperationException(message, ex);
+                modelState.AddModelError(modelStateKey, ex);
+                return null;
             }
         }
 
-        // this method is specifically for creating an array of types using the index wire format
-        private Array CreateArray(ModelBindingContext bindingContext, Type elementType) {
-            // special support for creating arrays - create and bind a list, then coerce it to an array
-            Type listType = typeof(List<>).MakeGenericType(elementType);
-            IList list = (IList)CreateModel(bindingContext, listType);
-
-            ModelBindingContext newContext = new ModelBindingContext(bindingContext, bindingContext.ValueProvider, listType, bindingContext.ModelName, () => list, bindingContext.ModelState, null /* propertyFilter */);
-            BindModelCore(newContext);
-
-            Array array = Array.CreateInstance(elementType, list.Count);
-            for (int i = 0; i < list.Count; i++) {
-                array.SetValue(list[i], i);
-            }
-            return array;
-        }
-
-        protected virtual object CreateModel(ModelBindingContext bindingContext, Type modelType) {
+        protected virtual object CreateModel(ControllerContext controllerContext, ModelBindingContext bindingContext, Type modelType) {
             Type typeToCreate = modelType;
 
             // we can understand some collection interfaces, e.g. IList<>, IDictionary<,>
@@ -260,7 +291,7 @@
                 if (genericTypeDefinition == typeof(IDictionary<,>)) {
                     typeToCreate = typeof(Dictionary<,>).MakeGenericType(modelType.GetGenericArguments());
                 }
-                else if (genericTypeDefinition == typeof(ICollection<>) || genericTypeDefinition == typeof(IList<>)) {
+                else if (genericTypeDefinition == typeof(IEnumerable<>) || genericTypeDefinition == typeof(ICollection<>) || genericTypeDefinition == typeof(IList<>)) {
                     typeToCreate = typeof(List<>).MakeGenericType(modelType.GetGenericArguments());
                 }
             }
@@ -269,171 +300,247 @@
             return Activator.CreateInstance(typeToCreate);
         }
 
-        protected static string CreateSubIndexName(string prefix, string indexName) {
-            return (!String.IsNullOrEmpty(prefix)) ? prefix + "[" + indexName + "]" : "[" + indexName + "]";
+        protected static string CreateSubIndexName(string prefix, int index) {
+            return String.Format(CultureInfo.InvariantCulture, "{0}[{1}]", prefix, index);
         }
 
         protected static string CreateSubPropertyName(string prefix, string propertyName) {
             return (!String.IsNullOrEmpty(prefix)) ? prefix + "." + propertyName : propertyName;
         }
 
-        protected virtual IModelBinder GetBinder(Type modelType) {
-            IModelBinder binder = ModelBinders.GetBinder(modelType);
-            return binder;
+        private static Type ExtractGenericInterface(Type queryType, Type interfaceType) {
+            Func<Type, bool> matchesInterface = t => t.IsGenericType && t.GetGenericTypeDefinition() == interfaceType;
+            return (matchesInterface(queryType)) ? queryType : queryType.GetInterfaces().FirstOrDefault(matchesInterface);
         }
 
-        private static Type GetElementType(Type type) {
-            // currently this method handles only T[] and T?
-            if (type.IsArray) {
-                return type.GetElementType();
-            }
+        protected virtual PropertyDescriptorCollection GetModelProperties(ControllerContext controllerContext, ModelBindingContext bindingContext) {
+            PropertyDescriptorCollection allProperties = TypeDescriptor.GetProperties(bindingContext.ModelType);
+            Predicate<string> propertyFilter = bindingContext.PropertyFilter;
 
-            // Nullable.GetUnderlyingType() returns null if the provided type is not nullable
-            return Nullable.GetUnderlyingType(type) ?? type;
+            var filteredProperties = from PropertyDescriptor property in allProperties
+                                     where ShouldUpdateProperty(property, propertyFilter)
+                                     select property;
+
+            return new PropertyDescriptorCollection(filteredProperties.ToArray());
+        }
+
+        protected virtual void OnModelUpdated(ControllerContext controllerContext, ModelBindingContext bindingContext) {
+            IDataErrorInfo errorProvider = bindingContext.Model as IDataErrorInfo;
+            if (errorProvider != null) {
+                string errorText = errorProvider.Error;
+                if (!String.IsNullOrEmpty(errorText)) {
+                    bindingContext.ModelState.AddModelError(bindingContext.ModelName, errorText);
+                }
+            }
+        }
+
+        protected virtual bool OnModelUpdating(ControllerContext controllerContext, ModelBindingContext bindingContext) {
+            // default implementation does nothing
+
+            return true;
+        }
+
+        protected virtual void OnPropertyValidated(ControllerContext controllerContext, ModelBindingContext bindingContext, PropertyDescriptor propertyDescriptor, object value) {
+            IDataErrorInfo errorProvider = bindingContext.Model as IDataErrorInfo;
+            if (errorProvider != null) {
+                string errorText = errorProvider[propertyDescriptor.Name];
+                if (!String.IsNullOrEmpty(errorText)) {
+                    string modelStateKey = CreateSubPropertyName(bindingContext.ModelName, propertyDescriptor.Name);
+                    bindingContext.ModelState.AddModelError(modelStateKey, errorText);
+                }
+            }
+        }
+
+        protected virtual bool OnPropertyValidating(ControllerContext controllerContext, ModelBindingContext bindingContext, PropertyDescriptor propertyDescriptor, object value) {
+            // default implementation just checks to make sure that required text entry fields aren't left blank
+
+            string modelStateKey = CreateSubPropertyName(bindingContext.ModelName, propertyDescriptor.Name);
+            return VerifyValueUsability(bindingContext.ModelState, modelStateKey, propertyDescriptor.PropertyType, value);
         }
 
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes",
-            Justification = "We want to replace the exception text with our own error message.")]
-        protected static ModelBinderResult GetSimpleType(ModelBindingContext bindingContext) {
-            ValueProviderResult result = bindingContext.ValueProvider.GetValue(bindingContext.ModelName);
-            if (result == null) {
-                return null;
+            Justification = "We're recording this exception so that we can act on it later.")]
+        protected virtual void SetProperty(ControllerContext controllerContext, ModelBindingContext bindingContext, PropertyDescriptor propertyDescriptor, object value) {
+            if (propertyDescriptor.IsReadOnly) {
+                return;
             }
 
-            bindingContext.ModelState.SetAttemptedValue(bindingContext.ModelName, result.AttemptedValue);
             try {
-                object convertedValue = ConvertSimpleArrayType(result.Culture, result.RawValue, bindingContext.ModelType);
-                return new ModelBinderResult(convertedValue);
+                propertyDescriptor.SetValue(bindingContext.Model, value);
             }
-            catch {
-                // need to use current culture since this message is potentially displayed to the end user
-                string message = String.Format(CultureInfo.CurrentCulture, MvcResources.Common_ValueNotValidForProperty,
-                    result.AttemptedValue);
-                bindingContext.ModelState.AddModelError(bindingContext.ModelName, message);
-                return new ModelBinderResult(null);
+            catch (Exception ex) {
+                string modelStateKey = CreateSubPropertyName(bindingContext.ModelName, propertyDescriptor.Name);
+                bindingContext.ModelState.AddModelError(modelStateKey, ex);
             }
         }
 
-        private static bool IsCollectionInterface(Type type) {
-            return (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ICollection<>));
+        private static bool ShouldUpdateProperty(PropertyDescriptor property, Predicate<string> propertyFilter) {
+            if (property.IsReadOnly && !CanUpdateReadonlyTypedReference(property.PropertyType)) {
+                return false;
+            }
+
+            // if this property is rejected by the filter, move on
+            if (!propertyFilter(property.Name)) {
+                return false;
+            }
+
+            // otherwise, allow
+            return true;
         }
 
-        private static bool IsDictionaryInterface(Type type) {
-            return (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IDictionary<,>));
-        }
+        internal object UpdateCollection(ControllerContext controllerContext, ModelBindingContext bindingContext, Type elementType) {
+            IModelBinder elementBinder = Binders.GetBinder(elementType);
 
-        protected static bool IsSimpleType(Type type) {
-            // simple data types are structs (which likely have their own type converters) and strings
-            Type elementType = GetElementType(type);
-            return (elementType.IsValueType || elementType == typeof(string));
-        }
+            // build up a list of items from the request
+            List<object> modelList = new List<object>();
+            for (int currentIndex = 0; ; currentIndex++) {
+                string subIndexKey = CreateSubIndexName(bindingContext.ModelName, currentIndex);
+                if (!DictionaryHelpers.DoesAnyKeyHavePrefix(bindingContext.ValueProvider, subIndexKey)) {
+                    // we ran out of elements to pull
+                    break;
+                }
 
-        private static object TryUpdateSimpleCollection(ModelBindingContext bindingContext) {
-            Type genericCollectionType = bindingContext.ModelType.GetInterfaces().FirstOrDefault(IsCollectionInterface);
-            if (genericCollectionType == null) {
-                // there is no ICollection<T> interface we can use
+                ModelBindingContext innerContext = new ModelBindingContext() {
+                    ModelName = subIndexKey,
+                    ModelState = bindingContext.ModelState,
+                    ModelType = elementType,
+                    PropertyFilter = bindingContext.PropertyFilter,
+                    ValueProvider = bindingContext.ValueProvider
+                };
+                object thisElement = elementBinder.BindModel(controllerContext, innerContext);
+
+                // we need to merge model errors up
+                VerifyValueUsability(bindingContext.ModelState, subIndexKey, elementType, thisElement);
+                modelList.Add(thisElement);
+            }
+
+            // if there weren't any elements at all in the request, just return
+            if (modelList.Count == 0) {
                 return null;
             }
 
-            Type elementType = genericCollectionType.GetGenericArguments()[0];
-            if (!(elementType == typeof(string) || elementType.IsValueType)) {
-                // T is a complex type
-                return null;
-            }
-
-            ModelBindingContext newContext = new ModelBindingContext(bindingContext, bindingContext.ValueProvider, elementType.MakeArrayType(), bindingContext.ModelName, null /* modelProvider */, bindingContext.ModelState, null /* propertyFilter */);
-            ModelBinderResult convertedResult = GetSimpleType(newContext);
-            IList convertedValues = (convertedResult != null) ? convertedResult.Value as IList : null;
-            if (convertedValues == null || convertedValues.Count == 0) {
-                // we couldn't find any values using the simple list binding algorithm
-                return null;
-            }
-
-            // if we got any items, put them in the collection and report success
-            MethodInfo addMethod = genericCollectionType.GetMethod("Add");
-            MethodInfo clearMethod = genericCollectionType.GetMethod("Clear");
+            // replace the original collection
             object collection = bindingContext.Model;
-
-            clearMethod.Invoke(collection, null /* parameters */);
-            foreach (object convertedValue in convertedValues) {
-                addMethod.Invoke(collection, new object[] { convertedValue });
-            }
+            CollectionHelpers.ReplaceCollection(elementType, collection, modelList);
             return collection;
         }
 
-        private ModelBinderResult UpdateCollection(ModelBindingContext bindingContext, Type itemType) {
-            // first, need to read the set of all unique indices
-            string indicesFieldName = CreateSubPropertyName(bindingContext.ModelName, "index");
-            ModelBindingContext indicesContext = new ModelBindingContext(bindingContext, bindingContext.ValueProvider, typeof(string[]), indicesFieldName, null /* modelProvider */, bindingContext.ModelState, null /* propertyFilter */);
-            ModelBinderResult indicesResult = GetSimpleType(indicesContext);
-            string[] indices = (indicesResult != null) ? indicesResult.Value as string[] : null;
+        internal object UpdateDictionary(ControllerContext controllerContext, ModelBindingContext bindingContext, Type keyType, Type valueType) {
+            IModelBinder keyBinder = Binders.GetBinder(keyType);
+            IModelBinder valueBinder = Binders.GetBinder(valueType);
 
-            // loop through entries
-            List<object> convertedValues = new List<object>();
-            if (indices != null) {
-                IModelBinder itemBinder = GetBinder(itemType);
-                foreach (string index in indices) {
-                    string itemName = CreateSubIndexName(bindingContext.ModelName, index);
-                    ModelBindingContext itemContext = new ModelBindingContext(bindingContext, bindingContext.ValueProvider, itemType, itemName, null /* modelProvider */, bindingContext.ModelState, null /* propertyFilter */);
-                    object convertedValue = itemBinder.BindModel(itemContext).Value;
-                    convertedValues.Add(convertedValue);
+            // build up a list of items from the request
+            List<KeyValuePair<object, object>> modelList = new List<KeyValuePair<object, object>>();
+            for (int currentIndex = 0; ; currentIndex++) {
+                string subIndexKey = CreateSubIndexName(bindingContext.ModelName, currentIndex);
+                string keyFieldKey = CreateSubPropertyName(subIndexKey, "key");
+                string valueFieldKey = CreateSubPropertyName(subIndexKey, "value");
+
+                if (!(DictionaryHelpers.DoesAnyKeyHavePrefix(bindingContext.ValueProvider, keyFieldKey) && DictionaryHelpers.DoesAnyKeyHavePrefix(bindingContext.ValueProvider, valueFieldKey))) {
+                    // we ran out of elements to pull
+                    break;
                 }
+
+                // bind the key
+                ModelBindingContext keyBindingContext = new ModelBindingContext() {
+                    ModelName = keyFieldKey,
+                    ModelState = bindingContext.ModelState,
+                    ModelType = keyType,
+                    ValueProvider = bindingContext.ValueProvider
+                };
+                object thisKey = keyBinder.BindModel(controllerContext, keyBindingContext);
+
+                // we need to merge model errors up
+                VerifyValueUsability(bindingContext.ModelState, keyFieldKey, keyType, thisKey);
+                if (!keyType.IsInstanceOfType(thisKey)) {
+                    // we can't add an invalid key, so just move on
+                    continue;
+                }
+
+                // bind the value
+                ModelBindingContext valueBindingContext = new ModelBindingContext() {
+                    ModelName = valueFieldKey,
+                    ModelState = bindingContext.ModelState,
+                    ModelType = valueType,
+                    PropertyFilter = bindingContext.PropertyFilter,
+                    ValueProvider = bindingContext.ValueProvider
+                };
+                object thisValue = valueBinder.BindModel(controllerContext, valueBindingContext);
+
+                // we need to merge model errors up
+                VerifyValueUsability(bindingContext.ModelState, valueFieldKey, valueType, thisValue);
+                KeyValuePair<object, object> kvp = new KeyValuePair<object, object>(thisKey, thisValue);
+                modelList.Add(kvp);
             }
 
-            // if there weren't any entries in the list, return that we did nothing
-            if (convertedValues.Count == 0) {
+            // if there weren't any elements at all in the request, just return
+            if (modelList.Count == 0) {
                 return null;
             }
 
-            // if there were entries in the list, replace the collection
-            Type collectionType = typeof(ICollection<>).MakeGenericType(itemType);
-            MethodInfo addMethod = collectionType.GetMethod("Add");
-            MethodInfo clearMethod = collectionType.GetMethod("Clear");
-
-            object collection = bindingContext.Model;
-            clearMethod.Invoke(collection, null /* parameters */);
-            foreach (object convertedValue in convertedValues) {
-                addMethod.Invoke(collection, new object[] { convertedValue });
-            }
-            return new ModelBinderResult(collection);
+            // replace the original collection
+            object dictionary = bindingContext.Model;
+            CollectionHelpers.ReplaceDictionary(keyType, valueType, dictionary, modelList);
+            return dictionary;
         }
 
-        private ModelBinderResult UpdateDictionary(ModelBindingContext bindingContext, Type keyType, Type valueType) {
-            // first, need to read the set of all unique indices
-            string indicesFieldName = CreateSubPropertyName(bindingContext.ModelName, "index");
-            ModelBindingContext indicesContext = new ModelBindingContext(bindingContext, bindingContext.ValueProvider, typeof(string[]), indicesFieldName, null /* modelProvider */, bindingContext.ModelState, null /* propertyFilter */);
-            ModelBinderResult indicesResult = GetSimpleType(indicesContext);
-            string[] indices = (indicesResult != null) ? indicesResult.Value as string[] : null;
-            Type kvpType = typeof(KeyValuePair<,>).MakeGenericType(keyType, valueType);
+        private static bool VerifyValueUsability(ModelStateDictionary modelState, string modelStateKey, Type elementType, object value) {
+            if (value == null && !TypeHelpers.TypeAllowsNullValue(elementType)) {
+                if (modelState.IsValidField(modelStateKey)) {
+                    // a required entry field was left blank
+                    string message = MvcResources.DefaultModelBinder_ValueRequired;
+                    modelState.AddModelError(modelStateKey, message);
+                }
+                // we don't care about "you must enter a value" messages if there was an error
+                return false;
+            }
 
-            // loop through entries
-            List<KeyValuePair<object, object>> convertedValues = new List<KeyValuePair<object, object>>();
-            if (indices != null) {
-                foreach (string index in indices) {
-                    string itemName = CreateSubIndexName(bindingContext.ModelName, index);
-                    ModelBindingContext itemContext = new ModelBindingContext(bindingContext, bindingContext.ValueProvider, kvpType, itemName, null /* modelProvider */, bindingContext.ModelState, null /* propertyFilter */);
+            return true;
+        }
 
-                    object key = BindProperty(itemContext, keyType, null /* propertyValueProvider */, "key").Value;
-                    object value = BindProperty(itemContext, valueType, null /* propertyValueProvider */, "value").Value;
-                    convertedValues.Add(new KeyValuePair<object, object>(key, value));
+        // This helper type is used because we're working with strongly-typed collections, but we don't know the Ts
+        // ahead of time. By using the generic methods below, we can consolidate the collection-specific code in a
+        // single helper type rather than having reflection-based calls spread throughout the DefaultModelBinder type.
+        // There is a single point of entry to each of the methods below, so they're fairly simple to maintain.
+
+        private static class CollectionHelpers {
+
+            private static readonly MethodInfo _replaceCollectionMethod = typeof(CollectionHelpers).GetMethod("ReplaceCollectionImpl", BindingFlags.Static | BindingFlags.NonPublic);
+            private static readonly MethodInfo _replaceDictionaryMethod = typeof(CollectionHelpers).GetMethod("ReplaceDictionaryImpl", BindingFlags.Static | BindingFlags.NonPublic);
+
+            public static void ReplaceCollection(Type collectionType, object collection, object newContents) {
+                MethodInfo targetMethod = _replaceCollectionMethod.MakeGenericMethod(collectionType);
+                targetMethod.Invoke(null, new object[] { collection, newContents });
+            }
+
+            private static void ReplaceCollectionImpl<T>(ICollection<T> collection, IEnumerable newContents) {
+                collection.Clear();
+                if (newContents != null) {
+                    foreach (object item in newContents) {
+                        // if the item was not a T, some conversion failed. the error message will be propagated,
+                        // but in the meanwhile we need to make a placeholder element in the array.
+                        T castItem = (item is T) ? (T)item : default(T);
+                        collection.Add(castItem);
+                    }
                 }
             }
 
-            // if there weren't any entries in the list, return that we did nothing
-            if (convertedValues.Count == 0) {
-                return null;
+            public static void ReplaceDictionary(Type keyType, Type valueType, object dictionary, object newContents) {
+                MethodInfo targetMethod = _replaceDictionaryMethod.MakeGenericMethod(keyType, valueType);
+                targetMethod.Invoke(null, new object[] { dictionary, newContents });
             }
 
-            // if there were entries in the list, replace the collection
-            MethodInfo clearMethod = typeof(ICollection<>).MakeGenericType(kvpType).GetMethod("Clear");
-            PropertyInfo itemProperty = typeof(IDictionary<,>).MakeGenericType(keyType, valueType).GetProperty("Item");
-
-            object dictionary = bindingContext.Model;
-            clearMethod.Invoke(dictionary, null /* parameters */);
-            foreach (var convertedValue in convertedValues) {
-                itemProperty.SetValue(dictionary, convertedValue.Value, new object[] { convertedValue.Key });
+            private static void ReplaceDictionaryImpl<TKey, TValue>(IDictionary<TKey, TValue> dictionary, IEnumerable<KeyValuePair<object, object>> newContents) {
+                dictionary.Clear();
+                foreach (var item in newContents) {
+                    // if the item was not a T, some conversion failed. the error message will be propagated,
+                    // but in the meanwhile we need to make a placeholder element in the dictionary.
+                    TKey castKey = (TKey)item.Key; // this cast shouldn't fail
+                    TValue castValue = (item.Value is TValue) ? (TValue)item.Value : default(TValue);
+                    dictionary[castKey] = castValue;
+                }
             }
-            return new ModelBinderResult(dictionary);
+
         }
 
     }

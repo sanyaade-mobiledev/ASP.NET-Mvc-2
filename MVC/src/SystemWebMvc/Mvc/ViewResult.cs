@@ -20,7 +20,7 @@
         }
 
         protected override ViewEngineResult FindView(ControllerContext context) {
-            ViewEngineResult result = ViewEngine.FindView(context, ViewName, MasterName);
+            ViewEngineResult result = ViewEngineCollection.FindView(context, ViewName, MasterName);
             if (result.View != null) {
                 return result;
             }

@@ -1,9 +1,9 @@
 ﻿namespace System.Web.Mvc {
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
+    using System.IO;
     using System.Security.Principal;
     using System.Text;
     using System.Web;
@@ -15,6 +15,7 @@
     public abstract class Controller : ControllerBase, IActionFilter, IAuthorizationFilter, IDisposable, IExceptionFilter, IResultFilter {
 
         private IActionInvoker _actionInvoker;
+        private ModelBinderDictionary _binders;
         private RouteCollection _routeCollection;
         private ITempDataProvider _tempDataProvider;
 
@@ -27,6 +28,20 @@
             }
             set {
                 _actionInvoker = value;
+            }
+        }
+
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
+            Justification = "Property is settable so that the dictionary can be provided for unit testing purposes.")]
+        protected internal ModelBinderDictionary Binders {
+            get {
+                if (_binders == null) {
+                    _binders = ModelBinders.Binders;
+                }
+                return _binders;
+            }
+            set {
+                _binders = value;
             }
         }
 
@@ -156,9 +171,37 @@
             }
         }
 
+        protected internal FileContentResult File(byte[] fileContents, string contentType) {
+            return File(fileContents, contentType, null /* fileDownloadName */);
+        }
+
+        protected internal virtual FileContentResult File(byte[] fileContents, string contentType, string fileDownloadName) {
+            return new FileContentResult(fileContents, contentType) { FileDownloadName = fileDownloadName };
+        }
+
+        protected internal FileStreamResult File(Stream fileStream, string contentType) {
+            return File(fileStream, contentType, null /* fileDownloadName */);
+        }
+
+        protected internal virtual FileStreamResult File(Stream fileStream, string contentType, string fileDownloadName) {
+            return new FileStreamResult(fileStream, contentType) { FileDownloadName = fileDownloadName };
+        }
+
+        protected internal FilePathResult File(string fileName, string contentType) {
+            return File(fileName, contentType, null /* fileDownloadName */);
+        }
+
+        protected internal virtual FilePathResult File(string fileName, string contentType, string fileDownloadName) {
+            return new FilePathResult(fileName, contentType) { FileDownloadName = fileDownloadName };
+        }
+
         protected virtual void HandleUnknownAction(string actionName) {
             throw new HttpException(404, String.Format(CultureInfo.CurrentUICulture,
                 MvcResources.Controller_UnknownAction, actionName, GetType().FullName));
+        }
+
+        protected internal virtual JavaScriptResult JavaScript(string script) {
+            return new JavaScriptResult { Script = script };
         }
 
         protected internal JsonResult Json(object data) {
@@ -239,66 +282,53 @@
             return RedirectToAction(actionName, (RouteValueDictionary)null);
         }
 
-        protected internal RedirectToRouteResult RedirectToAction(string actionName, object values) {
-            return RedirectToAction(actionName, new RouteValueDictionary(values));
+        protected internal RedirectToRouteResult RedirectToAction(string actionName, object routeValues) {
+            return RedirectToAction(actionName, new RouteValueDictionary(routeValues));
         }
 
-        protected internal RedirectToRouteResult RedirectToAction(string actionName, RouteValueDictionary values) {
-            return RedirectToAction(actionName, null /* controllerName */, values);
+        protected internal RedirectToRouteResult RedirectToAction(string actionName, RouteValueDictionary routeValues) {
+            return RedirectToAction(actionName, null /* controllerName */, routeValues);
         }
 
         protected internal RedirectToRouteResult RedirectToAction(string actionName, string controllerName) {
             return RedirectToAction(actionName, controllerName, (RouteValueDictionary)null);
         }
 
-        protected internal RedirectToRouteResult RedirectToAction(string actionName, string controllerName, object values) {
-            return RedirectToAction(actionName, controllerName, new RouteValueDictionary(values));
+        protected internal RedirectToRouteResult RedirectToAction(string actionName, string controllerName, object routeValues) {
+            return RedirectToAction(actionName, controllerName, new RouteValueDictionary(routeValues));
         }
 
-        protected internal virtual RedirectToRouteResult RedirectToAction(string actionName, string controllerName, RouteValueDictionary values) {
-            if (String.IsNullOrEmpty(actionName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
+        protected internal virtual RedirectToRouteResult RedirectToAction(string actionName, string controllerName, RouteValueDictionary routeValues) {
+            RouteValueDictionary mergedRouteValues;
+
+            if (RouteData == null) {
+                mergedRouteValues = RouteValuesHelpers.MergeRouteValues(actionName, controllerName, null, routeValues);
+            }
+            else {
+                mergedRouteValues = RouteValuesHelpers.MergeRouteValues(actionName, controllerName, RouteData.Values, routeValues);
             }
 
-            RouteValueDictionary newDict = new RouteValueDictionary();
-
-            newDict["action"] = actionName;
-            if (!String.IsNullOrEmpty(controllerName)) {
-                newDict["controller"] = controllerName;
-            }
-
-            if (!newDict.ContainsKey("controller") && RouteData != null && RouteData.Values.ContainsKey("controller")) {
-                newDict["controller"] = RouteData.Values["controller"];
-            }
-
-            if (values != null) {
-                foreach (var entry in values) {
-                    newDict[entry.Key] = entry.Value;
-                }
-            }
-
-            return new RedirectToRouteResult(newDict);
+            return new RedirectToRouteResult(mergedRouteValues);
         }
 
-        protected internal RedirectToRouteResult RedirectToRoute(object values) {
-            return RedirectToRoute(new RouteValueDictionary(values));
+        protected internal RedirectToRouteResult RedirectToRoute(object routeValues) {
+            return RedirectToRoute(new RouteValueDictionary(routeValues));
         }
 
-        protected internal RedirectToRouteResult RedirectToRoute(RouteValueDictionary values) {
-            return RedirectToRoute(null /* routeName */, values);
+        protected internal RedirectToRouteResult RedirectToRoute(RouteValueDictionary routeValues) {
+            return RedirectToRoute(null /* routeName */, routeValues);
         }
 
         protected internal RedirectToRouteResult RedirectToRoute(string routeName) {
             return RedirectToRoute(routeName, (RouteValueDictionary)null);
         }
 
-        protected internal RedirectToRouteResult RedirectToRoute(string routeName, object values) {
-            return RedirectToRoute(routeName, new RouteValueDictionary(values));
+        protected internal RedirectToRouteResult RedirectToRoute(string routeName, object routeValues) {
+            return RedirectToRoute(routeName, new RouteValueDictionary(routeValues));
         }
 
-        protected internal virtual RedirectToRouteResult RedirectToRoute(string routeName, RouteValueDictionary values) {
-            RouteValueDictionary newDict = (values != null) ? new RouteValueDictionary(values) : new RouteValueDictionary();
-            return new RedirectToRouteResult(routeName, newDict);
+        protected internal virtual RedirectToRouteResult RedirectToRoute(string routeName, RouteValueDictionary routeValues) {
+            return new RedirectToRouteResult(routeName, RouteValuesHelpers.GetRouteValues(routeValues));
         }
 
         protected internal bool TryUpdateModel<TModel>(TModel model) where TModel : class {
@@ -321,23 +351,23 @@
             return TryUpdateModel(model, prefix, includeProperties, excludeProperties, ValueProvider);
         }
 
-        protected internal bool TryUpdateModel<TModel>(TModel model, IValueProvider valueProvider) where TModel : class {
+        protected internal bool TryUpdateModel<TModel>(TModel model, IDictionary<string, ValueProviderResult> valueProvider) where TModel : class {
             return TryUpdateModel(model, null, null, null, valueProvider);
         }
 
-        protected internal bool TryUpdateModel<TModel>(TModel model, string prefix, IValueProvider valueProvider) where TModel : class {
+        protected internal bool TryUpdateModel<TModel>(TModel model, string prefix, IDictionary<string, ValueProviderResult> valueProvider) where TModel : class {
             return TryUpdateModel(model, prefix, null, null, valueProvider);
         }
 
-        protected internal bool TryUpdateModel<TModel>(TModel model, string[] includeProperties, IValueProvider valueProvider) where TModel : class {
+        protected internal bool TryUpdateModel<TModel>(TModel model, string[] includeProperties, IDictionary<string, ValueProviderResult> valueProvider) where TModel : class {
             return TryUpdateModel(model, null, includeProperties, null, valueProvider);
         }
 
-        protected internal bool TryUpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, IValueProvider valueProvider) where TModel : class {
+        protected internal bool TryUpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, IDictionary<string, ValueProviderResult> valueProvider) where TModel : class {
             return TryUpdateModel(model, prefix, includeProperties, null, valueProvider);
         }
 
-        protected internal bool TryUpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, string[] excludeProperties, IValueProvider valueProvider) where TModel : class {
+        protected internal bool TryUpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, string[] excludeProperties, IDictionary<string, ValueProviderResult> valueProvider) where TModel : class {
             if (model == null) {
                 throw new ArgumentNullException("model");
             }
@@ -346,10 +376,17 @@
             }
 
             Predicate<string> propertyFilter = propertyName => BindAttribute.IsPropertyAllowed(propertyName, includeProperties, excludeProperties);
-            IModelBinder binder = ModelBinders.GetBinder(typeof(TModel));
+            IModelBinder binder = Binders.GetBinder(typeof(TModel));
 
-            ModelBindingContext bindingContext = new ModelBindingContext(ControllerContext, valueProvider, typeof(TModel), prefix, () => model, ModelState, propertyFilter);
-            binder.BindModel(bindingContext);
+            ModelBindingContext bindingContext = new ModelBindingContext() {
+                Model = model,
+                ModelName = prefix,
+                ModelState = ModelState,
+                ModelType = typeof(TModel),
+                PropertyFilter = propertyFilter,
+                ValueProvider = valueProvider
+            };
+            binder.BindModel(ControllerContext, bindingContext);
             return ModelState.IsValid;
         }
 
@@ -373,23 +410,23 @@
             UpdateModel(model, prefix, includeProperties, excludeProperties, ValueProvider);
         }
 
-        protected internal void UpdateModel<TModel>(TModel model, IValueProvider valueProvider) where TModel : class {
+        protected internal void UpdateModel<TModel>(TModel model, IDictionary<string, ValueProviderResult> valueProvider) where TModel : class {
             UpdateModel(model, null, null, null, valueProvider);
         }
 
-        protected internal void UpdateModel<TModel>(TModel model, string prefix, IValueProvider valueProvider) where TModel : class {
+        protected internal void UpdateModel<TModel>(TModel model, string prefix, IDictionary<string, ValueProviderResult> valueProvider) where TModel : class {
             UpdateModel(model, prefix, null, null, valueProvider);
         }
 
-        protected internal void UpdateModel<TModel>(TModel model, string[] includeProperties, IValueProvider valueProvider) where TModel : class {
+        protected internal void UpdateModel<TModel>(TModel model, string[] includeProperties, IDictionary<string, ValueProviderResult> valueProvider) where TModel : class {
             UpdateModel(model, null, includeProperties, null, valueProvider);
         }
 
-        protected internal void UpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, IValueProvider valueProvider) where TModel : class {
+        protected internal void UpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, IDictionary<string, ValueProviderResult> valueProvider) where TModel : class {
             UpdateModel(model, prefix, includeProperties, null, valueProvider);
         }
 
-        protected internal void UpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, string[] excludeProperties, IValueProvider valueProvider) where TModel : class {
+        protected internal void UpdateModel<TModel>(TModel model, string prefix, string[] includeProperties, string[] excludeProperties, IDictionary<string, ValueProviderResult> valueProvider) where TModel : class {
             bool success = TryUpdateModel(model, prefix, includeProperties, excludeProperties, valueProvider);
             if (!success) {
                 string message = String.Format(CultureInfo.CurrentUICulture, MvcResources.Controller_UpdateModel_UpdateUnsuccessful,

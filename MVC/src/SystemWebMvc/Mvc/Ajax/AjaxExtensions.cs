@@ -4,6 +4,7 @@
     using System.ComponentModel;
     using System.Globalization;
     using System.Web;
+    using System.Web.Mvc;
     using System.Web.Mvc.Html;
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
@@ -13,102 +14,78 @@
         private const string LinkOnClickFormat = "Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), {0});";
         private const string FormOnSubmitFormat = "Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), {0});";
 
-        public static bool IsMvcAjaxRequest(this HttpRequestBase request) {
-            if (request == null) {
-                throw new ArgumentNullException("request");
-            }
-
-            return request["__MVCASYNCPOST"] == "true";
-        }
-
         public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, AjaxOptions ajaxOptions) {
             return ActionLink(ajaxHelper, linkText, actionName, (string)null /* controllerName */, ajaxOptions);
         }
 
-        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, object values, AjaxOptions ajaxOptions) {
-            return ActionLink(ajaxHelper, linkText, actionName, (string)null /* controllerName */, values, ajaxOptions);
+        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, object routeValues, AjaxOptions ajaxOptions) {
+            return ActionLink(ajaxHelper, linkText, actionName, (string)null /* controllerName */, routeValues, ajaxOptions);
         }
 
-        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, object values, AjaxOptions ajaxOptions, object htmlAttributes) {
-            return ActionLink(ajaxHelper, linkText, actionName, (string)null /* controllerName */, values, ajaxOptions, htmlAttributes);
+        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, object routeValues, AjaxOptions ajaxOptions, object htmlAttributes) {
+            return ActionLink(ajaxHelper, linkText, actionName, (string)null /* controllerName */, routeValues, ajaxOptions, htmlAttributes);
         }
 
-        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, RouteValueDictionary values, AjaxOptions ajaxOptions) {
-            return ActionLink(ajaxHelper, linkText, actionName, (string)null /* controllerName */, values, ajaxOptions);
+        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions) {
+            return ActionLink(ajaxHelper, linkText, actionName, (string)null /* controllerName */, routeValues, ajaxOptions);
         }
 
-        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, RouteValueDictionary values, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
-            return ActionLink(ajaxHelper, linkText, actionName, (string)null /* controllerName */, values, ajaxOptions, htmlAttributes);
+        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
+            return ActionLink(ajaxHelper, linkText, actionName, (string)null /* controllerName */, routeValues, ajaxOptions, htmlAttributes);
         }
 
         public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, AjaxOptions ajaxOptions) {
             return ActionLink(ajaxHelper, linkText, actionName, controllerName, null /* values */, ajaxOptions, null /* htmlAttributes */);
         }
 
-        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, object values, AjaxOptions ajaxOptions) {
-            return ActionLink(ajaxHelper, linkText, actionName, controllerName, values, ajaxOptions, null /* htmlAttributes */);
+        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, object routeValues, AjaxOptions ajaxOptions) {
+            return ActionLink(ajaxHelper, linkText, actionName, controllerName, routeValues, ajaxOptions, null /* htmlAttributes */);
         }
 
-        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, object values, AjaxOptions ajaxOptions, object htmlAttributes) {
-            RouteValueDictionary newValues = new RouteValueDictionary(values);
+        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, object routeValues, AjaxOptions ajaxOptions, object htmlAttributes) {
+            RouteValueDictionary newValues = new RouteValueDictionary(routeValues);
             Dictionary<string, object> newAttributes = ObjectToCaseSensitiveDictionary(htmlAttributes);
             return ActionLink(ajaxHelper, linkText, actionName, controllerName, newValues, ajaxOptions, newAttributes);
         }
 
-        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, RouteValueDictionary values, AjaxOptions ajaxOptions) {
-            return ActionLink(ajaxHelper, linkText, actionName, controllerName, values, ajaxOptions, null /* htmlAttributes */);
+        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions) {
+            return ActionLink(ajaxHelper, linkText, actionName, controllerName, routeValues, ajaxOptions, null /* htmlAttributes */);
         }
 
-        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, RouteValueDictionary values, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
+        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
             if (String.IsNullOrEmpty(linkText)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "linkText");
             }
-            if (String.IsNullOrEmpty(actionName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
-            }
-            if (ajaxOptions == null) {
-                throw new ArgumentNullException("ajaxOptions");
-            }
 
-            string targetUrl = UrlHelper.GenerateUrl(null, actionName, controllerName, values ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext);
+            string targetUrl = UrlHelper.GenerateUrl(null, actionName, controllerName, routeValues, ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext);
 
-            return GenerateLink(linkText, targetUrl, ajaxOptions, htmlAttributes);
+            return GenerateLink(linkText, targetUrl, GetAjaxOptions(ajaxOptions), htmlAttributes);
         }
 
-        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, string protocol, string hostName, string fragment, object values, AjaxOptions ajaxOptions, object htmlAttributes) {
-            RouteValueDictionary newValues = new RouteValueDictionary(values);
+        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, string protocol, string hostName, string fragment, object routeValues, AjaxOptions ajaxOptions, object htmlAttributes) {
+            RouteValueDictionary newValues = new RouteValueDictionary(routeValues);
             Dictionary<string, object> newAttributes = ObjectToCaseSensitiveDictionary(htmlAttributes);
             return ActionLink(ajaxHelper, linkText, actionName, controllerName, protocol, hostName, fragment, newValues, ajaxOptions, newAttributes);
         }
 
-        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, string protocol, string hostName, string fragment, RouteValueDictionary values, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
+        public static string ActionLink(this AjaxHelper ajaxHelper, string linkText, string actionName, string controllerName, string protocol, string hostName, string fragment, RouteValueDictionary routeValues, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
             if (String.IsNullOrEmpty(linkText)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "linkText");
             }
-            if (String.IsNullOrEmpty(actionName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
-            }
-            if (ajaxOptions == null) {
-                throw new ArgumentNullException("ajaxOptions");
-            }
 
-            string targetUrl = UrlHelper.GenerateUrl(null /* routeName */, actionName, controllerName, protocol, hostName, fragment, values ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext);
+            string targetUrl = UrlHelper.GenerateUrl(null /* routeName */, actionName, controllerName, protocol, hostName, fragment, routeValues, ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext);
 
             return GenerateLink(linkText, targetUrl, ajaxOptions, htmlAttributes);
         }
 
         public static MvcForm BeginForm(this AjaxHelper ajaxHelper, AjaxOptions ajaxOptions) {
-            if (ajaxOptions == null) {
-                throw new ArgumentNullException("ajaxOptions");
-            }
-
-            string actionName = ajaxHelper.ViewContext.HttpContext.Request.Url.ToString();
+            string formAction = ajaxHelper.ViewContext.HttpContext.Request.Url.ToString();
 
             TagBuilder builder = new TagBuilder("form");
 
-            builder.MergeAttribute("action", actionName);
+            builder.MergeAttribute("action", formAction);
             builder.MergeAttribute("method", "post");
-            builder.MergeAttribute("onsubmit", GenerateAjaxScript(ajaxOptions, FormOnSubmitFormat));
+            builder.MergeAttribute("onsubmit", GenerateAjaxScript(GetAjaxOptions(ajaxOptions), FormOnSubmitFormat));
 
             HttpResponseBase response = ajaxHelper.ViewContext.HttpContext.Response;
             response.Write(builder.ToString(TagRenderMode.StartTag));
@@ -119,90 +96,97 @@
             return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, ajaxOptions);
         }
 
-        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, object values, AjaxOptions ajaxOptions) {
-            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, values, ajaxOptions);
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, object routeValues, AjaxOptions ajaxOptions) {
+            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, routeValues, ajaxOptions);
         }
 
-        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, object values, AjaxOptions ajaxOptions, object htmlAttributes) {
-            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, values, ajaxOptions, htmlAttributes);
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, object routeValues, AjaxOptions ajaxOptions, object htmlAttributes) {
+            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, routeValues, ajaxOptions, htmlAttributes);
         }
 
-        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, RouteValueDictionary values, AjaxOptions ajaxOptions) {
-            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, values, ajaxOptions);
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions) {
+            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, routeValues, ajaxOptions);
         }
 
-        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, RouteValueDictionary values, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
-            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, values, ajaxOptions, htmlAttributes);
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
+            return BeginForm(ajaxHelper, actionName, (string)null /* controllerName */, routeValues, ajaxOptions, htmlAttributes);
         }
 
         public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, AjaxOptions ajaxOptions) {
             return BeginForm(ajaxHelper, actionName, controllerName, null /* values */, ajaxOptions, null /* htmlAttributes */);
         }
 
-        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, object values, AjaxOptions ajaxOptions) {
-            return BeginForm(ajaxHelper, actionName, controllerName, values, ajaxOptions, null /* htmlAttributes */);
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, object routeValues, AjaxOptions ajaxOptions) {
+            return BeginForm(ajaxHelper, actionName, controllerName, routeValues, ajaxOptions, null /* htmlAttributes */);
         }
 
-        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, object values, AjaxOptions ajaxOptions, object htmlAttributes) {
-            RouteValueDictionary newValues = new RouteValueDictionary(values);
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, object routeValues, AjaxOptions ajaxOptions, object htmlAttributes) {
+            RouteValueDictionary newValues = new RouteValueDictionary(routeValues);
             Dictionary<string, object> newAttributes = ObjectToCaseSensitiveDictionary(htmlAttributes);
             return BeginForm(ajaxHelper, actionName, controllerName, newValues, ajaxOptions, newAttributes);
         }
 
-        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, RouteValueDictionary values, AjaxOptions ajaxOptions) {
-            return BeginForm(ajaxHelper, actionName, controllerName, values, ajaxOptions, null /* htmlAttributes */);
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions) {
+            return BeginForm(ajaxHelper, actionName, controllerName, routeValues, ajaxOptions, null /* htmlAttributes */);
         }
 
-        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
-            if (String.IsNullOrEmpty(actionName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
-            }
-            if (ajaxOptions == null) {
-                throw new ArgumentNullException("ajaxOptions");
-            }
-
+        public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
             // get target URL
-            string targetUrl = UrlHelper.GenerateUrl(null, actionName, controllerName, valuesDictionary ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext);
+            string formAction = UrlHelper.GenerateUrl(null, actionName, controllerName, routeValues ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext);
+            return FormHelper(ajaxHelper, formAction, ajaxOptions, htmlAttributes);
+        }
 
+        public static MvcForm BeginRouteForm(this AjaxHelper ajaxHelper, string routeName, AjaxOptions ajaxOptions) {
+            return BeginRouteForm(ajaxHelper, routeName, null /* routeValues */, ajaxOptions, null /* htmlAttributes */);
+        }
+
+        public static MvcForm BeginRouteForm(this AjaxHelper ajaxHelper, string routeName, object routeValues, AjaxOptions ajaxOptions) {
+            return BeginRouteForm(ajaxHelper, routeName, (object)routeValues, ajaxOptions, null /* htmlAttributes */);
+        }
+
+        public static MvcForm BeginRouteForm(this AjaxHelper ajaxHelper, string routeName, object routeValues, AjaxOptions ajaxOptions, object htmlAttributes) {
+            Dictionary<string, object> newAttributes = ObjectToCaseSensitiveDictionary(htmlAttributes);
+            return BeginRouteForm(ajaxHelper, routeName, new RouteValueDictionary(routeValues), ajaxOptions, newAttributes);
+        }
+
+        public static MvcForm BeginRouteForm(this AjaxHelper ajaxHelper, string routeName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions) {
+            return BeginRouteForm(ajaxHelper, routeName, routeValues, ajaxOptions, null /* htmlAttributes */);
+        }
+
+        public static MvcForm BeginRouteForm(this AjaxHelper ajaxHelper, string routeName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
+            string formAction = UrlHelper.GenerateUrl(routeName, null /* actionName */, null /* controllerName */, routeValues ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext);
+            return FormHelper(ajaxHelper, formAction, ajaxOptions, htmlAttributes);
+        }
+
+        private static MvcForm FormHelper(this AjaxHelper ajaxHelper, string formAction, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
             TagBuilder builder = new TagBuilder("form");
-
             builder.MergeAttributes(htmlAttributes);
-            builder.MergeAttribute("action", targetUrl);
+            builder.MergeAttribute("action", formAction);
             builder.MergeAttribute("method", "post");
-            builder.MergeAttribute("onsubmit", GenerateAjaxScript(ajaxOptions, FormOnSubmitFormat));
+            builder.MergeAttribute("onsubmit", GenerateAjaxScript(GetAjaxOptions(ajaxOptions), FormOnSubmitFormat));
 
             HttpResponseBase response = ajaxHelper.ViewContext.HttpContext.Response;
             response.Write(builder.ToString(TagRenderMode.StartTag));
             return new MvcForm(response);
         }
 
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, object values, AjaxOptions ajaxOptions) {
-            return RouteLink(ajaxHelper, linkText, null /* routeName */, new RouteValueDictionary(values), ajaxOptions,
+        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, object routeValues, AjaxOptions ajaxOptions) {
+            return RouteLink(ajaxHelper, linkText, null /* routeName */, new RouteValueDictionary(routeValues), ajaxOptions,
                              new Dictionary<string, object>());
         }
 
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, object values, AjaxOptions ajaxOptions, object htmlAttributes) {
-            return RouteLink(ajaxHelper, linkText, null /* routeName */, new RouteValueDictionary(values), ajaxOptions,
+        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, object routeValues, AjaxOptions ajaxOptions, object htmlAttributes) {
+            return RouteLink(ajaxHelper, linkText, null /* routeName */, new RouteValueDictionary(routeValues), ajaxOptions,
                              ObjectToCaseSensitiveDictionary(htmlAttributes));
         }
 
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, object values, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
-            return RouteLink(ajaxHelper, linkText, null /* routeName */, new RouteValueDictionary(values), ajaxOptions,
-                             htmlAttributes);
-        }
-
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions) {
-            return RouteLink(ajaxHelper, linkText, null /* routeName */, valuesDictionary, ajaxOptions,
+        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, RouteValueDictionary routeValues, AjaxOptions ajaxOptions) {
+            return RouteLink(ajaxHelper, linkText, null /* routeName */, routeValues, ajaxOptions,
                              new Dictionary<string, object>());
         }
 
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions, object htmlAttributes) {
-            return RouteLink(ajaxHelper, linkText, null /* routeName */, valuesDictionary, ajaxOptions,
-                             ObjectToCaseSensitiveDictionary(htmlAttributes));
-        }
-
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
-            return RouteLink(ajaxHelper, linkText, null /* routeName */, valuesDictionary, ajaxOptions, htmlAttributes);
+        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, RouteValueDictionary routeValues, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
+            return RouteLink(ajaxHelper, linkText, null /* routeName */, routeValues, ajaxOptions, htmlAttributes);
         }
 
         public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, AjaxOptions ajaxOptions) {
@@ -218,56 +202,38 @@
             return RouteLink(ajaxHelper, linkText, routeName, new RouteValueDictionary(), ajaxOptions, htmlAttributes);
         }
 
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, object values, AjaxOptions ajaxOptions) {
-            return RouteLink(ajaxHelper, linkText, routeName, new RouteValueDictionary(values), ajaxOptions,
+        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, object routeValues, AjaxOptions ajaxOptions) {
+            return RouteLink(ajaxHelper, linkText, routeName, new RouteValueDictionary(routeValues), ajaxOptions,
                              new Dictionary<string, object>());
         }
 
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, object values, AjaxOptions ajaxOptions, object htmlAttributes) {
-            return RouteLink(ajaxHelper, linkText, routeName, new RouteValueDictionary(values), ajaxOptions,
+        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, object routeValues, AjaxOptions ajaxOptions, object htmlAttributes) {
+            return RouteLink(ajaxHelper, linkText, routeName, new RouteValueDictionary(routeValues), ajaxOptions,
                              ObjectToCaseSensitiveDictionary(htmlAttributes));
         }
 
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, object values, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
-            return RouteLink(ajaxHelper, linkText, routeName, new RouteValueDictionary(values), ajaxOptions, htmlAttributes);
+        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions) {
+            return RouteLink(ajaxHelper, linkText, routeName, routeValues, ajaxOptions, new Dictionary<string, object>());
         }
 
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions) {
-            return RouteLink(ajaxHelper, linkText, routeName, valuesDictionary, ajaxOptions, new Dictionary<string, object>());
-        }
-
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions, object htmlAttributes) {
-            return RouteLink(ajaxHelper, linkText, routeName, valuesDictionary, ajaxOptions, ObjectToCaseSensitiveDictionary(htmlAttributes));
-        }
-
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
+        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
             if (String.IsNullOrEmpty(linkText)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "linkText");
             }
-            if (ajaxOptions == null) {
-                throw new ArgumentNullException("ajaxOptions");
-            }
 
-            string targetUrl = UrlHelper.GenerateUrl(routeName, null /* actionName */, null /* controllerName */, valuesDictionary ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext);
+            string targetUrl = UrlHelper.GenerateUrl(routeName, null /* actionName */, null /* controllerName */, routeValues ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext);
 
-            return GenerateLink(linkText, targetUrl, ajaxOptions, htmlAttributes);
+            return GenerateLink(linkText, targetUrl, GetAjaxOptions(ajaxOptions), htmlAttributes);
         }
 
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, string protocol, string hostName, string fragment, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions, object htmlAttributes) {
-            return RouteLink(ajaxHelper, linkText, routeName, protocol, hostName, fragment, valuesDictionary, ajaxOptions, ObjectToCaseSensitiveDictionary(htmlAttributes));
-        }
-
-        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, string protocol, string hostName, string fragment, RouteValueDictionary valuesDictionary, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
+        public static string RouteLink(this AjaxHelper ajaxHelper, string linkText, string routeName, string protocol, string hostName, string fragment, RouteValueDictionary routeValues, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
             if (String.IsNullOrEmpty(linkText)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "linkText");
             }
-            if (ajaxOptions == null) {
-                throw new ArgumentNullException("ajaxOptions");
-            }
 
-            string targetUrl = UrlHelper.GenerateUrl(routeName, null /* actionName */, null /* controllerName */, protocol, hostName, fragment, valuesDictionary ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext);
+            string targetUrl = UrlHelper.GenerateUrl(routeName, null /* actionName */, null /* controllerName */, protocol, hostName, fragment, routeValues ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext);
 
-            return GenerateLink(linkText, targetUrl, ajaxOptions, htmlAttributes);
+            return GenerateLink(linkText, targetUrl, GetAjaxOptions(ajaxOptions), htmlAttributes);
         }
 
         internal static string InsertionModeToString(InsertionMode insertionMode) {
@@ -309,6 +275,10 @@
         private static string GenerateAjaxScript(AjaxOptions ajaxOptions, string scriptFormat) {
             string optionsString = ajaxOptions.ToJavascriptString();
             return String.Format(CultureInfo.InvariantCulture, scriptFormat, optionsString);
+        }
+
+        private static AjaxOptions GetAjaxOptions(AjaxOptions ajaxOptions) {
+            return (ajaxOptions != null) ? ajaxOptions : new AjaxOptions();
         }
     }
 }

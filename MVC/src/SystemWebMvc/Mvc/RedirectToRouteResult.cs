@@ -10,13 +10,13 @@
 
         private RouteCollection _routes;
 
-        public RedirectToRouteResult(RouteValueDictionary values) :
-            this(null, values) {
+        public RedirectToRouteResult(RouteValueDictionary routeValues) :
+            this(null, routeValues) {
         }
 
-        public RedirectToRouteResult(string routeName, RouteValueDictionary values) {
+        public RedirectToRouteResult(string routeName, RouteValueDictionary routeValues) {
             RouteName = routeName ?? String.Empty;
-            Values = values ?? new RouteValueDictionary();
+            RouteValues = routeValues ?? new RouteValueDictionary();
         }
 
         public string RouteName {
@@ -24,7 +24,7 @@
             private set;
         }
 
-        public RouteValueDictionary Values {
+        public RouteValueDictionary RouteValues {
             get;
             private set;
         }
@@ -46,7 +46,7 @@
                 throw new ArgumentNullException("context");
             }
 
-            VirtualPathData vpd = Routes.GetVirtualPath(context, RouteName, Values);
+            VirtualPathData vpd = Routes.GetVirtualPath(context.RequestContext, RouteName, RouteValues);
             if (vpd == null || String.IsNullOrEmpty(vpd.VirtualPath)) {
                 throw new InvalidOperationException(MvcResources.ActionRedirectResult_NoRouteMatched);
             }

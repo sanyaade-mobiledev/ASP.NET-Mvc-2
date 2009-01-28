@@ -1,5 +1,6 @@
 ﻿namespace System.Web.Mvc {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
@@ -10,34 +11,59 @@
 
     // TODO: Unit test ModelState interaction with VDD
 
-    [SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable",
-        Justification = "This type is not meant to be serialized.")]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public class ViewDataDictionary : Dictionary<string, object> {
+    public class ViewDataDictionary : IDictionary<string, object> {
+
+        private readonly Dictionary<string, object> _innerDictionary = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
         private object _model;
-        private ViewDataEvaluator _evaluator;
+        private readonly ModelStateDictionary _modelState = new ModelStateDictionary();
 
         public ViewDataDictionary()
-            : base(StringComparer.OrdinalIgnoreCase) {
-            ModelState = new ModelStateDictionary();
-            _evaluator = new ViewDataEvaluator(this);
+            : this((object)null) {
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public ViewDataDictionary(object model)
-            : base(StringComparer.OrdinalIgnoreCase) {
+        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors",
+            Justification = "See note on SetModel() method.")]
+        public ViewDataDictionary(object model) {
             Model = model;
-            ModelState = new ModelStateDictionary();
-            _evaluator = new ViewDataEvaluator(this);
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public ViewDataDictionary(ViewDataDictionary viewDataDictionary)
-            : base(viewDataDictionary, StringComparer.OrdinalIgnoreCase) {
-            ModelState = new ModelStateDictionary(viewDataDictionary.ModelState);
-            _evaluator = new ViewDataEvaluator(this);
-            Model = viewDataDictionary.Model;
+        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors",
+            Justification = "See note on SetModel() method.")]
+        public ViewDataDictionary(ViewDataDictionary dictionary) {
+            if (dictionary == null) {
+                throw new ArgumentNullException("dictionary");
+            }
+
+            foreach (var entry in dictionary) {
+                _innerDictionary.Add(entry.Key, entry.Value);
+            }
+            foreach (var entry in dictionary.ModelState) {
+                ModelState.Add(entry.Key, entry.Value);
+            }
+            Model = dictionary.Model;
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public int Count {
+            get {
+                return _innerDictionary.Count;
+            }
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public bool IsReadOnly {
+            get {
+                return ((IDictionary<string, object>)_innerDictionary).IsReadOnly;
+            }
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public ICollection<string> Keys {
+            get {
+                return _innerDictionary.Keys;
+            }
         }
 
         public object Model {
@@ -50,25 +76,58 @@
         }
 
         public ModelStateDictionary ModelState {
-            get;
-            private set;
+            get {
+                return _modelState;
+            }
         }
 
-        protected virtual void SetModel(object value) {
-            _model = value;
-        }
-
-        // If a user tries to index into the dictionary using a ViewDataDictionary reference, we don't throw an exception if
-        // the key doesn't exist.  If he uses an IDictionary or Dictionary reference, its implementation throws.
-        public new object this[string key] {
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public object this[string key] {
             get {
                 object value;
-                TryGetValue(key, out value);
+                _innerDictionary.TryGetValue(key, out value);
                 return value;
             }
             set {
-                base[key] = value;
+                _innerDictionary[key] = value;
             }
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public ICollection<object> Values {
+            get {
+                return _innerDictionary.Values;
+            }
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public void Add(KeyValuePair<string, object> item) {
+            ((IDictionary<string, object>)_innerDictionary).Add(item);
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public void Add(string key, object value) {
+            _innerDictionary.Add(key, value);
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public void Clear() {
+            _innerDictionary.Clear();
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public bool Contains(KeyValuePair<string, object> item) {
+            return ((IDictionary<string, object>)_innerDictionary).Contains(item);
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public bool ContainsKey(string key) {
+            return _innerDictionary.ContainsKey(key);
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex) {
+            ((IDictionary<string, object>)_innerDictionary).CopyTo(array, arrayIndex);
         }
 
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Eval",
@@ -78,7 +137,7 @@
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "expression");
             }
 
-            return _evaluator.Eval(expression);
+            return ViewDataEvaluator.Eval(this, expression);
         }
 
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Eval",
@@ -98,14 +157,35 @@
             }
         }
 
-        internal sealed class ViewDataEvaluator {
-            private ViewDataDictionary _dictionary;
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator() {
+            return _innerDictionary.GetEnumerator();
+        }
 
-            public ViewDataEvaluator(ViewDataDictionary dictionary) {
-                _dictionary = dictionary;
-            }
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public bool Remove(KeyValuePair<string, object> item) {
+            return ((IDictionary<string, object>)_innerDictionary).Remove(item);
+        }
 
-            public object Eval(string expression) {
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public bool Remove(string key) {
+            return _innerDictionary.Remove(key);
+        }
+
+        // This method will execute before the derived type's instance constructor executes. Derived types must
+        // be aware of this and should plan accordingly. For example, the logic in SetModel() should be simple
+        // enough so as not to depend on the "this" pointer referencing a fully constructed object.
+        protected virtual void SetModel(object value) {
+            _model = value;
+        }
+
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public bool TryGetValue(string key, out object value) {
+            return _innerDictionary.TryGetValue(key, out value);
+        }
+
+        internal static class ViewDataEvaluator {
+            public static object Eval(ViewDataDictionary vdd, string expression) {
                 //Given an expression "foo.bar.baz" we look up the following (pseudocode):
                 //  this["foo.bar.baz.quux"]
                 //  this["foo.bar.baz"]["quux"]
@@ -115,27 +195,22 @@
                 //  this["foo"]["bar.baz"]["quux"]
                 //  this["foo"]["bar"]["baz.quux"]
                 //  this["foo"]["bar"]["baz"]["quux"]
-                object evaluated = EvalIndexerExpression(_dictionary, expression);
-                if (evaluated != null)
-                    return evaluated;
 
-                if (_dictionary.Model == null)
-                    return null;
-
-                return Eval(_dictionary.Model, expression);
+                object evaluated = EvalComplexExpression(vdd, expression);
+                return evaluated;
             }
 
-            private static object EvalIndexerExpression(object indexableObject, string expression) {
-                foreach (var tuple in GetRightToLeftExpressions(expression)) {
-                    string subExpression = tuple.Key;
-                    string postExpression = tuple.Value;
+            private static object EvalComplexExpression(object indexableObject, string expression) {
+                foreach (ExpressionPair expressionPair in GetRightToLeftExpressions(expression)) {
+                    string subExpression = expressionPair.Left;
+                    string postExpression = expressionPair.Right;
 
                     object subtarget = GetPropertyValue(indexableObject, subExpression);
                     if (subtarget != null) {
                         if (String.IsNullOrEmpty(postExpression))
                             return subtarget;
 
-                        object potential = EvalIndexerExpression(subtarget, postExpression);
+                        object potential = EvalComplexExpression(subtarget, postExpression);
                         if (potential != null) {
                             return potential;
                         }
@@ -144,8 +219,12 @@
                 return null;
             }
 
-            private static IEnumerable<KeyValuePair<string, string>> GetRightToLeftExpressions(string expression) {
-                yield return new KeyValuePair<string, string>(expression, string.Empty);
+            private static IEnumerable<ExpressionPair> GetRightToLeftExpressions(string expression) {
+                // Produces an enumeration of all the combinations of complex property names
+                // given a complex expression. See the list above for an example of the result
+                // of the enumeration.
+
+                yield return new ExpressionPair(expression, String.Empty);
 
                 int lastDot = expression.LastIndexOf('.');
 
@@ -155,7 +234,7 @@
                 while (lastDot > -1) {
                     subExpression = expression.Substring(0, lastDot);
                     postExpression = expression.Substring(lastDot + 1);
-                    yield return new KeyValuePair<string, string>(subExpression, postExpression);
+                    yield return new ExpressionPair(subExpression, postExpression);
 
                     lastDot = subExpression.LastIndexOf('.');
                 }
@@ -188,35 +267,25 @@
                 return null;
             }
 
-            //Replacement for DataBinder.Eval
-            private static object Eval(object container, string expression) {
-                if (container == null) {
-                    return null;
-                }
-
-                if (string.IsNullOrEmpty(expression)) {
-                    return null;
-                }
-
-                string[] expressionParts = expression.Split('.');
-
-                object propertyValue = container;
-                foreach (string propertyName in expressionParts) {
-                    propertyValue = GetPropertyValue(propertyValue, propertyName);
-
-                    if (propertyValue == null)
-                        break;
-                }
-
-                return propertyValue;
-            }
-
             private static object GetPropertyValue(object container, string propertyName) {
+                // This method handles one "segment" of a complex property expression
 
+                // First, we try to evaluate the property based on its indexer
                 object value = GetIndexedPropertyValue(container, propertyName);
-                if (value != null)
+                if (value != null) {
                     return value;
+                }
 
+                // If the indexer didn't return anything useful, continue...
+
+                // If the container is a ViewDataDictionary then treat its Model property
+                // as the container instead of the ViewDataDictionary itself.
+                ViewDataDictionary vdd = container as ViewDataDictionary;
+                if (vdd != null) {
+                    container = vdd.Model;
+                }
+
+                // Second, we try to use PropertyDescriptors and treat the expression as a property name
                 PropertyDescriptor descriptor = TypeDescriptor.GetProperties(container).Find(propertyName, true);
                 if (descriptor == null) {
                     return null;
@@ -224,6 +293,24 @@
 
                 return descriptor.GetValue(container);
             }
+
+            private struct ExpressionPair {
+                public readonly string Left;
+                public readonly string Right;
+
+                public ExpressionPair(string left, string right) {
+                    Left = left;
+                    Right = right;
+                }
+            }
         }
+
+        #region IEnumerable Members
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        IEnumerator IEnumerable.GetEnumerator() {
+            return ((IEnumerable)_innerDictionary).GetEnumerator();
+        }
+        #endregion
+
     }
 }

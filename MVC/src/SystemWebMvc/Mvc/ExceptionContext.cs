@@ -1,5 +1,6 @@
 ﻿namespace System.Web.Mvc {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Web;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
@@ -8,9 +9,14 @@
 
         private ActionResult _result;
 
+        // parameterless constructor used for mocking
+        public ExceptionContext() {
+        }
+
+        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors",
+            Justification = "The virtual property setters are only to support mocking frameworks, in which case this constructor shouldn't be called anyway.")]
         public ExceptionContext(ControllerContext controllerContext, Exception exception)
             : base(controllerContext) {
-
             if (exception == null) {
                 throw new ArgumentNullException("exception");
             }
@@ -18,9 +24,9 @@
             Exception = exception;
         }
 
-        public Exception Exception {
+        public virtual Exception Exception {
             get;
-            private set;
+            set;
         }
 
         public bool ExceptionHandled {
@@ -36,5 +42,6 @@
                 _result = value;
             }
         }
+
     }
 }

@@ -18,6 +18,12 @@
             }
         }
 
+        public object Model {
+            get {
+                return ViewData.Model;
+            }
+        }
+
         public TempDataDictionary TempData {
             get {
                 return ViewPage.TempData;

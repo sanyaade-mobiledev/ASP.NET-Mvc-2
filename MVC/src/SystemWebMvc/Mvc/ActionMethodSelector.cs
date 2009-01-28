@@ -29,7 +29,7 @@
             private set;
         }
 
-        private InvalidOperationException CreateAmbiguousMatchException(List<MethodInfo> ambiguousMethods, string actionName) {
+        private AmbiguousMatchException CreateAmbiguousMatchException(List<MethodInfo> ambiguousMethods, string actionName) {
             StringBuilder exceptionMessageBuilder = new StringBuilder();
             foreach (MethodInfo methodInfo in ambiguousMethods) {
                 string controllerAction = Convert.ToString(methodInfo, CultureInfo.CurrentUICulture);
@@ -39,7 +39,7 @@
             }
             string message = String.Format(CultureInfo.CurrentUICulture, MvcResources.ActionMethodSelector_AmbiguousMatch,
                 actionName, ControllerType.Name, exceptionMessageBuilder);
-            return new InvalidOperationException(message);
+            return new AmbiguousMatchException(message);
         }
 
         public MethodInfo FindActionMethod(ControllerContext controllerContext, string actionName) {

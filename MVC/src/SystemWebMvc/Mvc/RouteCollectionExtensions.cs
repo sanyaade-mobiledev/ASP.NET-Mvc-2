@@ -90,7 +90,7 @@
                 : base(url, new StopRoutingHandler()) {
             }
 
-            public override VirtualPathData GetVirtualPath(RequestContext requestContext, RouteValueDictionary values) {
+            public override VirtualPathData GetVirtualPath(RequestContext requestContext, RouteValueDictionary routeValues) {
                 // Never match during route generation. This avoids the scenario where an IgnoreRoute with
                 // fairly relaxed constraints ends up eagerly matching all generated URLs.
                 return null;

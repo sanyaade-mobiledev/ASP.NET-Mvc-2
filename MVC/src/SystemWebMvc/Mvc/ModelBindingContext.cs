@@ -1,54 +1,43 @@
 ﻿namespace System.Web.Mvc {
     using System;
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Web;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public class ModelBindingContext : ControllerContext {
+    public class ModelBindingContext {
 
-        private object _cachedModel;
-        private Func<object> _modelProvider;
+        private static readonly Predicate<string> _defaultPropertyFilter = _ => true;
+
+        private string _modelName;
         private ModelStateDictionary _modelState;
         private Predicate<string> _propertyFilter;
 
-        public ModelBindingContext(ControllerContext controllerContext, IValueProvider valueProvider, Type modelType, string modelName, Func<object> modelProvider, ModelStateDictionary modelState, Predicate<string> propertyFilter) :
-            base(controllerContext) {
-            if (valueProvider == null) {
-                throw new ArgumentNullException("valueProvider");
-            }
-            if (modelType == null) {
-                throw new ArgumentNullException("modelType");
-            }
-
-            ValueProvider = valueProvider;
-            _modelProvider = modelProvider;
-            ModelName = modelName ?? String.Empty;
-            ModelType = modelType;
-            _modelState = modelState;
-            _propertyFilter = propertyFilter;
+        public bool FallbackToEmptyPrefix {
+            get;
+            set;
         }
 
         public object Model {
-            get {
-                // we only want to call the model provider once, then cache its value
-                if (_modelProvider != null) {
-                    _cachedModel = _modelProvider();
-                    _modelProvider = null;
-                }
-                return _cachedModel;
-            }
+            get;
+            set;
         }
 
         public string ModelName {
-            get;
-            private set;
+            get {
+                if (_modelName == null) {
+                    _modelName = String.Empty;
+                }
+                return _modelName;
+            }
+            set {
+                _modelName = value;
+            }
         }
 
-        public Type ModelType {
-            get;
-            private set;
-        }
-
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
+            Justification = "The containing type is mutable.")]
         public ModelStateDictionary ModelState {
             get {
                 if (_modelState == null) {
@@ -56,15 +45,33 @@
                 }
                 return _modelState;
             }
+            set {
+                _modelState = value;
+            }
         }
 
-        public IValueProvider ValueProvider {
+        public Type ModelType {
             get;
-            private set;
+            set;
         }
 
-        public bool ShouldUpdateProperty(string propertyName) {
-            return (_propertyFilter != null) ? _propertyFilter(propertyName) : true;
+        public Predicate<string> PropertyFilter {
+            get {
+                if (_propertyFilter == null) {
+                    _propertyFilter = _defaultPropertyFilter;
+                }
+                return _propertyFilter;
+            }
+            set {
+                _propertyFilter = value;
+            }
+        }
+
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
+            Justification = "The containing type is mutable.")]
+        public IDictionary<string, ValueProviderResult> ValueProvider {
+            get;
+            set;
         }
 
     }

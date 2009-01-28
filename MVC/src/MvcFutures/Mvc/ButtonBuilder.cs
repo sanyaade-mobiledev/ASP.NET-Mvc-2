@@ -11,7 +11,7 @@
             
             buttonTag.MergeAttribute("type", "submit");
             if (!buttonTag.Attributes.ContainsKey("id") && name != null) {
-                buttonTag.MergeAttribute("id", name);
+                buttonTag.GenerateId(name);
             }
 
             if (!String.IsNullOrEmpty(name)) {
@@ -33,7 +33,7 @@
             buttonTag.MergeAttribute("type", "image");
             
             if (!buttonTag.Attributes.ContainsKey("id")) {
-                buttonTag.MergeAttribute("id", name);
+                buttonTag.GenerateId(name);
             }
 
             if (!String.IsNullOrEmpty(name)) {

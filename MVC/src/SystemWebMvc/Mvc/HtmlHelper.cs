@@ -1,17 +1,27 @@
 ﻿namespace System.Web.Mvc {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
+    using System.Text;
+    using System.Web;
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
-    using System.Text;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
+    [SuppressMessage("Microsoft.Security", "CA2112:SecuredTypesShouldNotExposeFields",
+        Justification = "Public fields for CSS names do not contain secure information.")]
     public class HtmlHelper {
-        internal const string ValidationMessageCssClassName = "field-validation-error";
-        internal const string ValidationSummaryCssClassName = "validation-summary-errors";
-        internal const string ValidationInputCssClassName = "input-validation-error";
+
+        internal const string AntiForgeryTokenFieldName = "__RequestVerificationToken";
+        private static string _idAttributeDotReplacement;
+
+        public static readonly string ValidationInputCssClassName = "input-validation-error";
+        public static readonly string ValidationMessageCssClassName = "field-validation-error";
+        public static readonly string ValidationSummaryCssClassName = "validation-summary-errors";
+
+        private AntiForgeryTokenSerializer _serializer;
 
         public HtmlHelper(ViewContext viewContext, IViewDataContainer viewDataContainer)
             : this(viewContext, viewDataContainer, RouteTable.Routes) {
@@ -32,9 +42,33 @@
             RouteCollection = routeCollection;
         }
 
+        public static string IdAttributeDotReplacement {
+            get {
+                if (String.IsNullOrEmpty(_idAttributeDotReplacement)) {
+                    _idAttributeDotReplacement = "_";
+                }
+                return _idAttributeDotReplacement;
+            }
+            set {
+                _idAttributeDotReplacement = value;
+            }
+        }
+
         public RouteCollection RouteCollection {
             get;
             private set;
+        }
+
+        internal AntiForgeryTokenSerializer Serializer {
+            get {
+                if (_serializer == null) {
+                    _serializer = new AntiForgeryTokenSerializer();
+                }
+                return _serializer;
+            }
+            set {
+                _serializer = value;
+            }
         }
 
         public ViewContext ViewContext {
@@ -53,10 +87,24 @@
             private set;
         }
 
+        public string AntiForgeryToken() {
+            return AntiForgeryToken(null /* salt */);
+        }
+
+        public string AntiForgeryToken(string salt) {
+            string formValue = GetAntiForgeryTokenAndSetCookie(salt);
+
+            TagBuilder builder = new TagBuilder("input");
+            builder.Attributes["type"] = "hidden";
+            builder.Attributes["name"] = AntiForgeryTokenFieldName;
+            builder.Attributes["value"] = formValue;
+            return builder.ToString(TagRenderMode.SelfClosing);
+        }
+
         [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic",
             Justification = "For consistency, all helpers are instance methods.")]
-        public string AttributeEncode(string html) {
-            return (!String.IsNullOrEmpty(html)) ? HttpUtility.HtmlAttributeEncode(html) : String.Empty;
+        public string AttributeEncode(string value) {
+            return (!String.IsNullOrEmpty(value)) ? HttpUtility.HtmlAttributeEncode(value) : String.Empty;
         }
 
         public string AttributeEncode(object value) {
@@ -65,8 +113,8 @@
 
         [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic",
             Justification = "For consistency, all helpers are instance methods.")]
-        public string Encode(string html) {
-            return (!String.IsNullOrEmpty(html)) ? HttpUtility.HtmlEncode(html) : String.Empty;
+        public string Encode(string value) {
+            return (!String.IsNullOrEmpty(value)) ? HttpUtility.HtmlEncode(value) : String.Empty;
         }
 
         public string Encode(object value) {
@@ -81,8 +129,8 @@
             return Convert.ToBoolean(ViewData.Eval(key), CultureInfo.InvariantCulture);
         }
 
-        internal static IView FindPartialView(IViewEngine engine, ViewContext viewContext, string partialViewName) {
-            ViewEngineResult result = engine.FindPartialView(viewContext, partialViewName);
+        internal static IView FindPartialView(ViewContext viewContext, string partialViewName, ViewEngineCollection viewEngineCollection) {
+            ViewEngineResult result = viewEngineCollection.FindPartialView(viewContext, partialViewName);
             if (result.View != null) {
                 return result.View;
             }
@@ -97,8 +145,41 @@
                 MvcResources.Common_PartialViewNotFound, partialViewName, locationsText));
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic",
-            Justification = "For consistency, all helpers are instance methods.")]
+        public static string GenerateLink(RequestContext requestContext, RouteCollection routeCollection, string linkText, string routeName, string actionName, string controllerName, RouteValueDictionary routeValues, IDictionary<string, object> htmlAttributes) {
+            return GenerateLink(requestContext, routeCollection, linkText, routeName, actionName, controllerName, null/* protocol */, null/* hostName */, null/* fragment */, routeValues, htmlAttributes);
+        }
+
+        public static string GenerateLink(RequestContext requestContext, RouteCollection routeCollection, string linkText, string routeName, string actionName, string controllerName, string protocol, string hostName, string fragment, RouteValueDictionary routeValues, IDictionary<string, object> htmlAttributes) {
+            string url = UrlHelper.GenerateUrl(routeName, actionName, controllerName, protocol, hostName, fragment, routeValues, routeCollection, requestContext);
+            TagBuilder tagBuilder = new TagBuilder("a") {
+                InnerHtml = (!String.IsNullOrEmpty(linkText)) ? HttpUtility.HtmlEncode(linkText) : String.Empty
+            };
+            tagBuilder.MergeAttributes(htmlAttributes);
+            tagBuilder.MergeAttribute("href", url);
+            return tagBuilder.ToString(TagRenderMode.Normal);
+        }
+
+        private string GetAntiForgeryTokenAndSetCookie(string salt) {
+            AntiForgeryToken cookieToken;
+            HttpCookie cookie = ViewContext.HttpContext.Request.Cookies[AntiForgeryTokenFieldName];
+            if (cookie != null) {
+                cookieToken = Serializer.Deserialize(cookie.Value);
+            }
+            else {
+                cookieToken = System.Web.Mvc.AntiForgeryToken.NewToken();
+                string cookieValue = Serializer.Serialize(cookieToken);
+                HttpCookie newCookie = new HttpCookie(AntiForgeryTokenFieldName, cookieValue) { HttpOnly = true };
+                ViewContext.HttpContext.Response.Cookies.Set(newCookie);
+            }
+
+            AntiForgeryToken formToken = new AntiForgeryToken(cookieToken) {
+                CreationDate = DateTime.Now,
+                Salt = salt
+            };
+            string formValue = Serializer.Serialize(formToken);
+            return formValue;
+        }
+
         public static string GetFormMethodString(FormMethod method) {
             switch (method) {
                 case FormMethod.Get:
@@ -110,21 +191,57 @@
             }
         }
 
-        internal string GetModelAttemptedValue(string key) {
+        public static string GetInputTypeString(InputType inputType) {
+            switch (inputType) {
+                case InputType.CheckBox:
+                    return "checkbox";
+                case InputType.Hidden:
+                    return "hidden";
+                case InputType.Password:
+                    return "password";
+                case InputType.Radio:
+                    return "radio";
+                case InputType.Text:
+                    return "text";
+                default:
+                    return "text";
+            }
+        }
+
+        internal object GetModelStateValue(string key, Type destinationType) {
             ModelState modelState;
             if (ViewData.ModelState.TryGetValue(key, out modelState)) {
-                return modelState.AttemptedValue;
+                return modelState.Value.ConvertTo(destinationType, null /* culture */);
             }
             return null;
         }
 
-        internal virtual void RenderPartialInternal(string partialViewName, ViewDataDictionary viewData, IViewEngine engine) {
+        internal virtual void RenderPartialInternal(string partialViewName, ViewDataDictionary viewData, object model, ViewEngineCollection viewEngineCollection) {
             if (String.IsNullOrEmpty(partialViewName)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "partialViewName");
             }
 
-            ViewContext newViewContext = new ViewContext(ViewContext, ViewContext.View, viewData, ViewContext.TempData);
-            IView view = FindPartialView(engine, newViewContext, partialViewName);
+            ViewDataDictionary newViewData = null;
+
+            if (model == null) {
+                if (viewData == null) {
+                    newViewData = new ViewDataDictionary(ViewData);
+                }
+                else {
+                    newViewData = new ViewDataDictionary(viewData);
+                }
+            }
+            else {
+                if (viewData == null) {
+                    newViewData = new ViewDataDictionary(model);
+                }
+                else {
+                    newViewData = new ViewDataDictionary(viewData) { Model = model };
+                }
+            }
+
+            ViewContext newViewContext = new ViewContext(ViewContext, ViewContext.View, newViewData, ViewContext.TempData);
+            IView view = FindPartialView(newViewContext, partialViewName, viewEngineCollection);
             view.Render(newViewContext, ViewContext.HttpContext.Response.Output);
         }
     }

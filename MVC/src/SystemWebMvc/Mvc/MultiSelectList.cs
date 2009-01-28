@@ -7,11 +7,12 @@
     using System.Linq;
     using System.Web.UI;
 
+    [SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
     [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Multi",
         Justification = "Common shorthand for 'multiple'.")]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    public class MultiSelectList {
+    public class MultiSelectList : IEnumerable<SelectListItem> {
 
         public MultiSelectList(IEnumerable items)
             : this(items, null /* selectedValues */) {
@@ -56,15 +57,20 @@
             private set;
         }
 
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        public virtual IEnumerator<SelectListItem> GetEnumerator() {
+            return GetListItems().GetEnumerator();
+        }
+
         [SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate",
             Justification = "Operation performs conversions and returns a unique instance on each call.")]
-        public virtual IList<ListItem> GetListItems() {
+        internal IList<SelectListItem> GetListItems() {
             return (!String.IsNullOrEmpty(DataValueField)) ?
                 GetListItemsWithValueField() :
                 GetListItemsWithoutValueField();
         }
 
-        private IList<ListItem> GetListItemsWithValueField() {
+        private IList<SelectListItem> GetListItemsWithValueField() {
             HashSet<string> selectedValues = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             if (SelectedValues != null) {
                 selectedValues.UnionWith(from object value in SelectedValues select Convert.ToString(value, CultureInfo.CurrentCulture));
@@ -72,7 +78,7 @@
 
             var listItems = from object item in Items
                             let value = Eval(item, DataValueField)
-                            select new ListItem {
+                            select new SelectListItem {
                                 Value = value,
                                 Text = Eval(item, DataTextField),
                                 Selected = selectedValues.Contains(value)
@@ -80,14 +86,14 @@
             return listItems.ToList();
         }
 
-        private IList<ListItem> GetListItemsWithoutValueField() {
+        private IList<SelectListItem> GetListItemsWithoutValueField() {
             HashSet<object> selectedValues = new HashSet<object>();
             if (SelectedValues != null) {
                 selectedValues.UnionWith(SelectedValues.Cast<object>());
             }
 
             var listItems = from object item in Items
-                            select new ListItem {
+                            select new SelectListItem {
                                 Text = Eval(item, DataTextField),
                                 Selected = selectedValues.Contains(item)
                             };
@@ -101,5 +107,12 @@
             }
             return Convert.ToString(value, CultureInfo.CurrentCulture);
         }
+
+        #region IEnumerable Members
+        [SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
+        }
+        #endregion
     }
 }

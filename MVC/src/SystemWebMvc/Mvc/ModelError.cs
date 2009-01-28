@@ -5,23 +5,24 @@
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
+    [Serializable]
     public class ModelError {
 
-        public ModelError(Exception exception) {
+        public ModelError(Exception exception)
+            : this(exception, null /* errorMessage */) {
+        }
+
+        public ModelError(Exception exception, string errorMessage)
+            : this(errorMessage) {
             if (exception == null) {
                 throw new ArgumentNullException("exception");
             }
 
             Exception = exception;
-            ErrorMessage = exception.Message;
         }
 
         public ModelError(string errorMessage) {
-            if (String.IsNullOrEmpty(errorMessage)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "errorMessage");
-            }
-
-            ErrorMessage = errorMessage;
+            ErrorMessage = errorMessage ?? String.Empty;
         }
 
         public Exception Exception {

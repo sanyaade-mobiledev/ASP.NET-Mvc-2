@@ -138,15 +138,6 @@
   <data name="Common_ViewNotFound" xml:space="preserve">
     <value>The view '{0}' or its master could not be found. The following locations were searched:{1}</value>
   </data>
-  <data name="ControllerActionInvoker_MultipleConverterAttributes" xml:space="preserve">
-    <value>The parameter '{0}' on method '{1}' contains multiple attributes inheriting from CustomModelBinderAttribute.</value>
-  </data>
-  <data name="ControllerActionInvoker_ParameterDictionaryContainsInvalidEntry" xml:space="preserve">
-    <value>The parameters dictionary does not contain a valid value of type '{0}' for parameter '{1}' which is required for method '{2}' in '{3}'. To make a parameter optional its type should either be a reference type or a Nullable type.</value>
-  </data>
-  <data name="ControllerActionInvoker_ParameterDictionaryCountIncorrect" xml:space="preserve">
-    <value>The parameter dictionary contains an incorrect number of entries for method '{0}'.</value>
-  </data>
   <data name="ControllerBuilder_ErrorCreatingControllerFactory" xml:space="preserve">
     <value>There was an error creating the IControllerFactory '{0}'. Check that it has a public parameterless constructor.</value>
   </data>
@@ -155,12 +146,6 @@
   </data>
   <data name="ControllerBuilder_MissingIControllerFactory" xml:space="preserve">
     <value>The controller factory type '{0}' must implement the IControllerFactory interface.</value>
-  </data>
-  <data name="Controller_ActionCannotBeGeneric" xml:space="preserve">
-    <value>Cannot call action method '{0}' since it is a generic method.</value>
-  </data>
-  <data name="Controller_ReferenceParametersNotSupported" xml:space="preserve">
-    <value>Cannot set value for parameter '{0}' in action '{1}'. Parameters passed by reference are not supported in action methods.</value>
   </data>
   <data name="Controller_UnknownAction" xml:space="preserve">
     <value>A public action method '{0}' could not be found on controller '{1}'.</value>
@@ -177,10 +162,10 @@
   <data name="DefaultControllerFactory_TypeDoesNotSubclassControllerBase" xml:space="preserve">
     <value>The controller type '{0}' must implement IController.</value>
   </data>
-  <data name="DefaultModelBinder_ConversionThrew" xml:space="preserve">
+  <data name="ValueProviderResult_ConversionThrew" xml:space="preserve">
     <value>The parameter conversion from type '{0}' to type '{1}' failed. See the inner exception for more information.</value>
   </data>
-  <data name="DefaultModelBinder_NoConverterExists" xml:space="preserve">
+  <data name="ValueProviderResult_NoConverterExists" xml:space="preserve">
     <value>The parameter conversion from type '{0}' to type '{1}' failed because no TypeConverter can convert between these types.</value>
   </data>
   <data name="ExceptionViewAttribute_NonExceptionType" xml:space="preserve">
@@ -188,9 +173,6 @@
   </data>
   <data name="FilterAttribute_OrderOutOfRange" xml:space="preserve">
     <value>Order must be greater than or equal to -1.</value>
-  </data>
-  <data name="Helper_DictionaryAlreadyContainsKey" xml:space="preserve">
-    <value>The provided object or dictionary already contains a definition for '{0}'.</value>
   </data>
   <data name="HtmlHelper_MissingSelectData" xml:space="preserve">
     <value>There is no ViewData item with the key '{0}' of type '{1}'.</value>
@@ -207,11 +189,11 @@
   <data name="ModelBinderAttribute_TypeNotIModelBinder" xml:space="preserve">
     <value>The type '{0}' does not implement the IModelBinder interface.</value>
   </data>
-  <data name="ModelBindersInfo_MultipleAttributes" xml:space="preserve">
+  <data name="ModelBinderDictionary_MultipleAttributes" xml:space="preserve">
     <value>The type '{0}' contains multiple attributes inheriting from CustomModelBinderAttribute.</value>
   </data>
   <data name="SessionStateTempDataProvider_SessionStateDisabled" xml:space="preserve">
-    <value>The provider requires SessionState to be enabled.</value>
+    <value>The SessionStateTempDataProvider requires SessionState to be enabled.</value>
   </data>
   <data name="ViewDataDictionary_WrongTModelType" xml:space="preserve">
     <value>The model item passed into the dictionary is of type '{0}' but this dictionary requires a model item of type '{1}'.</value>
@@ -245,5 +227,32 @@
   </data>
   <data name="DefaultModelBinder_ValueRequired" xml:space="preserve">
     <value>A value is required.</value>
+  </data>
+  <data name="ReflectedActionDescriptor_ParameterCannotBeNull" xml:space="preserve">
+    <value>The parameters dictionary contains a null entry for parameter '{0}' of non-nullable type '{1}' for method '{2}' in '{3}'. To make a parameter optional its type should be either a reference type or a Nullable type.</value>
+  </data>
+  <data name="ReflectedActionDescriptor_ParameterNotInDictionary" xml:space="preserve">
+    <value>The parameters dictionary does not contain an entry for parameter '{0}' of type '{1}' for method '{2}' in '{3}'. The dictionary must contain an entry for each parameter, even parameters with null values.</value>
+  </data>
+  <data name="ReflectedActionDescriptor_ParameterValueHasWrongType" xml:space="preserve">
+    <value>The parameters dictionary contains an invalid entry for parameter '{0}' for method '{1}' in '{2}'. The dictionary contains a value of type '{3}', but the parameter requires a value of type '{4}'.</value>
+  </data>
+  <data name="ReflectedParameterBindingInfo_MultipleConverterAttributes" xml:space="preserve">
+    <value>The parameter '{0}' on method '{1}' contains multiple attributes inheriting from CustomModelBinderAttribute.</value>
+  </data>
+  <data name="ReflectedActionDescriptor_CannotCallInstanceMethodOnNonControllerType" xml:space="preserve">
+    <value>Cannot create a descriptor for instance method '{0}' on type '{1}' since the type does not subclass ControllerBase.</value>
+  </data>
+  <data name="ReflectedActionDescriptor_CannotCallMethodsWithOutOrRefParameters" xml:space="preserve">
+    <value>Cannot call action method '{0}' on controller '{1}' since the parameter '{2}' is passed by reference.</value>
+  </data>
+  <data name="ReflectedActionDescriptor_CannotCallOpenGenericMethods" xml:space="preserve">
+    <value>Cannot call action method '{0}' on controller '{1}' since it is a generic method.</value>
+  </data>
+  <data name="DefaultViewLocationCache_NegativeTimeSpan" xml:space="preserve">
+    <value>The total number of ticks for the TimeSpan must be greater than 0.</value>
+  </data>
+  <data name="AntiForgeryToken_ValidationFailed" xml:space="preserve">
+    <value>A required anti-forgery token was not supplied or was invalid.</value>
   </data>
 </root>

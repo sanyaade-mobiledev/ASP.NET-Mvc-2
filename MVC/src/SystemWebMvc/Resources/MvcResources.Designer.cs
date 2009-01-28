@@ -88,6 +88,15 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A required anti-forgery token was not supplied or was invalid..
+        /// </summary>
+        internal static string AntiForgeryToken_ValidationFailed {
+            get {
+                return ResourceManager.GetString("AntiForgeryToken_ValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The value &apos;{0}&apos; is outside the valid range of the enumeration type &apos;{1}&apos;..
         /// </summary>
         internal static string Common_InvalidEnumValue {
@@ -142,24 +151,6 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot call action method &apos;{0}&apos; since it is a generic method..
-        /// </summary>
-        internal static string Controller_ActionCannotBeGeneric {
-            get {
-                return ResourceManager.GetString("Controller_ActionCannotBeGeneric", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot set value for parameter &apos;{0}&apos; in action &apos;{1}&apos;. Parameters passed by reference are not supported in action methods..
-        /// </summary>
-        internal static string Controller_ReferenceParametersNotSupported {
-            get {
-                return ResourceManager.GetString("Controller_ReferenceParametersNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A public action method &apos;{0}&apos; could not be found on controller &apos;{1}&apos;..
         /// </summary>
         internal static string Controller_UnknownAction {
@@ -174,33 +165,6 @@ namespace System.Web.Mvc.Resources {
         internal static string Controller_UpdateModel_UpdateUnsuccessful {
             get {
                 return ResourceManager.GetString("Controller_UpdateModel_UpdateUnsuccessful", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The parameter &apos;{0}&apos; on method &apos;{1}&apos; contains multiple attributes inheriting from CustomModelBinderAttribute..
-        /// </summary>
-        internal static string ControllerActionInvoker_MultipleConverterAttributes {
-            get {
-                return ResourceManager.GetString("ControllerActionInvoker_MultipleConverterAttributes", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The parameters dictionary does not contain a valid value of type &apos;{0}&apos; for parameter &apos;{1}&apos; which is required for method &apos;{2}&apos; in &apos;{3}&apos;. To make a parameter optional its type should either be a reference type or a Nullable type..
-        /// </summary>
-        internal static string ControllerActionInvoker_ParameterDictionaryContainsInvalidEntry {
-            get {
-                return ResourceManager.GetString("ControllerActionInvoker_ParameterDictionaryContainsInvalidEntry", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The parameter dictionary contains an incorrect number of entries for method &apos;{0}&apos;..
-        /// </summary>
-        internal static string ControllerActionInvoker_ParameterDictionaryCountIncorrect {
-            get {
-                return ResourceManager.GetString("ControllerActionInvoker_ParameterDictionaryCountIncorrect", resourceCulture);
             }
         }
         
@@ -268,29 +232,20 @@ namespace System.Web.Mvc.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The parameter conversion from type &apos;{0}&apos; to type &apos;{1}&apos; failed. See the inner exception for more information..
-        /// </summary>
-        internal static string DefaultModelBinder_ConversionThrew {
-            get {
-                return ResourceManager.GetString("DefaultModelBinder_ConversionThrew", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The parameter conversion from type &apos;{0}&apos; to type &apos;{1}&apos; failed because no TypeConverter can convert between these types..
-        /// </summary>
-        internal static string DefaultModelBinder_NoConverterExists {
-            get {
-                return ResourceManager.GetString("DefaultModelBinder_NoConverterExists", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A value is required..
         /// </summary>
         internal static string DefaultModelBinder_ValueRequired {
             get {
                 return ResourceManager.GetString("DefaultModelBinder_ValueRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The total number of ticks for the TimeSpan must be greater than 0..
+        /// </summary>
+        internal static string DefaultViewLocationCache_NegativeTimeSpan {
+            get {
+                return ResourceManager.GetString("DefaultViewLocationCache_NegativeTimeSpan", resourceCulture);
             }
         }
         
@@ -309,15 +264,6 @@ namespace System.Web.Mvc.Resources {
         internal static string FilterAttribute_OrderOutOfRange {
             get {
                 return ResourceManager.GetString("FilterAttribute_OrderOutOfRange", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The provided object or dictionary already contains a definition for &apos;{0}&apos;..
-        /// </summary>
-        internal static string Helper_DictionaryAlreadyContainsKey {
-            get {
-                return ResourceManager.GetString("Helper_DictionaryAlreadyContainsKey", resourceCulture);
             }
         }
         
@@ -369,18 +315,99 @@ namespace System.Web.Mvc.Resources {
         /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; contains multiple attributes inheriting from CustomModelBinderAttribute..
         /// </summary>
-        internal static string ModelBindersInfo_MultipleAttributes {
+        internal static string ModelBinderDictionary_MultipleAttributes {
             get {
-                return ResourceManager.GetString("ModelBindersInfo_MultipleAttributes", resourceCulture);
+                return ResourceManager.GetString("ModelBinderDictionary_MultipleAttributes", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The provider requires SessionState to be enabled..
+        ///   Looks up a localized string similar to Cannot create a descriptor for instance method &apos;{0}&apos; on type &apos;{1}&apos; since the type does not subclass ControllerBase..
+        /// </summary>
+        internal static string ReflectedActionDescriptor_CannotCallInstanceMethodOnNonControllerType {
+            get {
+                return ResourceManager.GetString("ReflectedActionDescriptor_CannotCallInstanceMethodOnNonControllerType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot call action method &apos;{0}&apos; on controller &apos;{1}&apos; since the parameter &apos;{2}&apos; is passed by reference..
+        /// </summary>
+        internal static string ReflectedActionDescriptor_CannotCallMethodsWithOutOrRefParameters {
+            get {
+                return ResourceManager.GetString("ReflectedActionDescriptor_CannotCallMethodsWithOutOrRefParameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot call action method &apos;{0}&apos; on controller &apos;{1}&apos; since it is a generic method..
+        /// </summary>
+        internal static string ReflectedActionDescriptor_CannotCallOpenGenericMethods {
+            get {
+                return ResourceManager.GetString("ReflectedActionDescriptor_CannotCallOpenGenericMethods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parameters dictionary contains a null entry for parameter &apos;{0}&apos; of non-nullable type &apos;{1}&apos; for method &apos;{2}&apos; in &apos;{3}&apos;. To make a parameter optional its type should be either a reference type or a Nullable type..
+        /// </summary>
+        internal static string ReflectedActionDescriptor_ParameterCannotBeNull {
+            get {
+                return ResourceManager.GetString("ReflectedActionDescriptor_ParameterCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parameters dictionary does not contain an entry for parameter &apos;{0}&apos; of type &apos;{1}&apos; for method &apos;{2}&apos; in &apos;{3}&apos;. The dictionary must contain an entry for each parameter, even parameters with null values..
+        /// </summary>
+        internal static string ReflectedActionDescriptor_ParameterNotInDictionary {
+            get {
+                return ResourceManager.GetString("ReflectedActionDescriptor_ParameterNotInDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parameters dictionary contains an invalid entry for parameter &apos;{0}&apos; for method &apos;{1}&apos; in &apos;{2}&apos;. The dictionary contains a value of type &apos;{3}&apos;, but the parameter requires a value of type &apos;{4}&apos;..
+        /// </summary>
+        internal static string ReflectedActionDescriptor_ParameterValueHasWrongType {
+            get {
+                return ResourceManager.GetString("ReflectedActionDescriptor_ParameterValueHasWrongType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parameter &apos;{0}&apos; on method &apos;{1}&apos; contains multiple attributes inheriting from CustomModelBinderAttribute..
+        /// </summary>
+        internal static string ReflectedParameterBindingInfo_MultipleConverterAttributes {
+            get {
+                return ResourceManager.GetString("ReflectedParameterBindingInfo_MultipleConverterAttributes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The SessionStateTempDataProvider requires SessionState to be enabled..
         /// </summary>
         internal static string SessionStateTempDataProvider_SessionStateDisabled {
             get {
                 return ResourceManager.GetString("SessionStateTempDataProvider_SessionStateDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parameter conversion from type &apos;{0}&apos; to type &apos;{1}&apos; failed. See the inner exception for more information..
+        /// </summary>
+        internal static string ValueProviderResult_ConversionThrew {
+            get {
+                return ResourceManager.GetString("ValueProviderResult_ConversionThrew", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parameter conversion from type &apos;{0}&apos; to type &apos;{1}&apos; failed because no TypeConverter can convert between these types..
+        /// </summary>
+        internal static string ValueProviderResult_NoConverterExists {
+            get {
+                return ResourceManager.GetString("ValueProviderResult_NoConverterExists", resourceCulture);
             }
         }
         

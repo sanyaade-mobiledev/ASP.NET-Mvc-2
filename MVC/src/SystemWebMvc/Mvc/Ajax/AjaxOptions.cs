@@ -149,7 +149,8 @@
 
         private static string PropertyStringIfSpecified(string propertyName, string propertyValue) {
             if (!String.IsNullOrEmpty(propertyValue)) {
-                return String.Format(CultureInfo.InvariantCulture, " {0}: '{1}',", propertyName, propertyValue);
+                string escapedPropertyValue = propertyValue.Replace("'", @"\'");
+                return String.Format(CultureInfo.InvariantCulture, " {0}: '{1}',", propertyName, escapedPropertyValue);
             }
             return String.Empty;
         }

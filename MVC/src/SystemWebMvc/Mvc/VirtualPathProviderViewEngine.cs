@@ -11,6 +11,11 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public abstract class VirtualPathProviderViewEngine : IViewEngine {
+        // format is ":ViewCacheEntry:{cacheType}:{prefix}:{name}:{controllerName}:"
+        private const string _cacheKeyFormat = ":ViewCacheEntry:{0}:{1}:{2}:{3}:";
+        private const string _cacheKeyPrefix_Master = "Master";
+        private const string _cacheKeyPrefix_Partial = "Partial";
+        private const string _cacheKeyPrefix_View = "View";
         private static readonly string[] _emptyLocations = new string[0];
 
         private VirtualPathProvider _vpp;
@@ -23,6 +28,11 @@
 
         [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
         public string[] PartialViewLocationFormats {
+            get;
+            set;
+        }
+
+        public IViewLocationCache ViewLocationCache {
             get;
             set;
         }
@@ -45,11 +55,29 @@
             }
         }
 
+        protected VirtualPathProviderViewEngine() {
+            if (HttpContext.Current == null || HttpContext.Current.IsDebuggingEnabled) {
+                ViewLocationCache = DefaultViewLocationCache.Null;
+            }
+            else {
+                ViewLocationCache = new DefaultViewLocationCache();
+            }
+        }
+
+        private string CreateCacheKey(string prefix, string name, string controllerName) {
+            return String.Format(CultureInfo.InvariantCulture, _cacheKeyFormat,
+                GetType().AssemblyQualifiedName, prefix, name, controllerName);
+        }
+
         protected abstract IView CreatePartialView(ControllerContext controllerContext, string partialPath);
 
         protected abstract IView CreateView(ControllerContext controllerContext, string viewPath, string masterPath);
-        
-        public virtual ViewEngineResult FindPartialView(ControllerContext controllerContext, string partialViewName) {
+
+        protected virtual bool FileExists(ControllerContext controllerContext, string virtualPath) {
+            return VirtualPathProvider.FileExists(virtualPath);
+        }
+
+        public virtual ViewEngineResult FindPartialView(ControllerContext controllerContext, string partialViewName, bool useCache) {
             if (controllerContext == null) {
                 throw new ArgumentNullException("controllerContext");
             }
@@ -59,7 +87,7 @@
 
             string[] searched;
             string controllerName = controllerContext.RouteData.GetRequiredString("controller");
-            string partialPath = GetPath(PartialViewLocationFormats, "PartialViewLocationFormats", partialViewName, controllerName, out searched);
+            string partialPath = GetPath(controllerContext, PartialViewLocationFormats, "PartialViewLocationFormats", partialViewName, controllerName, _cacheKeyPrefix_Partial, useCache, out searched);
 
             if (String.IsNullOrEmpty(partialPath)) {
                 return new ViewEngineResult(searched);
@@ -68,7 +96,7 @@
             return new ViewEngineResult(CreatePartialView(controllerContext, partialPath), this);
         }
 
-        public virtual ViewEngineResult FindView(ControllerContext controllerContext, string viewName, string masterName) {
+        public virtual ViewEngineResult FindView(ControllerContext controllerContext, string viewName, string masterName, bool useCache) {
             if (controllerContext == null) {
                 throw new ArgumentNullException("controllerContext");
             }
@@ -80,8 +108,8 @@
             string[] masterLocationsSearched;
 
             string controllerName = controllerContext.RouteData.GetRequiredString("controller");
-            string viewPath = GetPath(ViewLocationFormats, "ViewLocationFormats", viewName, controllerName, out viewLocationsSearched);
-            string masterPath = GetPath(MasterLocationFormats, "MasterLocationFormats", masterName, controllerName, out masterLocationsSearched);
+            string viewPath = GetPath(controllerContext, ViewLocationFormats, "ViewLocationFormats", viewName, controllerName, _cacheKeyPrefix_View, useCache, out viewLocationsSearched);
+            string masterPath = GetPath(controllerContext, MasterLocationFormats, "MasterLocationFormats", masterName, controllerName, _cacheKeyPrefix_Master, useCache, out masterLocationsSearched);
 
             if (String.IsNullOrEmpty(viewPath) || (String.IsNullOrEmpty(masterPath) && !String.IsNullOrEmpty(masterName))) {
                 return new ViewEngineResult(viewLocationsSearched.Union(masterLocationsSearched));
@@ -90,7 +118,7 @@
             return new ViewEngineResult(CreateView(controllerContext, viewPath, masterPath), this);
         }
 
-        private string GetPath(string[] locations, string locationsPropertyName, string name, string controllerName, out string[] searchedLocations) {
+        private string GetPath(ControllerContext controllerContext, string[] locations, string locationsPropertyName, string name, string controllerName, string cacheKeyPrefix, bool useCache, out string[] searchedLocations) {
             searchedLocations = _emptyLocations;
 
             if (String.IsNullOrEmpty(name)) {
@@ -103,22 +131,31 @@
             }
 
             bool nameRepresentsPath = IsSpecificPath(name);
+            string cacheKey = CreateCacheKey(cacheKeyPrefix, name, (nameRepresentsPath) ? String.Empty : controllerName);
+
+            if (useCache) {
+                string result = ViewLocationCache.GetViewLocation(controllerContext.HttpContext, cacheKey);
+                if (result != null) {
+                    return result;
+                }
+            }
 
             return (nameRepresentsPath) ?
-                GetPathFromSpecificName(name, ref searchedLocations) :
-                GetPathFromGeneralName(locations, name, controllerName, ref searchedLocations);
+                GetPathFromSpecificName(controllerContext, name, cacheKey, ref searchedLocations) :
+                GetPathFromGeneralName(controllerContext, locations, name, controllerName, cacheKey, ref searchedLocations);
         }
 
-        private string GetPathFromGeneralName(string[] locations, string name, string controllerName, ref string[] searchedLocations) {
+        private string GetPathFromGeneralName(ControllerContext controllerContext, string[] locations, string name, string controllerName, string cacheKey, ref string[] searchedLocations) {
             string result = String.Empty;
             searchedLocations = new string[locations.Length];
 
             for (int i = 0; i < locations.Length; i++) {
                 string virtualPath = String.Format(CultureInfo.InvariantCulture, locations[i], name, controllerName);
 
-                if (VirtualPathProvider.FileExists(virtualPath)) {
+                if (FileExists(controllerContext, virtualPath)) {
                     searchedLocations = _emptyLocations;
                     result = virtualPath;
+                    ViewLocationCache.InsertViewLocation(controllerContext.HttpContext, cacheKey, result);
                     break;
                 }
 
@@ -128,14 +165,15 @@
             return result;
         }
 
-        private string GetPathFromSpecificName(string name, ref string[] searchedLocations) {
+        private string GetPathFromSpecificName(ControllerContext controllerContext, string name, string cacheKey, ref string[] searchedLocations) {
             string result = name;
 
-            if (!VirtualPathProvider.FileExists(name)) {
+            if (!FileExists(controllerContext, name)) {
                 result = String.Empty;
                 searchedLocations = new[] { name };
             }
 
+            ViewLocationCache.InsertViewLocation(controllerContext.HttpContext, cacheKey, result);
             return result;
         }
 

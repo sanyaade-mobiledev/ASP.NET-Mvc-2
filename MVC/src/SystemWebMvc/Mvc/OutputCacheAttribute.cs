@@ -116,6 +116,8 @@
             private OutputCacheParameters _cacheSettings;
 
             public OutputCachedPage(OutputCacheParameters cacheSettings) {
+                // Tracing requires Page IDs to be unique.
+                ID = Guid.NewGuid().ToString();
                 _cacheSettings = cacheSettings;
             }
 

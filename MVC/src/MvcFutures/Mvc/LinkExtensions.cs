@@ -11,7 +11,7 @@
     public static class LinkExtensions {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1055:UriReturnValuesShouldNotBeStrings", Justification = "This is a UI method and is required to use strings as Uri"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
         public static string BuildUrlFromExpression<TController>(this HtmlHelper helper, Expression<Action<TController>> action) where TController : Controller {
-            return LinkBuilder.BuildUrlFromExpression<TController>(helper.ViewContext, helper.RouteCollection, action);
+            return LinkBuilder.BuildUrlFromExpression<TController>(helper.ViewContext.RequestContext, helper.RouteCollection, action);
         }
 
         /// <summary>

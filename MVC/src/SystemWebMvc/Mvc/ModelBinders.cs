@@ -1,38 +1,50 @@
 ﻿namespace System.Web.Mvc {
     using System;
-    using System.Collections.Generic;
+    using System.Reflection;
     using System.Web;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ModelBinders {
 
-        private static readonly ModelBindersInfo _bindersInfo = new ModelBindersInfo();
+        private static readonly ModelBinderDictionary _binders = CreateDefaultBinderDictionary();
 
-        public static IDictionary<Type, IModelBinder> Binders {
+        public static ModelBinderDictionary Binders {
             get {
-                return _bindersInfo.Binders;
+                return _binders;
             }
         }
 
-        public static IModelBinder DefaultBinder {
-            get {
-                return _bindersInfo.DefaultBinder;
+        internal static IModelBinder GetBinderFromAttributes(ICustomAttributeProvider element, Func<string> errorMessageAccessor) {
+            // this method is used to get a custom binder based on the attributes of the element passed to it.
+            // it will return null if a binder cannot be detected based on the attributes alone.
+
+            CustomModelBinderAttribute[] attrs = (CustomModelBinderAttribute[])element.GetCustomAttributes(typeof(CustomModelBinderAttribute), true /* inherit */);
+            if (attrs == null) {
+                return null;
             }
-            set {
-                _bindersInfo.DefaultBinder = value;
+
+            switch (attrs.Length) {
+                case 0:
+                    return null;
+
+                case 1:
+                    IModelBinder binder = attrs[0].GetBinder();
+                    return binder;
+
+                default:
+                    string errorMessage = errorMessageAccessor();
+                    throw new InvalidOperationException(errorMessage);
             }
         }
 
-        public static IModelBinder GetBinder(Type modelType) {
-            return GetBinder(modelType, true /* fallbackToDefault */);
-        }
+        private static ModelBinderDictionary CreateDefaultBinderDictionary() {
+            // We can't add a binder to the HttpPostedFileBase type as an attribute, so we'll just
+            // prepopulate the dictionary as a convenience to users.
 
-        public static IModelBinder GetBinder(Type modelType, bool fallbackToDefault) {
-            if (modelType == null) {
-                throw new ArgumentNullException("modelType");
-            }
-
-            return _bindersInfo.GetBinder(modelType, fallbackToDefault);
+            ModelBinderDictionary binders = new ModelBinderDictionary() {
+                { typeof(HttpPostedFileBase), new HttpPostedFileBaseModelBinder() }
+            };
+            return binders;
         }
 
     }

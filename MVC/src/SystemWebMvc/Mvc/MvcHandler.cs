@@ -1,15 +1,21 @@
 ﻿namespace System.Web.Mvc {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
+    using System.Reflection;
     using System.Web;
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
     using System.Web.SessionState;
 
+    [SuppressMessage("Microsoft.Security", "CA2112:SecuredTypesShouldNotExposeFields", Justification = "There's nothing secret about the value of this field.")]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class MvcHandler : IHttpHandler, IRequiresSessionState {
         private ControllerBuilder _controllerBuilder;
+        private static string MvcVersion = GetMvcVersionString();
+
+        public static readonly string MvcVersionHeaderName = "X-AspNetMvc-Version";
 
         public MvcHandler(RequestContext requestContext) {
             if (requestContext == null) {
@@ -20,7 +26,6 @@
 
         protected virtual bool IsReusable {
             get {
-                // REVIEW: What's this?
                 return false;
             }
         }
@@ -37,9 +42,27 @@
             }
         }
 
+        public static bool DisableMvcResponseHeader {
+            get;
+            set;
+        }
+
         public RequestContext RequestContext {
             get;
             private set;
+        }
+
+        protected internal virtual void AddVersionHeader(HttpContextBase httpContext) {
+            if (!DisableMvcResponseHeader) {
+                httpContext.Response.AppendHeader(MvcVersionHeaderName, MvcVersion);
+            }
+        }
+
+        private static string GetMvcVersionString() {
+            // DevDiv 216459:
+            // This code originally used Assembly.GetName(), but that requires FileIOPermission, which isn't granted in
+            // medium trust. However, Assembly.FullName *is* accessible in medium trust.
+            return new AssemblyName(typeof(MvcHandler).Assembly.FullName).Version.ToString(2);
         }
 
         protected virtual void ProcessRequest(HttpContext httpContext) {
@@ -48,6 +71,8 @@
         }
 
         protected internal virtual void ProcessRequest(HttpContextBase httpContext) {
+            AddVersionHeader(httpContext);
+
             // Get the controller type
             string controllerName = RequestContext.RouteData.GetRequiredString("controller");
 

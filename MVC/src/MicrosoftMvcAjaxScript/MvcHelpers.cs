@@ -25,7 +25,7 @@
                         (type == "password") ||
                         (type == "hidden") ||
                         (((type == "checkbox") || (type == "radio")) && (bool)Type.GetField(element, "checked"))) {
-                
+
                         formBody.Append(name.EncodeURIComponent());
                         formBody.Append("=");
                         formBody.Append(inputElement.Value.EncodeURIComponent());
@@ -78,11 +78,11 @@
             if (body.Length > 0 && !body.EndsWith('&')) {
                 body += "&";
             }
-            body += "__MVCASYNCPOST=true";
+            body += "X-Requested-With=XMLHttpRequest";
 
             // Determine where to place the body
             string requestBody = "";
-            if (verb.ToUpperCase() == "GET") {
+            if (verb.ToUpperCase() == "GET" || verb.ToUpperCase() == "DELETE") {
                 if (url.IndexOf('?') > -1) {
                     // Case 1: http://foo.bar/baz?abc=123
                     if (!url.EndsWith('&')) {
@@ -102,9 +102,15 @@
 
             // Create the request
             WebRequest request = new WebRequest();
+
             request.Url = url;
             request.HttpVerb = verb;
             request.Body = requestBody;
+            if (verb.ToUpperCase() == "PUT") {
+                request.Headers["Content-Type"] = "application/x-www-form-urlencoded;";
+            }
+            request.Headers["X-Requested-With"] = "XMLHttpRequest";
+
             DOMElement updateElement = null;
             if (ajaxOptions.UpdateTargetId != null) {
                 updateElement = Document.GetElementById(ajaxOptions.UpdateTargetId);
@@ -157,7 +163,13 @@
             if ((statusCode >= 200 && statusCode < 300) || statusCode == 304 || statusCode == 1223) {
                 // If the status code is one of 204 (No Content), 304 (Not Modified), or 1223 (IE-specific code caused by 204), don't do the injection
                 if (statusCode != 204 && statusCode != 304 && statusCode != 1223) {
-                    UpdateDomElement(ajaxContext.UpdateTarget, ajaxContext.InsertionMode, ajaxContext.Data);
+                    string contentType = ajaxContext.Response.GetResponseHeader("Content-Type");
+                    if ((contentType != null) && (contentType.IndexOf("application/x-javascript") != -1)) {
+                        Script.Eval(ajaxContext.Data);
+                    }
+                    else {
+                        UpdateDomElement(ajaxContext.UpdateTarget, ajaxContext.InsertionMode, ajaxContext.Data);
+                    }
                 }
 
                 if (ajaxOptions.OnSuccess != null) {

@@ -5,7 +5,7 @@
     using System.Web.Mvc.Resources;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(ValidTargets, AllowMultiple = false, Inherited = false)]
     public sealed class ModelBinderAttribute : CustomModelBinderAttribute {
 
         public ModelBinderAttribute(Type binderType) {

@@ -9,9 +9,9 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ViewExtensions {
 
-        public static void RenderRoute(this HtmlHelper helper, RouteValueDictionary values) {
+        public static void RenderRoute(this HtmlHelper helper, RouteValueDictionary routeValues) {
             var routeData = new RouteData();
-            foreach (var kvp in values) {
+            foreach (var kvp in routeValues) {
                 routeData.Values.Add(kvp.Key, kvp.Value);
             }
             var httpContext = helper.ViewContext.HttpContext;
@@ -25,14 +25,14 @@
             helper.RenderRoute(rvd);
         }
 
-        public static void RenderAction(this HtmlHelper helper, string actionName, string controllerName, object values) {
-            helper.RenderAction(actionName, controllerName, new RouteValueDictionary(values));
+        public static void RenderAction(this HtmlHelper helper, string actionName, string controllerName, object routeValues) {
+            helper.RenderAction(actionName, controllerName, new RouteValueDictionary(routeValues));
         }
 
-        public static void RenderAction(this HtmlHelper helper, string actionName, string controllerName, RouteValueDictionary values) {
+        public static void RenderAction(this HtmlHelper helper, string actionName, string controllerName, RouteValueDictionary routeValues) {
             RouteValueDictionary rvd = null;
-            if (values != null) {
-                rvd = new RouteValueDictionary(values);
+            if (routeValues != null) {
+                rvd = new RouteValueDictionary(routeValues);
             }
             else {
                 rvd = new RouteValueDictionary();
@@ -64,6 +64,10 @@
 
         private class RenderActionMvcHandler : MvcHandler {
             public RenderActionMvcHandler(RequestContext context) : base(context) { 
+            }
+
+            protected override void AddVersionHeader(HttpContextBase httpContext) {
+                // Don't try to set the version header when rendering actions
             }
 
             public void ProcessRequestInternal(HttpContextBase httpContext) {

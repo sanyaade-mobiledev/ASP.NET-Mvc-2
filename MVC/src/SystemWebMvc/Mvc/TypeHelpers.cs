@@ -2,10 +2,22 @@
     using System;
 
     internal static class TypeHelpers {
+
         public static bool TypeAllowsNullValue(Type type) {
-            // Only reference types and Nullable<> types allow null values
-            return (!type.IsValueType ||
-                (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>)));
+            // reference types allow null values
+            if (!type.IsValueType) {
+                return true;
+            }
+
+            // nullable value types allow null values
+            // code lifted from System.Nullable.GetUnderlyingType()
+            if (type.IsGenericType && !type.IsGenericTypeDefinition && (type.GetGenericTypeDefinition() == typeof(Nullable<>))) {
+                return true;
+            }
+
+            // no other types allow null values
+            return false;
         }
+
     }
 }

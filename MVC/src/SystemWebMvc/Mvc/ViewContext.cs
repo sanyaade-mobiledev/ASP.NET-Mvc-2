@@ -1,46 +1,56 @@
 ﻿namespace System.Web.Mvc {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Web;
-    using System.Web.Mvc.Resources;
-    using System.Web.Routing;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ViewContext : ControllerContext {
 
-        public ViewContext(HttpContextBase httpContext, RouteData routeData, ControllerBase controller, IView view, ViewDataDictionary viewData, TempDataDictionary tempData)
-            : base(httpContext, routeData, controller) {
+        // parameterless constructor used for mocking
+        public ViewContext() {
+        }
+
+        [SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors",
+            Justification = "The virtual property setters are only to support mocking frameworks, in which case this constructor shouldn't be called anyway.")]
+        public ViewContext(ControllerContext controllerContext, IView view, ViewDataDictionary viewData, TempDataDictionary tempData)
+            : base(controllerContext) {
+            if (controllerContext == null) {
+                throw new ArgumentNullException("controllerContext");
+            }
             if (view == null) {
                 throw new ArgumentNullException("view");
             }
+            if (viewData == null) {
+                throw new ArgumentNullException("viewData");
+            }
+            if (tempData == null) {
+                throw new ArgumentNullException("tempData");
+            }
 
+            View = view;
             ViewData = viewData;
             TempData = tempData;
-            View = view;
         }
 
-        public ViewContext(ControllerContext controllerContext, IView view, ViewDataDictionary viewData, TempDataDictionary tempData)
-            : this(GetControllerContext(controllerContext).HttpContext,
-                   GetControllerContext(controllerContext).RouteData,
-                   GetControllerContext(controllerContext).Controller,
-                   view,
-                   viewData,
-                   tempData) {
-        }
-
-        public TempDataDictionary TempData {
+        public virtual IView View {
             get;
-            private set;
+            set;
         }
 
-        public IView View {
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
+            Justification = "The property setter is only here to support mocking this type and should not be called at runtime.")]
+        public virtual ViewDataDictionary ViewData {
             get;
-            private set;
+            set;
         }
 
-        public ViewDataDictionary ViewData {
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
+            Justification = "The property setter is only here to support mocking this type and should not be called at runtime.")]
+        public virtual TempDataDictionary TempData {
             get;
-            private set;
+            set;
         }
+
     }
 }

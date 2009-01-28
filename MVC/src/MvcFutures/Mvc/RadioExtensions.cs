@@ -8,7 +8,7 @@
     using System.Web.Mvc;
     using System.Web.Mvc.Html;
     using System.Web.Routing;
-    using Microsoft.Web.Mvc.Resources;
+    using Microsoft.Web.Resources;
 
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class RadioListExtensions {
@@ -21,23 +21,23 @@
         }
 
         public static string[] RadioButtonList(this HtmlHelper htmlHelper, string name, IDictionary<string, object> htmlAttributes) {
-            SelectList selectList = htmlHelper.GetSelectData(name);
+            IEnumerable<SelectListItem> selectList = htmlHelper.GetSelectData(name);
             return htmlHelper.RadioButtonListInternal(name, selectList, true /* usedViewData */, htmlAttributes);
         }
 
-        public static string[] RadioButtonList(this HtmlHelper htmlHelper, string name, SelectList selectList) {
+        public static string[] RadioButtonList(this HtmlHelper htmlHelper, string name, IEnumerable<SelectListItem> selectList) {
             return RadioButtonList(htmlHelper, name, selectList, (IDictionary<string, object>)null);
         }
 
-        public static string[] RadioButtonList(this HtmlHelper htmlHelper, string name, SelectList selectList, object htmlAttributes) {
+        public static string[] RadioButtonList(this HtmlHelper htmlHelper, string name, IEnumerable<SelectListItem> selectList, object htmlAttributes) {
             return RadioButtonList(htmlHelper, name, selectList, new RouteValueDictionary(htmlAttributes));
         }
 
-        public static string[] RadioButtonList(this HtmlHelper htmlHelper, string name, SelectList selectList, IDictionary<string, object> htmlAttributes) {
+        public static string[] RadioButtonList(this HtmlHelper htmlHelper, string name, IEnumerable<SelectListItem> selectList, IDictionary<string, object> htmlAttributes) {
             return htmlHelper.RadioButtonListInternal(name, selectList, false /* usedViewData */, htmlAttributes);
         }
 
-        private static SelectList GetSelectData(this HtmlHelper htmlHelper, string name) {
+        private static IEnumerable<SelectListItem> GetSelectData(this HtmlHelper htmlHelper, string name) {
             object o = null;
             if (htmlHelper.ViewData != null) {
                 o = htmlHelper.ViewData.Eval(name);
@@ -48,9 +48,9 @@
                         CultureInfo.CurrentUICulture,
                         MvcResources.HtmlHelper_MissingSelectData,
                         name,
-                        typeof(SelectList)));
+                        typeof(IEnumerable<SelectListItem>)));
             }
-            SelectList selectList = o as SelectList;
+            IEnumerable<SelectListItem> selectList = o as IEnumerable<SelectListItem>;
             if (selectList == null) {
                 throw new InvalidOperationException(
                     String.Format(
@@ -58,12 +58,12 @@
                         MvcResources.HtmlHelper_WrongSelectDataType,
                         name,
                         o.GetType().FullName,
-                        typeof(SelectList)));
+                        typeof(IEnumerable<SelectListItem>)));
             }
             return selectList;
         }
 
-        private static string[] RadioButtonListInternal(this HtmlHelper htmlHelper, string name, SelectList selectList, bool usedViewData, IDictionary<string, object> htmlAttributes) {
+        private static string[] RadioButtonListInternal(this HtmlHelper htmlHelper, string name, IEnumerable<SelectListItem> selectList, bool usedViewData, IDictionary<string, object> htmlAttributes) {
             if (String.IsNullOrEmpty(name)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "name");
             }
@@ -75,15 +75,23 @@
             // use the ViewData-supplied value before using the parameter-supplied value.
             if (!usedViewData) {
                 object defaultValue = htmlHelper.ViewData.Eval(name);
+
                 if (defaultValue != null) {
-                    selectList = new SelectList(selectList.Items, selectList.DataValueField, selectList.DataTextField, defaultValue);
+                    IEnumerable defaultValues = new[] { defaultValue };
+                    IEnumerable<string> values = from object value in defaultValues select Convert.ToString(value, CultureInfo.CurrentCulture);
+                    HashSet<string> selectedValues = new HashSet<string>(values, StringComparer.OrdinalIgnoreCase);
+                    List<SelectListItem> newSelectList = new List<SelectListItem>();
+
+                    foreach (SelectListItem item in selectList) {
+                        item.Selected = (item.Value != null) ? selectedValues.Contains(item.Value) : selectedValues.Contains(item.Text);
+                        newSelectList.Add(item);
+                    }
+
+                    selectList = newSelectList;
                 }
             }
 
-            // Convert each ListItem to an <option> tag
-            IList<ListItem> listItems = selectList.GetListItems();
-
-            IEnumerable<string> radioButtons = listItems.Select<ListItem, string>(item => htmlHelper.RadioButton(name, item.Value, item.Selected, htmlAttributes));
+            IEnumerable<string> radioButtons = selectList.Select<SelectListItem, string>(item => htmlHelper.RadioButton(name, item.Value, item.Selected, htmlAttributes));
 
             return radioButtons.ToArray();
         }

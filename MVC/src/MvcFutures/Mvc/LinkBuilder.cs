@@ -17,9 +17,9 @@
         /// <param name="action">The action to invoke</param>
         /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1055:UriReturnValuesShouldNotBeStrings", Justification = "The return value is not a regular URL since it may contain ~/ ASP.NET-specific characters"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters", Justification = "Need to be sure the passed-in argument is of type Controller::Action")]
-        public static string BuildUrlFromExpression<TController>(ViewContext context, RouteCollection routeCollection, Expression<Action<TController>> action) where TController : Controller {
-            RouteValueDictionary values = ExpressionHelper.GetRouteValuesFromExpression(action);
-            VirtualPathData vpd = routeCollection.GetVirtualPath(context, values);
+        public static string BuildUrlFromExpression<TController>(RequestContext context, RouteCollection routeCollection, Expression<Action<TController>> action) where TController : Controller {
+            RouteValueDictionary routeValues = ExpressionHelper.GetRouteValuesFromExpression(action);
+            VirtualPathData vpd = routeCollection.GetVirtualPath(context, routeValues);
             return (vpd == null) ? null : vpd.VirtualPath;
         }
 

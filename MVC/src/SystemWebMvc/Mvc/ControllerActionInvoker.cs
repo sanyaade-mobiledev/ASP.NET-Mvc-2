@@ -1,9 +1,9 @@
 ﻿namespace System.Web.Mvc {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
-    using System.Reflection;
     using System.Threading;
     using System.Web;
     using System.Web.Mvc.Resources;
@@ -12,42 +12,45 @@
     [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ControllerActionInvoker : IActionInvoker {
 
-        private readonly static ActionMethodDispatcherCache _staticDispatcherCache = new ActionMethodDispatcherCache();
-        private readonly static ActionMethodSelectorCache _staticSelectorCache = new ActionMethodSelectorCache();
+        private readonly static ControllerDescriptorCache _staticDescriptorCache = new ControllerDescriptorCache();
 
-        private ActionMethodDispatcherCache _instanceDispatcherCache;
-        private ActionMethodSelectorCache _instanceSelectorCache;
+        private ModelBinderDictionary _binders;
+        private ControllerDescriptorCache _instanceDescriptorCache;
 
-        public ControllerContext ControllerContext {
-            get;
-            protected set;
-        }
-
-        internal ActionMethodDispatcherCache DispatcherCache {
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
+            Justification = "Property is settable so that the dictionary can be provided for unit testing purposes.")]
+        protected internal ModelBinderDictionary Binders {
             get {
-                if (_instanceDispatcherCache == null) {
-                    _instanceDispatcherCache = _staticDispatcherCache;
+                if (_binders == null) {
+                    _binders = ModelBinders.Binders;
                 }
-                return _instanceDispatcherCache;
+                return _binders;
             }
             set {
-                _instanceDispatcherCache = value;
+                _binders = value;
             }
         }
 
-        internal ActionMethodSelectorCache SelectorCache {
+        internal ControllerDescriptorCache DescriptorCache {
             get {
-                if (_instanceSelectorCache == null) {
-                    _instanceSelectorCache = _staticSelectorCache;
+                if (_instanceDescriptorCache == null) {
+                    _instanceDescriptorCache = _staticDescriptorCache;
                 }
-                return _instanceSelectorCache;
+                return _instanceDescriptorCache;
             }
             set {
-                _instanceSelectorCache = value;
+                _instanceDescriptorCache = value;
             }
         }
 
-        protected virtual ActionResult CreateActionResult(object actionReturnValue) {
+        private static void AddControllerToFilterList<TFilter>(ControllerBase controller, IList<TFilter> filterList) where TFilter : class {
+            TFilter controllerAsFilter = controller as TFilter;
+            if (controllerAsFilter != null) {
+                filterList.Insert(0, controllerAsFilter);
+            }
+        }
+
+        protected virtual ActionResult CreateActionResult(ControllerContext controllerContext, ActionDescriptor actionDescriptor, object actionReturnValue) {
             if (actionReturnValue == null) {
                 return new EmptyResult();
             }
@@ -57,131 +60,69 @@
             return actionResult;
         }
 
-        private static object ExtractParameterFromDictionary(ParameterInfo parameterInfo, IDictionary<string, object> parameters, MethodInfo methodInfo) {
-            object value;
-            bool wasFound = parameters.TryGetValue(parameterInfo.Name, out value);
-
-            // The key should always be present, even if the parameter value is null.
-            if (!wasFound ||
-                (!(value == null && TypeHelpers.TypeAllowsNullValue(parameterInfo.ParameterType)) &&
-                !parameterInfo.ParameterType.IsInstanceOfType(value))) {
-                string message = String.Format(CultureInfo.CurrentUICulture, MvcResources.ControllerActionInvoker_ParameterDictionaryContainsInvalidEntry,
-                    parameterInfo.ParameterType, parameterInfo.Name, Convert.ToString(methodInfo, CultureInfo.CurrentUICulture), methodInfo.DeclaringType);
-                throw new InvalidOperationException(message);
-            }
-            return value;
+        protected virtual ControllerDescriptor GetControllerDescriptor(ControllerContext controllerContext) {
+            Type controllerType = controllerContext.Controller.GetType();
+            ControllerDescriptor controllerDescriptor = DescriptorCache.GetDescriptor(controllerType);
+            return controllerDescriptor;
         }
 
-        private IList<TFilter> FiltersToTypedList<TFilter>(IList<FilterAttribute> filters) where TFilter : class {
-            List<TFilter> typedList = new List<TFilter>();
-
-            // always add the controller (if it's of the right type) first
-            TFilter controllerFilter = ControllerContext.Controller as TFilter;
-            if (controllerFilter != null) {
-                typedList.Add(controllerFilter);
-            }
-
-            // then add filters of the right type
-            typedList.AddRange(filters.OfType<TFilter>());
-            return typedList;
+        protected virtual ActionDescriptor FindAction(ControllerContext controllerContext, ControllerDescriptor controllerDescriptor, string actionName) {
+            ActionDescriptor actionDescriptor = controllerDescriptor.FindAction(controllerContext, actionName);
+            return actionDescriptor;
         }
 
-        protected virtual MethodInfo FindActionMethod(string actionName) {
-            if (String.IsNullOrEmpty(actionName)) {
-                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
-            }
+        protected virtual FilterInfo GetFilters(ControllerContext controllerContext, ActionDescriptor actionDescriptor) {
+            FilterInfo filters = actionDescriptor.GetFilters();
 
-            Type controllerType = ControllerContext.Controller.GetType();
-            ActionMethodSelector selector = SelectorCache.GetSelector(controllerType);
-            MethodInfo foundMatch = selector.FindActionMethod(ControllerContext, actionName);
-            if (foundMatch != null) {
-                if (foundMatch.ContainsGenericParameters) {
-                    throw new InvalidOperationException(String.Format(
-                        CultureInfo.CurrentUICulture, MvcResources.Controller_ActionCannotBeGeneric,
-                        foundMatch));
-                }
-            }
+            // if the current controller implements one of the filter interfaces, it should be added to the list at position 0
+            ControllerBase controller = controllerContext.Controller;
+            AddControllerToFilterList(controller, filters.ActionFilters);
+            AddControllerToFilterList(controller, filters.ResultFilters);
+            AddControllerToFilterList(controller, filters.AuthorizationFilters);
+            AddControllerToFilterList(controller, filters.ExceptionFilters);
 
-            return foundMatch;
+            return filters;
         }
 
-        private static string GetFieldPrefix(ParameterInfo parameterInfo) {
-            BindAttribute attr = (BindAttribute)Attribute.GetCustomAttribute(parameterInfo, typeof(BindAttribute));
-            return ((attr != null) && (attr.Prefix != null)) ? attr.Prefix : parameterInfo.Name;
+        private IModelBinder GetModelBinder(ParameterDescriptor parameterDescriptor) {
+            // look on the parameter itself, then look in the global table
+            return parameterDescriptor.BindingInfo.Binder ?? Binders.GetBinder(parameterDescriptor.ParameterType);
         }
 
-        protected virtual FilterInfo GetFiltersForActionMethod(MethodInfo methodInfo) {
-            if (methodInfo == null) {
-                throw new ArgumentNullException("methodInfo");
-            }
+        protected virtual object GetParameterValue(ControllerContext controllerContext, ParameterDescriptor parameterDescriptor) {
+            // collect all of the necessary binding properties
+            Type parameterType = parameterDescriptor.ParameterType;
+            IModelBinder binder = GetModelBinder(parameterDescriptor);
+            IDictionary<string, ValueProviderResult> valueProvider = controllerContext.Controller.ValueProvider;
+            string parameterName = parameterDescriptor.BindingInfo.Prefix ?? parameterDescriptor.ParameterName;
+            Predicate<string> propertyFilter = GetPropertyFilter(parameterDescriptor);
 
-            // Enumerable.OrderBy() is a stable sort, so this method preserves scope ordering.
-            FilterAttribute[] typeFilters = (FilterAttribute[])methodInfo.ReflectedType.GetCustomAttributes(typeof(FilterAttribute), true /* inherit */);
-            FilterAttribute[] methodFilters = (FilterAttribute[])methodInfo.GetCustomAttributes(typeof(FilterAttribute), true /* inherit */);
-            List<FilterAttribute> orderedFilters = typeFilters.Concat(methodFilters).OrderBy(attr => attr.Order).ToList();
-
-            FilterInfo filterInfo = new FilterInfo {
-                ActionFilters = FiltersToTypedList<IActionFilter>(orderedFilters),
-                AuthorizationFilters = FiltersToTypedList<IAuthorizationFilter>(orderedFilters),
-                ExceptionFilters = FiltersToTypedList<IExceptionFilter>(orderedFilters),
-                ResultFilters = FiltersToTypedList<IResultFilter>(orderedFilters)
+            // finally, call into the binder
+            ModelBindingContext bindingContext = new ModelBindingContext() {
+                FallbackToEmptyPrefix = (parameterDescriptor.BindingInfo.Prefix == null), // only fall back if prefix not specified
+                ModelName = parameterName,
+                ModelState = controllerContext.Controller.ViewData.ModelState,
+                ModelType = parameterType,
+                PropertyFilter = propertyFilter,
+                ValueProvider = valueProvider
             };
-            return filterInfo;
+            object result = binder.BindModel(controllerContext, bindingContext);
+            return result;
         }
 
-        private static IModelBinder GetModelBinder(ParameterInfo parameterInfo) {
-            // first we look up attributes on the parameter itself
-            CustomModelBinderAttribute[] attrs = (CustomModelBinderAttribute[])parameterInfo.GetCustomAttributes(typeof(CustomModelBinderAttribute), false /* inherit */);
-            switch (attrs.Length) {
-                case 0:
-                    break;
-                case 1:
-                    IModelBinder converter = attrs[0].GetBinder();
-                    return converter;
-                default:
-                    throw new InvalidOperationException(String.Format(CultureInfo.CurrentUICulture,
-                        MvcResources.ControllerActionInvoker_MultipleConverterAttributes,
-                        parameterInfo.Name, parameterInfo.Member.Name));
-            }
+        protected virtual IDictionary<string, object> GetParameterValues(ControllerContext controllerContext, ActionDescriptor actionDescriptor) {
+            Dictionary<string, object> parametersDict = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            ParameterDescriptor[] parameterDescriptors = actionDescriptor.GetParameters();
 
-            // failing that, we retrieve the global GetConverter() method
-            IModelBinder globalConverter = ModelBinders.GetBinder(parameterInfo.ParameterType);
-            return globalConverter;
+            foreach (ParameterDescriptor parameterDescriptor in parameterDescriptors) {
+                parametersDict[parameterDescriptor.ParameterName] = GetParameterValue(controllerContext, parameterDescriptor);
+            }
+            return parametersDict;
         }
 
-        protected virtual object GetParameterValue(ParameterInfo parameterInfo) {
-            if (parameterInfo == null) {
-                throw new ArgumentNullException("parameterInfo");
-            }
-
-            Type parameterType = parameterInfo.ParameterType;
-            IModelBinder converter = GetModelBinder(parameterInfo);
-            string parameterName = GetFieldPrefix(parameterInfo);
-            Predicate<string> propertyFilter = GetPropertyFilter(parameterInfo);
-
-            ModelBindingContext bindingContext = new ModelBindingContext(ControllerContext, ControllerContext.Controller.ValueProvider, parameterType, parameterName, null /* modelProvider */, ControllerContext.Controller.ViewData.ModelState, propertyFilter);
-            ModelBinderResult result = converter.BindModel(bindingContext);
-            return (result != null) ? result.Value : null;
-        }
-
-        protected virtual IDictionary<string, object> GetParameterValues(MethodInfo methodInfo) {
-            if (methodInfo == null) {
-                throw new ArgumentNullException("methodInfo");
-            }
-
-            Dictionary<string, object> parameterDict = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-            foreach (ParameterInfo parameterInfo in methodInfo.GetParameters()) {
-                if (parameterInfo.IsOut || parameterInfo.ParameterType.IsByRef) {
-                    throw new InvalidOperationException(String.Format(CultureInfo.CurrentUICulture, MvcResources.Controller_ReferenceParametersNotSupported, parameterInfo.Name, methodInfo.Name));
-                }
-                parameterDict[parameterInfo.Name] = GetParameterValue(parameterInfo);
-            }
-            return parameterDict;
-        }
-
-        private static Predicate<string> GetPropertyFilter(ParameterInfo parameterInfo) {
-            BindAttribute attr = (BindAttribute)Attribute.GetCustomAttribute(parameterInfo, typeof(BindAttribute));
-            return (attr != null) ? (Predicate<string>)attr.IsPropertyAllowed : null;
+        private static Predicate<string> GetPropertyFilter(ParameterDescriptor parameterDescriptor) {
+            ParameterBindingInfo bindingInfo = parameterDescriptor.BindingInfo;
+            return propertyName => BindAttribute.IsPropertyAllowed(propertyName, bindingInfo.Include.ToArray(), bindingInfo.Exclude.ToArray());
         }
 
         public virtual bool InvokeAction(ControllerContext controllerContext, string actionName) {
@@ -192,31 +133,39 @@
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
             }
 
-            ControllerContext = controllerContext;
-
-            MethodInfo methodInfo = FindActionMethod(actionName);
-            if (methodInfo != null) {
-                IDictionary<string, object> parameters = GetParameterValues(methodInfo);
-                FilterInfo filterInfo = GetFiltersForActionMethod(methodInfo);
+            ControllerDescriptor controllerDescriptor = GetControllerDescriptor(controllerContext);
+            ActionDescriptor actionDescriptor = FindAction(controllerContext, controllerDescriptor, actionName);
+            if (actionDescriptor != null) {
+                FilterInfo filterInfo = GetFilters(controllerContext, actionDescriptor);
 
                 try {
-                    AuthorizationContext authContext = InvokeAuthorizationFilters(methodInfo, filterInfo.AuthorizationFilters);
-                    if (authContext.Cancel) {
-                        // not authorized, so don't execute the action method or its filters
-                        InvokeActionResult(authContext.Result ?? EmptyResult.Instance);
+                    AuthorizationContext authContext = InvokeAuthorizationFilters(controllerContext, filterInfo.AuthorizationFilters, actionDescriptor);
+                    if (authContext.Result != null) {
+                        // the auth filter signaled that we should let it short-circuit the request
+                        InvokeActionResult(controllerContext, authContext.Result);
                     }
                     else {
-                        ActionExecutedContext postActionContext = InvokeActionMethodWithFilters(methodInfo, parameters, filterInfo.ActionFilters);
-                        InvokeActionResultWithFilters(postActionContext.Result, filterInfo.ResultFilters);
+                        if (controllerContext.Controller.ValidateRequest) {
+                            ValidateRequest(controllerContext.HttpContext.Request);
+                        }
+
+                        IDictionary<string, object> parameters = GetParameterValues(controllerContext, actionDescriptor);
+                        ActionExecutedContext postActionContext = InvokeActionMethodWithFilters(controllerContext, filterInfo.ActionFilters, actionDescriptor, parameters);
+                        InvokeActionResultWithFilters(controllerContext, filterInfo.ResultFilters, postActionContext.Result);
                     }
+                }
+                catch (ThreadAbortException) {
+                    // This type of exception occurs as a result of Response.Redirect(), but we special-case so that
+                    // the filters don't see this as an error.
+                    throw;
                 }
                 catch (Exception ex) {
                     // something blew up, so execute the exception filters
-                    ExceptionContext exceptionContext = InvokeExceptionFilters(ex, filterInfo.ExceptionFilters);
+                    ExceptionContext exceptionContext = InvokeExceptionFilters(controllerContext, filterInfo.ExceptionFilters, ex);
                     if (!exceptionContext.ExceptionHandled) {
                         throw;
                     }
-                    InvokeActionResult(exceptionContext.Result);
+                    InvokeActionResult(controllerContext, exceptionContext.Result);
                 }
 
                 return true;
@@ -226,36 +175,16 @@
             return false;
         }
 
-        protected virtual ActionResult InvokeActionMethod(MethodInfo methodInfo, IDictionary<string, object> parameters) {
-            if (methodInfo == null) {
-                throw new ArgumentNullException("methodInfo");
-            }
-            if (parameters == null) {
-                throw new ArgumentNullException("parameters");
-            }
-
-            ParameterInfo[] parameterInfos = methodInfo.GetParameters();
-            if (parameterInfos.Length != parameters.Count) {
-                string message = String.Format(CultureInfo.CurrentUICulture, MvcResources.ControllerActionInvoker_ParameterDictionaryCountIncorrect,
-                    methodInfo);
-                throw new InvalidOperationException(message);
-            }
-
-            object[] parametersArray = (from parameterInfo
-                                        in parameterInfos
-                                        select ExtractParameterFromDictionary(parameterInfo, parameters, methodInfo)).ToArray();
-
-            ActionMethodDispatcher dispatcher = DispatcherCache.GetDispatcher(methodInfo);
-            object actionReturnValue = dispatcher.Execute(ControllerContext.Controller, parametersArray);
-
-            ActionResult actionResult = CreateActionResult(actionReturnValue);
-            return actionResult;
+        protected virtual ActionResult InvokeActionMethod(ControllerContext controllerContext, ActionDescriptor actionDescriptor, IDictionary<string, object> parameters) {
+            object returnValue = actionDescriptor.Execute(controllerContext, parameters);
+            ActionResult result = CreateActionResult(controllerContext, actionDescriptor, returnValue);
+            return result;
         }
 
         internal static ActionExecutedContext InvokeActionMethodFilter(IActionFilter filter, ActionExecutingContext preContext, Func<ActionExecutedContext> continuation) {
             filter.OnActionExecuting(preContext);
             if (preContext.Result != null) {
-                return new ActionExecutedContext(preContext, true /* canceled */, null /* exception */) {
+                return new ActionExecutedContext(preContext, preContext.ActionDescriptor, true /* canceled */, null /* exception */) {
                     Result = preContext.Result
                 };
             }
@@ -265,9 +194,16 @@
             try {
                 postContext = continuation();
             }
+            catch (ThreadAbortException) {
+                // This type of exception occurs as a result of Response.Redirect(), but we special-case so that
+                // the filters don't see this as an error.
+                postContext = new ActionExecutedContext(preContext, preContext.ActionDescriptor, false /* canceled */, null /* exception */);
+                filter.OnActionExecuted(postContext);
+                throw;
+            }
             catch (Exception ex) {
                 wasError = true;
-                postContext = new ActionExecutedContext(preContext, false /* canceled */, ex);
+                postContext = new ActionExecutedContext(preContext, preContext.ActionDescriptor, false /* canceled */, ex);
                 filter.OnActionExecuted(postContext);
                 if (!postContext.ExceptionHandled) {
                     throw;
@@ -279,21 +215,11 @@
             return postContext;
         }
 
-        protected virtual ActionExecutedContext InvokeActionMethodWithFilters(MethodInfo methodInfo, IDictionary<string, object> parameters, IList<IActionFilter> filters) {
-            if (methodInfo == null) {
-                throw new ArgumentNullException("methodInfo");
-            }
-            if (parameters == null) {
-                throw new ArgumentNullException("parameters");
-            }
-            if (filters == null) {
-                throw new ArgumentNullException("filters");
-            }
-
-            ActionExecutingContext preContext = new ActionExecutingContext(ControllerContext, parameters);
+        protected virtual ActionExecutedContext InvokeActionMethodWithFilters(ControllerContext controllerContext, IList<IActionFilter> filters, ActionDescriptor actionDescriptor, IDictionary<string, object> parameters) {
+            ActionExecutingContext preContext = new ActionExecutingContext(controllerContext, actionDescriptor, parameters);
             Func<ActionExecutedContext> continuation = () =>
-                new ActionExecutedContext(ControllerContext, false /* canceled */, null /* exception */) {
-                    Result = InvokeActionMethod(methodInfo, parameters)
+                new ActionExecutedContext(controllerContext, actionDescriptor, false /* canceled */, null /* exception */) {
+                    Result = InvokeActionMethod(controllerContext, actionDescriptor, parameters)
                 };
 
             // need to reverse the filter list because the continuations are built up backward
@@ -302,11 +228,8 @@
             return thunk();
         }
 
-        protected virtual void InvokeActionResult(ActionResult actionResult) {
-            if (actionResult == null) {
-                throw new ArgumentNullException("actionResult");
-            }
-            actionResult.ExecuteResult(ControllerContext);
+        protected virtual void InvokeActionResult(ControllerContext controllerContext, ActionResult actionResult) {
+            actionResult.ExecuteResult(controllerContext);
         }
 
         internal static ResultExecutedContext InvokeActionResultFilter(IResultFilter filter, ResultExecutingContext preContext, Func<ResultExecutedContext> continuation) {
@@ -341,18 +264,11 @@
             return postContext;
         }
 
-        protected virtual ResultExecutedContext InvokeActionResultWithFilters(ActionResult actionResult, IList<IResultFilter> filters) {
-            if (actionResult == null) {
-                throw new ArgumentNullException("actionResult");
-            }
-            if (filters == null) {
-                throw new ArgumentNullException("filters");
-            }
-
-            ResultExecutingContext preContext = new ResultExecutingContext(ControllerContext, actionResult);
+        protected virtual ResultExecutedContext InvokeActionResultWithFilters(ControllerContext controllerContext, IList<IResultFilter> filters, ActionResult actionResult) {
+            ResultExecutingContext preContext = new ResultExecutingContext(controllerContext, actionResult);
             Func<ResultExecutedContext> continuation = delegate {
-                InvokeActionResult(actionResult);
-                return new ResultExecutedContext(ControllerContext, actionResult, false /* canceled */, null /* exception */);
+                InvokeActionResult(controllerContext, actionResult);
+                return new ResultExecutedContext(controllerContext, actionResult, false /* canceled */, null /* exception */);
             };
 
             // need to reverse the filter list because the continuations are built up backward
@@ -361,19 +277,12 @@
             return thunk();
         }
 
-        protected virtual AuthorizationContext InvokeAuthorizationFilters(MethodInfo methodInfo, IList<IAuthorizationFilter> filters) {
-            if (methodInfo == null) {
-                throw new ArgumentNullException("methodInfo");
-            }
-            if (filters == null) {
-                throw new ArgumentNullException("filters");
-            }
-
-            AuthorizationContext context = new AuthorizationContext(ControllerContext);
+        protected virtual AuthorizationContext InvokeAuthorizationFilters(ControllerContext controllerContext, IList<IAuthorizationFilter> filters, ActionDescriptor actionDescriptor) {
+            AuthorizationContext context = new AuthorizationContext(controllerContext);
             foreach (IAuthorizationFilter filter in filters) {
                 filter.OnAuthorization(context);
                 // short-circuit evaluation
-                if (context.Cancel) {
+                if (context.Result != null) {
                     break;
                 }
             }
@@ -381,20 +290,29 @@
             return context;
         }
 
-        protected virtual ExceptionContext InvokeExceptionFilters(Exception exception, IList<IExceptionFilter> filters) {
-            if (exception == null) {
-                throw new ArgumentNullException("exception");
-            }
-            if (filters == null) {
-                throw new ArgumentNullException("filters");
-            }
-
-            ExceptionContext context = new ExceptionContext(ControllerContext, exception);
+        protected virtual ExceptionContext InvokeExceptionFilters(ControllerContext controllerContext, IList<IExceptionFilter> filters, Exception exception) {
+            ExceptionContext context = new ExceptionContext(controllerContext, exception);
             foreach (IExceptionFilter filter in filters) {
                 filter.OnException(context);
             }
 
             return context;
         }
+
+        [SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "rawUrl",
+            Justification = "We only care about the property getter's side effects, not the returned value.")]
+        private static void ValidateRequest(HttpRequestBase request) {
+            // DevDiv 214040: Enable Request Validation by default for all controller requests
+            // 
+            // Note that we grab the Request's RawUrl to force it to be validated. Calling ValidateInput()
+            // doesn't actually validate anything. It just sets flags indicating that on the next usage of
+            // certain inputs that they should be validated. We special case RawUrl because the URL has already
+            // been consumed by routing and thus might contain dangerous data. By forcing the RawUrl to be
+            // re-read we're making sure that it gets validated by ASP.NET.
+
+            request.ValidateInput();
+            string rawUrl = request.RawUrl;
+        }
+
     }
 }

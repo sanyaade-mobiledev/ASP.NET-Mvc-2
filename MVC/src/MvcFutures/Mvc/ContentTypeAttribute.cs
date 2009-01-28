@@ -23,6 +23,10 @@
         public override void OnResultExecuting(ResultExecutingContext filterContext) {
             filterContext.HttpContext.Response.ContentType = ContentType;
         }
+
+        public override void OnResultExecuted(ResultExecutedContext filterContext) {
+            filterContext.HttpContext.Response.ContentType = ContentType;
+        }
     }
 }
 
