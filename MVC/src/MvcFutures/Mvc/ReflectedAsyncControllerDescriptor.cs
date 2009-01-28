@@ -1,0 +1,65 @@
+﻿namespace Microsoft.Web.Mvc {
+    using System;
+    using System.Web;
+    using System.Web.Mvc;
+    using Microsoft.Web.Resources;
+
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
+    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
+    public class ReflectedAsyncControllerDescriptor : ControllerDescriptor {
+
+        private static readonly ActionDescriptor[] _emptyCanonicalActions = new ActionDescriptor[0];
+
+        private readonly Type _controllerType;
+        private readonly AsyncActionMethodSelector _selector;
+
+        public ReflectedAsyncControllerDescriptor(Type controllerType) {
+            if (controllerType == null) {
+                throw new ArgumentNullException("controllerType");
+            }
+
+            _controllerType = controllerType;
+            _selector = new AsyncActionMethodSelector(_controllerType);
+        }
+
+        public sealed override Type ControllerType {
+            get {
+                return _controllerType;
+            }
+        }
+
+        public override ActionDescriptor FindAction(ControllerContext controllerContext, string actionName) {
+            if (controllerContext == null) {
+                throw new ArgumentNullException("controllerContext");
+            }
+            if (String.IsNullOrEmpty(actionName)) {
+                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "actionName");
+            }
+
+            ActionDescriptorCreator creator = _selector.FindActionMethod(controllerContext, actionName);
+            if (creator == null) {
+                return null;
+            }
+
+            return creator(actionName, this);
+        }
+
+        public override ActionDescriptor[] GetCanonicalActions() {
+            // everything is looked up dymanically, so there are no 'canonical' actions
+            return _emptyCanonicalActions;
+        }
+
+        public override object[] GetCustomAttributes(bool inherit) {
+            return ControllerType.GetCustomAttributes(inherit);
+        }
+
+        public override object[] GetCustomAttributes(Type attributeType, bool inherit) {
+            return ControllerType.GetCustomAttributes(attributeType, inherit);
+        }
+
+        public override bool IsDefined(Type attributeType, bool inherit) {
+            return ControllerType.IsDefined(attributeType, inherit);
+        }
+
+    }
+}
