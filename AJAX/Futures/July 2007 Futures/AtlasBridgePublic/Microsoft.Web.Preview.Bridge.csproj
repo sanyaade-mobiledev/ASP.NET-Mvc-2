@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{77BB5F02-DCAF-4E48-A2FB-6E77E1707784}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.Web.Preview</RootNamespace>
+    <AssemblyName>Microsoft.Web.Preview.Bridge</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo35.cs" />
+    <Compile Include="Resources\PreviewWeb.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PreviewWeb.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Services\BridgeBuildProvider.cs" />
+    <Compile Include="Services\BridgeCache.cs" />
+    <Compile Include="Services\BridgeContext.cs" />
+    <Compile Include="Services\BridgeHandler.cs" />
+    <Compile Include="Services\BridgeModule.cs" />
+    <Compile Include="Services\BridgeRequest.cs" />
+    <Compile Include="Services\BridgeResponse.cs" />
+    <Compile Include="Services\BridgeRestProxy.cs" />
+    <Compile Include="Services\BridgeService.cs" />
+    <Compile Include="Services\IBridgeRequestCache.cs" />
+    <Compile Include="Services\IBridgeResponseTransformer.cs" />
+    <Compile Include="Services\ObjectMapperBridgeTransformer.cs" />
+    <Compile Include="Services\ServiceRequest.cs" />
+    <Compile Include="Services\ServiceResponse.cs" />
+    <Compile Include="Services\XmlBridgeTransformer.cs" />
+    <Compile Include="Services\XPathBridgeTransformer.cs" />
+    <Compile Include="Services\XsltBridgeTransformer.cs" />
+    <Compile Include="Util\NGenWrapper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\PreviewWeb.resx">
+      <LastGenOutput>PreviewWeb.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

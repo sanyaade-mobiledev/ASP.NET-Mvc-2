@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30610</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{309E61B6-9046-429F-97CC-305650B041CB}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Microsoft.Web.Preview</RootNamespace>
+    <AssemblyName>Microsoft.Web.Preview</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo35.cs" />
+    <Compile Include="Resources\PreviewWeb.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PreviewWeb.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Script\Serialization\Converters\DataRowConverter.cs" />
+    <Compile Include="Script\Serialization\Converters\DataSetConverter.cs" />
+    <Compile Include="Script\Serialization\Converters\DataTableConverter.cs" />
+    <Compile Include="Services\BaseTypedDictionary.cs" />
+    <Compile Include="Services\ChangeList.cs" />
+    <Compile Include="Services\DataAdapterAttribute.cs" />
+    <Compile Include="Services\DataService.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Services\ObjectDictionary.cs" />
+    <Compile Include="Services\TypedDictionary.cs" />
+    <Compile Include="Services\XmlDictionary.cs" />
+    <Compile Include="UI\Controls\WebParts\IWebPartZone.cs" />
+    <Compile Include="UI\Controls\WebParts\WebPartManager.cs" />
+    <Compile Include="UI\Controls\WebParts\WebPartZone.cs" />
+    <Compile Include="UI\FrameworkScript.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\PreviewWeb.resx">
+      <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>PreviewWeb.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UI\Controls\WebParts\WebPartManager.bmp" />
+    <EmbeddedResource Include="UI\Controls\WebParts\WebPartZone.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Script\PreviewDragDrop.debug.js">
+      <LogicalName>PreviewDragDrop.debug.js</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Script\PreviewDragDrop.js">
+      <LogicalName>PreviewDragDrop.js</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Script\PreviewGlitz.debug.js">
+      <LogicalName>PreviewGlitz.debug.js</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Script\PreviewGlitz.js">
+      <LogicalName>PreviewGlitz.js</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Script\PreviewScript.debug.js">
+      <LogicalName>PreviewScript.debug.js</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Script\PreviewScript.js">
+      <LogicalName>PreviewScript.js</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Script\PreviewWebParts.debug.js">
+      <LogicalName>PreviewWebParts.debug.js</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Script\PreviewWebParts.js">
+      <LogicalName>PreviewWebParts.js</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Script\WebParts.debug.js">
+      <LogicalName>WebParts.debug.js</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Script\WebParts.js">
+      <LogicalName>WebParts.js</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
