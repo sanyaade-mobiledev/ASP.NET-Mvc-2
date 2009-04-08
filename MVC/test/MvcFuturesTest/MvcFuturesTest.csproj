@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{6C28DA70-60F1-4442-967F-591BF3962EC5}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -71,15 +71,23 @@
     <Compile Include="Mvc\Test\AsyncResultWrapperTest.cs" />
     <Compile Include="Mvc\Test\AsyncRouteCollectionExtensionsTest.cs" />
     <Compile Include="Mvc\Test\AsyncTimeoutAttributeTest.cs" />
+    <Compile Include="Mvc\Test\BinaryHtmlExtensionsTest.cs" />
+    <Compile Include="Mvc\Test\ButtonTest.cs" />
+    <Compile Include="Mvc\Test\ByteArrayModelBinderTest.cs" />
+    <Compile Include="Mvc\Test\ContentTypeAttributeTest.cs" />
     <Compile Include="Mvc\Test\ContinuationListenerTest.cs" />
     <Compile Include="Mvc\Test\ControllerFilterHelpers.cs" />
+    <Compile Include="Mvc\Test\CookieTempDataProviderTest.cs" />
+    <Compile Include="Mvc\Test\AcceptAjaxAttributeTest.cs" />
+    <Compile Include="Mvc\Test\AjaxExtensionsTest.cs" />
+    <Compile Include="Mvc\Test\RequireSslAttributeTest.cs" />
     <Compile Include="Mvc\Test\DescriptorUtilTest.cs" />
+    <Compile Include="Mvc\Test\ExpressionHelperTest.cs" />
+    <Compile Include="Mvc\Test\LinqBinaryModelBinderTest.cs" />
+    <Compile Include="Mvc\Test\MailToExtensionsTest.cs" />
     <Compile Include="Mvc\Test\ManualAsyncResultTest.cs" />
     <Compile Include="Mvc\Test\MethodDispatcherCacheTest.cs" />
     <Compile Include="Mvc\Test\MethodDispatcherTest.cs" />
-    <Compile Include="Mvc\Test\ButtonTests.cs" />
-    <Compile Include="Mvc\Test\ContentTypeAttributeTests.cs" />
-    <Compile Include="Mvc\Test\CookieTempDataProviderTests.cs" />
     <Compile Include="Mvc\Test\MockAsyncResult.cs" />
     <Compile Include="Mvc\Test\MvcAsyncHandlerTest.cs" />
     <Compile Include="Mvc\Test\MvcAsyncRouteHandlerTest.cs" />
@@ -91,18 +99,14 @@
     <Compile Include="Mvc\Test\ReflectedAsyncPatternActionDescriptorTest.cs" />
     <Compile Include="Mvc\Test\ReflectedDelegatePatternActionDescriptorTest.cs" />
     <Compile Include="Mvc\Test\ReflectedEventPatternActionDescriptorTest.cs" />
+    <Compile Include="Mvc\Test\RenderActionTest.cs" />
     <Compile Include="Mvc\Test\SignalContainer.cs" />
     <Compile Include="Mvc\Test\SingleFireEventTest.cs" />
     <Compile Include="Mvc\Test\ExpressionInputExtensionsTest.cs" />
     <Compile Include="Mvc\Test\SkipBindingAttributeTest.cs" />
     <Compile Include="Mvc\Test\FileCollectionModelBinderTest.cs" />
     <Compile Include="Mvc\Test\FormExtensionsTest.cs" />
-    <Compile Include="Mvc\Test\LinqBinaryModelBinderTests.cs" />
     <Compile Include="Mvc\Test\RadioExtensionsTest.cs" />
-    <Compile Include="Mvc\Test\ExpressionHelperTests.cs" />
-    <Compile Include="Mvc\Test\PermissionTests.cs" />
-    <Compile Include="Mvc\Test\MailToExtensionsTests.cs" />
-    <Compile Include="Mvc\Test\RenderActionTests.cs" />
     <Compile Include="Mvc\Test\SubmitImageExtensionsTest.cs" />
     <Compile Include="Mvc\Test\ImageExtensionsTest.cs" />
     <Compile Include="Mvc\Test\SubmitButtonExtensionsTest.cs" />

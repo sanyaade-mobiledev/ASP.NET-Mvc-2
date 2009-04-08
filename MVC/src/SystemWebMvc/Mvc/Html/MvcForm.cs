@@ -2,8 +2,6 @@
     using System;
     using System.Diagnostics.CodeAnalysis;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class MvcForm : IDisposable {
         private bool _disposed;
         private readonly HttpResponseBase _httpResponse;

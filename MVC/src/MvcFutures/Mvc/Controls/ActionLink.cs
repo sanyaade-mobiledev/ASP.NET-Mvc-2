@@ -1,14 +1,11 @@
 ﻿namespace Microsoft.Web.Mvc.Controls {
     using System;
     using System.ComponentModel;
-    using System.Web;
     using System.Web.Routing;
     using System.Web.UI;
 
     [ParseChildren(true)]
     [PersistChildren(false)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ActionLink : MvcControl {
         private string _actionName;
         private string _controllerName;

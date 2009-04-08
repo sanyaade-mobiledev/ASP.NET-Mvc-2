@@ -1,11 +1,8 @@
 ﻿namespace Microsoft.Web.Mvc {
     using System;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public abstract class AsyncController : Controller, IAsyncController, IAsyncManagerContainer {
 
         private delegate bool InvokeActionDelegate(ControllerContext controllerContext, string actionName);

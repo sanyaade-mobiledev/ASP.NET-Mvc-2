@@ -1,14 +1,10 @@
 ﻿namespace System.Web.Mvc {
     using System;
     using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
     using System.Web;
     using System.Web.UI;
-    using System.Web.UI.HtmlControls;
 
     [FileLevelControlBuilder(typeof(ViewPageControlBuilder))]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ViewPage : Page, IViewDataContainer {
 
         private string _masterLocation;
@@ -80,14 +76,6 @@
             Url = new UrlHelper(ViewContext.RequestContext);
         }
 
-        [SuppressMessage("Microsoft.Security", "CA2109:ReviewVisibleEventHandlers",
-            Justification = "This isn't really an event handler.")]
-        protected override void OnLoad(EventArgs e) {
-            base.OnLoad(e);
-
-            ReplaceHtmlTitle();
-        }
-
         [SuppressMessage("Microsoft.Security", "CA2109:ReviewVisibleEventHandlers")]
         protected override void OnPreInit(EventArgs e) {
             base.OnPreInit(e);
@@ -115,30 +103,8 @@
             ProcessRequest(HttpContext.Current);
         }
 
-        internal void ReplaceHtmlTitle() {
-            // If we have a <head runat="server"> tag, the <head> element will automatically try to add
-            // a <title> child if one doesn't already exist. This was leading to a problem with putting
-            // a <title> element within a ContentPlaceHolder inside the <head> element, since <title>
-            // isn't a direct child of <head> so isn't detected by the runtime. The end result was that
-            // two <title> elements were being output: one auto-injected by <head>, the other from the
-            // ContentPlaceHolder tag. We try to detect this scenario and suppress the auto-injected
-            // <title> element by replacing it with an object that renders nothing.
-
-            // Special case: if the Page directive has a Title attribute <%@ Page Title = ... %>, we
-            // want to render the default auto-injected title tag since it can understand this attribute.
-            if (Header != null && !Header.Controls.OfType<HtmlTitle>().Any() && String.IsNullOrEmpty(Title)) {
-                Header.Controls.Add(new EmptyTitle());
-            }
-        }
-
         protected virtual void SetViewData(ViewDataDictionary viewData) {
             _viewData = viewData;
         }
-
-        private sealed class EmptyTitle : HtmlTitle {
-            protected override void Render(HtmlTextWriter writer) {
-            }
-        }
-
     }
 }

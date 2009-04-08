@@ -1,12 +1,9 @@
 ﻿namespace Microsoft.Web.Mvc {
     using System;
-    using System.Linq;
     using System.Collections.Generic;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class MailToExtensions {
         public static string Mailto(this HtmlHelper helper, string linkText, string emailAddress) {
             return Mailto(helper, linkText, emailAddress, null, null, null, null, (IDictionary<string, object>)null);

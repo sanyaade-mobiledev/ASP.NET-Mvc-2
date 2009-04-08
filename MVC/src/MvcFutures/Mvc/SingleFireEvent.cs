@@ -1,9 +1,6 @@
 ﻿namespace Microsoft.Web.Mvc {
-    using System;
     using System.Threading;
-    using System.Web;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public sealed class SingleFireEvent {
 
         private int _hasFired; // 0 = false, 1 = true

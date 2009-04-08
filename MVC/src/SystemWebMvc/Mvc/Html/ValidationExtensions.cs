@@ -7,10 +7,32 @@
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ValidationExtensions {
 
-        private static string GetUserErrorMessageOrDefault(ModelError error, ModelState modelState) {
+        private static string _resourceClassKey;
+
+        public static string ResourceClassKey {
+            get {
+                return _resourceClassKey ?? String.Empty;
+            }
+            set {
+                _resourceClassKey = value;
+            }
+        }
+
+        private static string GetInvalidPropertyValueResource(HttpContextBase httpContext) {
+            string resourceValue = null;
+            if (!String.IsNullOrEmpty(ResourceClassKey) && (httpContext != null)) {
+                // If the user specified a ResourceClassKey try to load the resource they specified.
+                // If the class key is invalid, an exception will be thrown.
+                // If the class key is valid but the resource is not found, it returns null, in which
+                // case it will fall back to the MVC default error message.
+                resourceValue = httpContext.GetGlobalResourceObject(ResourceClassKey, "InvalidPropertyValue", CultureInfo.CurrentUICulture) as string;
+            }
+            return resourceValue ?? MvcResources.Common_ValueNotValidForProperty;
+        }
+
+        private static string GetUserErrorMessageOrDefault(HttpContextBase httpContext, ModelError error, ModelState modelState) {
             if (!String.IsNullOrEmpty(error.ErrorMessage)) {
                 return error.ErrorMessage;
             }
@@ -19,7 +41,7 @@
             }
 
             string attemptedValue = (modelState.Value != null) ? modelState.Value.AttemptedValue : null;
-            return String.Format(CultureInfo.CurrentCulture, MvcResources.Common_ValueNotValidForProperty, attemptedValue);
+            return String.Format(CultureInfo.CurrentCulture, GetInvalidPropertyValueResource(httpContext), attemptedValue);
         }
 
         public static string ValidationMessage(this HtmlHelper htmlHelper, string modelName) {
@@ -68,23 +90,39 @@
             TagBuilder builder = new TagBuilder("span");
             builder.MergeAttributes(htmlAttributes);
             builder.MergeAttribute("class", HtmlHelper.ValidationMessageCssClassName);
-            builder.SetInnerText(String.IsNullOrEmpty(validationMessage) ? GetUserErrorMessageOrDefault(modelError, modelState) : validationMessage);
+            builder.SetInnerText(String.IsNullOrEmpty(validationMessage) ? GetUserErrorMessageOrDefault(htmlHelper.ViewContext.HttpContext, modelError, modelState) : validationMessage);
 
             return builder.ToString(TagRenderMode.Normal);
         }
 
         public static string ValidationSummary(this HtmlHelper htmlHelper) {
-            return ValidationSummary(htmlHelper, (object)null /* htmlAttributes */);
+            return ValidationSummary(htmlHelper, null /* message */);
         }
 
-        public static string ValidationSummary(this HtmlHelper htmlHelper, object htmlAttributes) {
-            return ValidationSummary(htmlHelper, new RouteValueDictionary(htmlAttributes));
+        public static string ValidationSummary(this HtmlHelper htmlHelper, string message) {
+            return ValidationSummary(htmlHelper, message, (object)null /* htmlAttributes */);
         }
 
-        public static string ValidationSummary(this HtmlHelper htmlHelper, IDictionary<string, object> htmlAttributes) {
+        public static string ValidationSummary(this HtmlHelper htmlHelper, string message, object htmlAttributes) {
+            return ValidationSummary(htmlHelper, message, new RouteValueDictionary(htmlAttributes));
+        }
+
+        public static string ValidationSummary(this HtmlHelper htmlHelper, string message, IDictionary<string, object> htmlAttributes) {
             // Nothing to do if there aren't any errors
             if (htmlHelper.ViewData.ModelState.IsValid) {
                 return null;
+            }
+
+            string messageSpan;
+            if (!String.IsNullOrEmpty(message)) {
+                TagBuilder spanTag = new TagBuilder("span");
+                spanTag.MergeAttributes(htmlAttributes);
+                spanTag.MergeAttribute("class", HtmlHelper.ValidationSummaryCssClassName);
+                spanTag.SetInnerText(message);
+                messageSpan = spanTag.ToString(TagRenderMode.Normal) + Environment.NewLine;
+            }
+            else {
+                messageSpan = null;
             }
 
             StringBuilder htmlSummary = new StringBuilder();
@@ -94,7 +132,7 @@
 
             foreach (ModelState modelState in htmlHelper.ViewData.ModelState.Values) {
                 foreach (ModelError modelError in modelState.Errors) {
-                    string errorText = GetUserErrorMessageOrDefault(modelError, null /* modelState */);
+                    string errorText = GetUserErrorMessageOrDefault(htmlHelper.ViewContext.HttpContext, modelError, null /* modelState */);
                     if (!String.IsNullOrEmpty(errorText)) {
                         TagBuilder listItem = new TagBuilder("li");
                         listItem.SetInnerText(errorText);
@@ -105,7 +143,8 @@
 
             unorderedList.InnerHtml = htmlSummary.ToString();
 
-            return unorderedList.ToString(TagRenderMode.Normal);
+            return messageSpan + unorderedList.ToString(TagRenderMode.Normal);
         }
+
     }
 }

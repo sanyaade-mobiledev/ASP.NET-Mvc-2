@@ -9,7 +9,7 @@
     using Moq;
 
     [TestClass]
-    public class CookieTempDataProviderTests {
+    public class CookieTempDataProviderTest {
         [TestMethod]
         public void ConstructProviderThrowsOnNullHttpContext() {
             ExceptionHelper.ExpectArgumentNullException(

@@ -6,7 +6,7 @@
     using System.Web.Mvc.Resources;
     using System.Web.UI;
 
-    internal class AntiForgeryTokenSerializer {
+    internal class AntiForgeryDataSerializer {
 
         private IStateFormatter _formatter;
 
@@ -26,7 +26,7 @@
             return new HttpAntiForgeryException(MvcResources.AntiForgeryToken_ValidationFailed, innerException);
         }
 
-        public virtual AntiForgeryToken Deserialize(string serializedToken) {
+        public virtual AntiForgeryData Deserialize(string serializedToken) {
             if (String.IsNullOrEmpty(serializedToken)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "serializedToken");
             }
@@ -36,7 +36,7 @@
 
             try {
                 Triplet deserializedObj = (Triplet)formatter.Deserialize(serializedToken);
-                return new AntiForgeryToken() {
+                return new AntiForgeryData() {
                     Salt = (string)deserializedObj.First,
                     Value = (string)deserializedObj.Second,
                     CreationDate = (DateTime)deserializedObj.Third
@@ -47,7 +47,7 @@
             }
         }
 
-        public virtual string Serialize(AntiForgeryToken token) {
+        public virtual string Serialize(AntiForgeryData token) {
             if (token == null) {
                 throw new ArgumentNullException("token");
             }

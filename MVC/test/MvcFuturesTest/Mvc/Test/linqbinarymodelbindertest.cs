@@ -6,95 +6,91 @@
     using Microsoft.Web.Mvc;
 
     [TestClass]
-    public class LinqBinaryModelBinderTests {
+    public class LinqBinaryModelBinderTest {
         [TestMethod]
         public void BindModelWithNonExistentValueReturnsNull() {
-            //arrange
-            ValueProviderDictionary dict = new ValueProviderDictionary(null) {
+            // Arrange
+            ValueProviderDictionary valueProvider = new ValueProviderDictionary(null) {
                 { "foo", new ValueProviderResult(null, null, null) }
             };
 
             ModelBindingContext bindingContext = new ModelBindingContext() {
                 ModelName = "foo",
-                ValueProvider = dict
+                ValueProvider = valueProvider
             };
 
             LinqBinaryModelBinder binder = new LinqBinaryModelBinder();
 
-            // act
-            var binderResult = binder.BindModel(null, bindingContext);
+            // Act
+            object binderResult = binder.BindModel(null, bindingContext);
 
-            //assert
+            // Assert
             Assert.IsNull(binderResult);
         }
 
         [TestMethod]
         public void BinderWithEmptyStringValueReturnsNull() {
-            //arrange
-            ValueProviderDictionary dict = new ValueProviderDictionary(null) {
+            // Arrange
+            ValueProviderDictionary valueProvider = new ValueProviderDictionary(null) {
                 { "foo", new ValueProviderResult(String.Empty, null, null) }
             };
 
             ModelBindingContext bindingContext = new ModelBindingContext() {
                 ModelName = "foo",
-                ValueProvider = dict
+                ValueProvider = valueProvider
             };
 
             LinqBinaryModelBinder binder = new LinqBinaryModelBinder();
 
-            // act
-            var binderResult = binder.BindModel(null, bindingContext);
+            // Act
+            object binderResult = binder.BindModel(null, bindingContext);
 
-            //assert
+            // Assert
             Assert.IsNull(binderResult);
         }
 
         [TestMethod]
         public void BindModelWithBase64QuotedValueReturnsBinary() {
-            //arrange
-            string base64Value = "AAAAAAAAPpA=";
-            ValueProviderDictionary dict = new ValueProviderDictionary(null) {
+            // Arrange
+            string base64Value = ByteArrayModelBinderTest.Base64TestString;
+            ValueProviderDictionary valueProvider = new ValueProviderDictionary(null) {
                 { "foo", new ValueProviderResult("\"" + base64Value + "\"", "\"" + base64Value + "\"", null) }
             };
 
             ModelBindingContext bindingContext = new ModelBindingContext() {
                 ModelName = "foo",
-                ValueProvider = dict
+                ValueProvider = valueProvider
             };
 
             LinqBinaryModelBinder binder = new LinqBinaryModelBinder();
 
-            // act
-            var boundValue = binder.BindModel(null, bindingContext) as Binary;
+            // Act
+            Binary boundValue = binder.BindModel(null, bindingContext) as Binary;
 
-            //assert
-            Assert.IsNotNull(boundValue);
-            string result = Convert.ToBase64String(boundValue.ToArray());
-            Assert.AreEqual(base64Value, result);
+            // Assert
+            Assert.AreEqual(ByteArrayModelBinderTest.Base64TestBytes, boundValue);
         }
 
         [TestMethod]
         public void BindModelWithBase64UnquotedValueReturnsBinary() {
-            //arrange
-            string base64Value = "AAAAAAAAPpA=";
-            ValueProviderDictionary dict = new ValueProviderDictionary(null) {
+            // Arrange
+            string base64Value = ByteArrayModelBinderTest.Base64TestString;
+            ValueProviderDictionary valueProvider = new ValueProviderDictionary(null) {
                 { "foo", new ValueProviderResult(base64Value, base64Value, null) }
             };
 
             ModelBindingContext bindingContext = new ModelBindingContext() {
                 ModelName = "foo",
-                ValueProvider = dict
+                ValueProvider = valueProvider
             };
 
             LinqBinaryModelBinder binder = new LinqBinaryModelBinder();
 
-            // act
-            var boundValue = binder.BindModel(null, bindingContext) as Binary;
+            // Act
+            Binary boundValue = binder.BindModel(null, bindingContext) as Binary;
 
-            //assert
-            Assert.IsNotNull(boundValue);
-            string result = Convert.ToBase64String(boundValue.ToArray());
-            Assert.AreEqual(base64Value, result);
+            // Assert
+            Assert.AreEqual(ByteArrayModelBinderTest.Base64TestBytes, boundValue);
         }
     }
 }

@@ -158,27 +158,27 @@ namespace System.Web.Mvc.Test {
         }
 
         [TestMethod]
-        public void ContentWithAppRelativePathAndQueryStringResolvesClientUrl() {
+        public void ContentWithAbsolutePath() {
             // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
             // Act
-            string returnedPath = urlHelper.Content("~/somepath?foo=bar");
+            string url = urlHelper.Content("/Content/Image.jpg");
 
             // Assert
-            Assert.AreEqual("somepath?foo=bar", returnedPath);
+            Assert.AreEqual("/Content/Image.jpg", url);
         }
 
         [TestMethod]
-        public void ContentWithAppRelativePathResolvesClientUrl() {
+        public void ContentWithAppRelativePath() {
             // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
             // Act
-            string returnedPath = urlHelper.Content("~/somepath");
+            string url = urlHelper.Content("~/Content/Image.jpg");
 
             // Assert
-            Assert.AreEqual("somepath", returnedPath);
+            Assert.AreEqual(HtmlHelperTest.AppPathModifier + "/app/Content/Image.jpg", url);
         }
 
         [TestMethod]
@@ -195,28 +195,27 @@ namespace System.Web.Mvc.Test {
         }
 
         [TestMethod]
-        public void ContentWithNonAppRelativePathReturnsPathUnmodified() {
+        public void ContentWithRelativePath() {
             // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
             // Act
-            string returnedPath = urlHelper.Content("../somepath");
+            string url = urlHelper.Content("Content/Image.jpg");
 
             // Assert
-            Assert.AreEqual("../somepath", returnedPath);
+            Assert.AreEqual("Content/Image.jpg", url);
         }
 
         [TestMethod]
-        public void ContentWithNullPathThrows() {
+        public void ContentWithExternalUrl() {
             // Arrange
             UrlHelper urlHelper = GetUrlHelper();
 
-            // Act & Assert
-            ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
-                delegate() {
-                    urlHelper.Content(null);
-                },
-                "contentPath");
+            // Act
+            string url = urlHelper.Content("http://www.asp.net/App_Themes/Standard/i/logo.png");
+
+            // Assert
+            Assert.AreEqual("http://www.asp.net/App_Themes/Standard/i/logo.png", url);
         }
 
         [TestMethod]
@@ -232,51 +231,18 @@ namespace System.Web.Mvc.Test {
         }
 
         [TestMethod]
-        public void MakeRelativeUrlCorrectlyResolvesLinkRelativeUrlToCurrentDirectory() {
-            // DevDiv 209502
-            // The VirtualPathUtility.MakeRelative() method will sometimes return an empty string instead of a dot
-            // when it means to create a relative path to the current directory. We need to watch for this and
-            // replace it.
+        public void RouteUrlCanUseNamedRouteWithoutSpecifyingDefaults() {
+            // DevDiv 217072: Non-mvc specific helpers should not give default values for controller and action
 
-            // Arrange
-            string fromPath = "/Home";
-            string toPath = "/";
-
-            // Act
-            string relativePath = UrlHelper.MakeRelativeUrl(fromPath, toPath);
-
-            // Assert
-            Assert.AreEqual("./", relativePath);
-        }
-
-        [TestMethod]
-        public void MakeRelativeUrlCorrectlyResolvesLinkRelativeUrlToCurrentDirectoryWithQueryString() {
-            // DevDiv 209502
-            // The VirtualPathUtility.MakeRelative() method will sometimes return an empty string instead of a dot
-            // when it means to create a relative path to the current directory. We need to watch for this and
-            // replace it.
-
-            // Arrange
-            string fromPath = "/Home";
-            string toPath = "/?foo=bar";
-
-            // Act
-            string relativePath = UrlHelper.MakeRelativeUrl(fromPath, toPath);
-
-            // Assert
-            Assert.AreEqual("./?foo=bar", relativePath);
-        }
-
-        [TestMethod]
-        public void RouteUrlReturnsOriginalUrlIfDestinationNotInAppPath() {
             // Arrange
             UrlHelper urlHelper = GetUrlHelper();
+            urlHelper.RouteCollection.MapRoute("MyRouteName", "any/url", new { controller = "Charlie" });
 
             // Act
-            string url = urlHelper.RouteUrl("namedroute", new { Action = "newaction", Controller = "home2", id = "someid" });
+            string result = urlHelper.RouteUrl("MyRouteName");
 
             // Assert
-            Assert.AreEqual(HtmlHelperTest.AppPathModifier + "/app/named/home2/newaction/someid", url);
+            Assert.AreEqual(HtmlHelperTest.AppPathModifier + "/app/any/url", result);
         }
 
         [TestMethod]
@@ -420,7 +386,7 @@ namespace System.Web.Mvc.Test {
         }
 
         private static UrlHelper GetUrlHelper() {
-            HttpContextBase httpcontext = HtmlHelperTest.GetHttpContext("/app/", "~/", null);
+            HttpContextBase httpcontext = HtmlHelperTest.GetHttpContext("/app/", null, null);
             RouteCollection rt = new RouteCollection();
             rt.Add(new Route("{controller}/{action}/{id}", null) { Defaults = new RouteValueDictionary(new { id = "defaultid" }) });
             rt.Add("namedroute", new Route("named/{controller}/{action}/{id}", null) { Defaults = new RouteValueDictionary(new { id = "defaultid" }) });
@@ -431,6 +397,5 @@ namespace System.Web.Mvc.Test {
             UrlHelper urlHelper = new UrlHelper(new RequestContext(httpcontext, rd), rt);
             return urlHelper;
         }
-
     }
 }

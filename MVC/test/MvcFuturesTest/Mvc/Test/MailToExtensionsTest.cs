@@ -7,7 +7,7 @@
     using System.Web.Routing;
 
     [TestClass]
-    public class MailToExtensionsTests {
+    public class MailToExtensionsTest {
         [TestMethod]
         public void MailToWithoutEmailThrowsArgumentNullException() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());

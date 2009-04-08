@@ -1,13 +1,8 @@
 ﻿namespace Microsoft.Web.Mvc.Controls {
     using System;
     using System.Collections.Generic;
-    using System.Web;
     using System.Web.UI;
 
-    // TOOD: Should the attributes be in a list instead of a dictionary? The unit tests can break if the order changes
-
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class RouteValues : IAttributeAccessor {
         private IDictionary<string, string> _attributes;
 
@@ -20,7 +15,7 @@
 
         private void EnsureAttributes() {
             if (_attributes == null) {
-                _attributes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                _attributes = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             }
         }
 

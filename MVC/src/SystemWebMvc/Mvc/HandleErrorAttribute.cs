@@ -2,15 +2,12 @@
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
-    using System.Reflection;
     using System.Web;
     using System.Web.Mvc.Resources;
 
     [SuppressMessage("Microsoft.Performance", "CA1813:AvoidUnsealedAttributes",
         Justification = "This attribute is AllowMultiple = true and users might want to override behavior.")]
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class HandleErrorAttribute : FilterAttribute, IExceptionFilter {
 
         private const string _defaultView = "Error";

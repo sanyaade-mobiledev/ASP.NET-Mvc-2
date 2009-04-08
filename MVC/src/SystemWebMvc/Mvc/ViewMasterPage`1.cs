@@ -1,9 +1,5 @@
 ﻿namespace System.Web.Mvc {
-    using System.Globalization;
-    using System.Web.Mvc.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ViewMasterPage<TModel> : ViewMasterPage where TModel : class {
         private AjaxHelper<TModel> _ajaxHelper;
         private HtmlHelper<TModel> _htmlHelper;

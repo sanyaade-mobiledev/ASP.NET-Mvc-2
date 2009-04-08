@@ -1,10 +1,8 @@
 ﻿namespace System.Web.Mvc {
     using System;
     using System.Globalization;
-    using System.Web;
     using System.Web.Mvc.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AttributeUsage(ValidTargets, AllowMultiple = false, Inherited = false)]
     public sealed class ModelBinderAttribute : CustomModelBinderAttribute {
 

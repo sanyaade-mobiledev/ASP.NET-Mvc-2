@@ -4,11 +4,8 @@
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
-    using System.Web;
     using System.Web.Mvc.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ReflectedActionDescriptor : ActionDescriptor {
 
         private readonly static ActionMethodDispatcherCache _staticDispatcherCache = new ActionMethodDispatcherCache();

@@ -232,6 +232,15 @@ namespace Microsoft.Web.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;Name&apos; property must be set..
+        /// </summary>
+        internal static string CommonControls_NameRequired {
+            get {
+                return ResourceManager.GetString("CommonControls_NameRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The IControllerFactory &apos;{0}&apos; did not return a controller for a controller named &apos;{1}&apos;..
         /// </summary>
         internal static string ControllerBuilder_FactoryReturnedNull {
@@ -241,7 +250,7 @@ namespace Microsoft.Web.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot route to class named &apos;Controller&apos;.
+        ///   Looks up a localized string similar to Cannot route to class named &apos;Controller&apos;..
         /// </summary>
         internal static string ExpressionHelper_CannotRouteToController {
             get {
@@ -250,7 +259,7 @@ namespace Microsoft.Web.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expression must be a method call.
+        ///   Looks up a localized string similar to Expression must be a method call..
         /// </summary>
         internal static string ExpressionHelper_MustBeMethodCall {
             get {
@@ -259,7 +268,7 @@ namespace Microsoft.Web.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Controller name must end in &apos;Controller&apos;.
+        ///   Looks up a localized string similar to Controller name must end in &apos;Controller&apos;..
         /// </summary>
         internal static string ExpressionHelper_TargetMustEndInController {
             get {
@@ -318,6 +327,15 @@ namespace Microsoft.Web.Resources {
         internal static string ReflectedDelegatePatternActionDescriptor_MethodReturnedNull {
             get {
                 return ResourceManager.GetString("ReflectedDelegatePatternActionDescriptor_MethodReturnedNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Access forbidden. The requested resource requires an SSL connection..
+        /// </summary>
+        internal static string RequireSslAttribute_MustUseSsl {
+            get {
+                return ResourceManager.GetString("RequireSslAttribute_MustUseSsl", resourceCulture);
             }
         }
     }

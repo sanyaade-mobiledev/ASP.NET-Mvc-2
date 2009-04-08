@@ -10,12 +10,13 @@ namespace System.Web.Mvc.Test {
 
     [TestClass]
     public class HtmlHelperTest {
-        public const string AppPathModifier = "/(S(sessiontoken))";
+        public const string AppPathModifier = "/$(SESSION)";
         public static readonly RouteValueDictionary AttributesDictionary = new RouteValueDictionary(new { baz = "BazValue" });
         public static readonly object AttributesObjectDictionary = new { baz = "BazObjValue" };
 
         // AntiForgeryToken test helpers
-        private const string _serializedValuePrefix = @"<input name=""" + HtmlHelper.AntiForgeryTokenFieldName + @""" type=""hidden"" value=""Creation: ";
+        private static string _antiForgeryTokenCookieName = AntiForgeryData.GetAntiForgeryTokenName("/SomeAppPath");
+        private const string _serializedValuePrefix = @"<input name=""__RequestVerificationToken"" type=""hidden"" value=""Creation: ";
         private const string _someValueSuffix = @", Value: some value, Salt: some other salt"" />";
         private readonly Regex _randomFormValueSuffixRegex = new Regex(@", Value: (?<value>[A-Za-z0-9/\+=]{24}), Salt: some other salt"" />$");
         private readonly Regex _randomCookieValueSuffixRegex = new Regex(@", Value: (?<value>[A-Za-z0-9/\+=]{24}), Salt: $");
@@ -24,7 +25,7 @@ namespace System.Web.Mvc.Test {
         public void SerializerProperty() {
             // Arrange
             HtmlHelper helper = GetHtmlHelperForAntiForgeryToken(null);
-            AntiForgeryTokenSerializer newSerializer = new AntiForgeryTokenSerializer();
+            AntiForgeryDataSerializer newSerializer = new AntiForgeryDataSerializer();
 
             // Act & Assert
             MemberHelper.TestPropertyWithDefaultInstance(helper, "Serializer", newSerializer);
@@ -101,9 +102,37 @@ namespace System.Web.Mvc.Test {
             Match formMatch = _randomFormValueSuffixRegex.Match(formValue);
             string formTokenValue = formMatch.Groups["value"].Value;
 
-            HttpCookie cookie = htmlHelper.ViewContext.HttpContext.Response.Cookies[HtmlHelper.AntiForgeryTokenFieldName];
+            HttpCookie cookie = htmlHelper.ViewContext.HttpContext.Response.Cookies[_antiForgeryTokenCookieName];
             Assert.IsNotNull(cookie, "Cookie was not set correctly.");
             Assert.IsTrue(cookie.HttpOnly, "Cookie should have HTTP-only flag set.");
+            Assert.IsTrue(String.IsNullOrEmpty(cookie.Domain), "Domain should not have been set.");
+            Assert.AreEqual("/", cookie.Path, "Path should have remained at '/' by default.");
+
+            Match cookieMatch = _randomCookieValueSuffixRegex.Match(cookie.Value);
+            string cookieTokenValue = cookieMatch.Groups["value"].Value;
+
+            Assert.AreEqual(formTokenValue, cookieTokenValue, "Form and cookie token values did not match.");
+        }
+
+        [TestMethod]
+        public void AntiForgeryTokenSetsDomainAndPathIfSpecified() {
+            // Arrange
+            HtmlHelper htmlHelper = GetHtmlHelperForAntiForgeryToken(null);
+
+            // Act
+            string formValue = htmlHelper.AntiForgeryToken("some other salt", "theDomain", "thePath");
+
+            // Assert
+            Assert.IsTrue(formValue.StartsWith(_serializedValuePrefix), "Form value prefix did not match.");
+
+            Match formMatch = _randomFormValueSuffixRegex.Match(formValue);
+            string formTokenValue = formMatch.Groups["value"].Value;
+
+            HttpCookie cookie = htmlHelper.ViewContext.HttpContext.Response.Cookies[_antiForgeryTokenCookieName];
+            Assert.IsNotNull(cookie, "Cookie was not set correctly.");
+            Assert.IsTrue(cookie.HttpOnly, "Cookie should have HTTP-only flag set.");
+            Assert.AreEqual("theDomain", cookie.Domain);
+            Assert.AreEqual("thePath", cookie.Path);
 
             Match cookieMatch = _randomCookieValueSuffixRegex.Match(cookie.Value);
             string cookieTokenValue = cookieMatch.Groups["value"].Value;
@@ -266,10 +295,6 @@ namespace System.Web.Mvc.Test {
             }
             if (!String.IsNullOrEmpty(requestPath)) {
                 mockHttpContext.Expect(o => o.Request.AppRelativeCurrentExecutionFilePath).Returns(requestPath);
-                if (!String.IsNullOrEmpty(appPath)) {
-                    string absolutePath = VirtualPathUtility.ToAbsolute(requestPath, appPath);
-                    mockHttpContext.Expect(o => o.Request.Path).Returns(absolutePath);
-                }
             }
 
             Uri uri;
@@ -348,23 +373,16 @@ namespace System.Web.Mvc.Test {
         }
 
         private static HtmlHelper GetHtmlHelperForAntiForgeryToken(string cookieValue) {
-            Mock<HttpRequestBase> mockRequest = new Mock<HttpRequestBase>();
             HttpCookieCollection requestCookies = new HttpCookieCollection();
-            mockRequest.Expect(r => r.Cookies).Returns(requestCookies);
+            HttpCookieCollection responseCookies = new HttpCookieCollection();
             if (!String.IsNullOrEmpty(cookieValue)) {
-                requestCookies.Set(new HttpCookie(HtmlHelper.AntiForgeryTokenFieldName, cookieValue));
+                requestCookies.Set(new HttpCookie(AntiForgeryData.GetAntiForgeryTokenName("/SomeAppPath"), cookieValue));
             }
 
-            Mock<HttpResponseBase> mockResponse = new Mock<HttpResponseBase>();
-            HttpCookieCollection responseCookies = new HttpCookieCollection();
-            mockResponse.Expect(r => r.Cookies).Returns(responseCookies);
-
-            Mock<HttpContextBase> mockHttpContext = new Mock<HttpContextBase>();
-            mockHttpContext.Expect(c => c.Request).Returns(mockRequest.Object);
-            mockHttpContext.Expect(c => c.Response).Returns(mockResponse.Object);
-
             Mock<ViewContext> mockViewContext = new Mock<ViewContext>();
-            mockViewContext.Expect(c=>c.HttpContext).Returns(mockHttpContext.Object);
+            mockViewContext.Expect(c => c.HttpContext.Request.Cookies).Returns(requestCookies);
+            mockViewContext.Expect(c => c.HttpContext.Request.ApplicationPath).Returns("/SomeAppPath");
+            mockViewContext.Expect(c => c.HttpContext.Response.Cookies).Returns(responseCookies);
 
             return new HtmlHelper(mockViewContext.Object, new Mock<IViewDataContainer>().Object) {
                 Serializer = new SubclassedAntiForgeryTokenSerializer()
@@ -400,14 +418,14 @@ namespace System.Web.Mvc.Test {
             }
         }
 
-        internal class SubclassedAntiForgeryTokenSerializer : AntiForgeryTokenSerializer {
-            public override string Serialize(AntiForgeryToken token) {
+        internal class SubclassedAntiForgeryTokenSerializer : AntiForgeryDataSerializer {
+            public override string Serialize(AntiForgeryData token) {
                 return String.Format(CultureInfo.InvariantCulture, "Creation: {0}, Value: {1}, Salt: {2}",
                         token.CreationDate, token.Value, token.Salt);
             }
-            public override AntiForgeryToken Deserialize(string serializedToken) {
+            public override AntiForgeryData Deserialize(string serializedToken) {
                 string[] parts = serializedToken.Split(':');
-                return new AntiForgeryToken() {
+                return new AntiForgeryData() {
                     CreationDate = DateTime.Parse(parts[0], CultureInfo.InvariantCulture),
                     Value = parts[1],
                     Salt = parts[2]

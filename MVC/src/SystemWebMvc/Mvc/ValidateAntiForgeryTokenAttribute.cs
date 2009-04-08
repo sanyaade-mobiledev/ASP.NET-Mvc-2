@@ -3,14 +3,11 @@
     using System.Web;
     using System.Web.Mvc.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public sealed class ValidateAntiForgeryTokenAttribute : FilterAttribute, IAuthorizationFilter {
 
-        private const string TokenName = HtmlHelper.AntiForgeryTokenFieldName;
-
         private string _salt;
-        private AntiForgeryTokenSerializer _serializer;
+        private AntiForgeryDataSerializer _serializer;
 
         public string Salt {
             get {
@@ -21,10 +18,10 @@
             }
         }
 
-        internal AntiForgeryTokenSerializer Serializer {
+        internal AntiForgeryDataSerializer Serializer {
             get {
                 if (_serializer == null) {
-                    _serializer = new AntiForgeryTokenSerializer();
+                    _serializer = new AntiForgeryDataSerializer();
                 }
                 return _serializer;
             }
@@ -33,7 +30,7 @@
             }
         }
 
-        private bool ValidateFormToken(AntiForgeryToken token) {
+        private bool ValidateFormToken(AntiForgeryData token) {
             return (String.Equals(Salt, token.Salt, StringComparison.Ordinal));
         }
 
@@ -46,19 +43,22 @@
                 throw new ArgumentNullException("filterContext");
             }
 
-            HttpCookie cookie = filterContext.HttpContext.Request.Cookies[TokenName];
+            string fieldName = AntiForgeryData.GetAntiForgeryTokenName(null);
+            string cookieName = AntiForgeryData.GetAntiForgeryTokenName(filterContext.HttpContext.Request.ApplicationPath);
+
+            HttpCookie cookie = filterContext.HttpContext.Request.Cookies[cookieName];
             if (cookie == null || String.IsNullOrEmpty(cookie.Value)) {
                 // error: cookie token is missing
                 throw CreateValidationException();
             }
-            AntiForgeryToken cookieToken = Serializer.Deserialize(cookie.Value);
+            AntiForgeryData cookieToken = Serializer.Deserialize(cookie.Value);
 
-            string formValue = filterContext.HttpContext.Request.Form[TokenName];
+            string formValue = filterContext.HttpContext.Request.Form[fieldName];
             if (String.IsNullOrEmpty(formValue)) {
                 // error: form token is missing
                 throw CreateValidationException();
             }
-            AntiForgeryToken formToken = Serializer.Deserialize(formValue);
+            AntiForgeryData formToken = Serializer.Deserialize(formValue);
 
             if (!String.Equals(cookieToken.Value, formToken.Value, StringComparison.Ordinal)) {
                 // error: form token does not match cookie token

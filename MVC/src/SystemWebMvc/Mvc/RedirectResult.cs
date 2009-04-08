@@ -4,8 +4,6 @@
     using System.Web.Mvc.Resources;
 
     // represents a result that performs a redirection given some URI
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class RedirectResult : ActionResult {
 
         [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "0#",
@@ -30,9 +28,9 @@
                 throw new ArgumentNullException("context");
             }
 
-            context.HttpContext.Response.Redirect(Url, false /* endResponse */);
+            string destinationUrl = UrlHelper.Content(Url, context.HttpContext);
+            context.HttpContext.Response.Redirect(destinationUrl, false /* endResponse */);
         }
 
     }
-
 }

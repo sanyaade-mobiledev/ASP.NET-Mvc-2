@@ -3,7 +3,6 @@
     using System.Reflection;
     using System.Web;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ModelBinders {
 
         private static readonly ModelBinderDictionary _binders = CreateDefaultBinderDictionary();

@@ -1,7 +1,6 @@
 ﻿namespace Microsoft.Web.Mvc {
     using System;
     using System.Threading;
-    using System.Web;
     using Microsoft.Web.Resources;
 
     // This class is used for the following pattern:
@@ -13,7 +12,6 @@
 
     // That is, the EndOuter() method needs to perform some post-processing of the data returned by EndInner().
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class AsyncResultWrapper {
 
         private static AsyncCallback<object> MakeGenericCallback(AsyncCallback callback) {

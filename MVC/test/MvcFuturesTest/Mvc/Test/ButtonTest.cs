@@ -6,7 +6,7 @@
     using Microsoft.Web.Mvc;
 
     [TestClass]
-    public class ButtonTests {
+    public class ButtonTest {
         [TestMethod]
         public void ButtonWithNullNameThrowsArgumentNullException() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());

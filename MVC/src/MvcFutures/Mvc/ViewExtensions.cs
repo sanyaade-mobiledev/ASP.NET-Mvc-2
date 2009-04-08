@@ -6,7 +6,6 @@
     using System.Web.Routing;
     using Microsoft.Web.Mvc.Internal;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ViewExtensions {
 
         public static void RenderRoute(this HtmlHelper helper, RouteValueDictionary routeValues) {

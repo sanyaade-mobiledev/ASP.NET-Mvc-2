@@ -73,17 +73,30 @@
         [TestMethod]
         public void ImageWithOtherAttributesRendersThoseAttributesCaseSensitively() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
-            string imageResult = html.Image("/system/web/mvc.jpg", new { width=100, Height=200 });
+            string imageResult = html.Image("/system/web/mvc.jpg", new { width = 100, Height = 200 });
             Assert.AreEqual("<img Height=\"200\" src=\"/system/web/mvc.jpg\" width=\"100\" />", imageResult);
         }
 
         [TestMethod]
         public void ImageWithUrlAndDictionaryRendersAttributes() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
-            var attributes = new RouteValueDictionary(new { width=125 });
+            var attributes = new RouteValueDictionary(new { width = 125 });
             string imageResult = html.Image("/system/web/mvc.jpg", attributes);
             Assert.AreEqual("<img src=\"/system/web/mvc.jpg\" width=\"125\" />", imageResult);
         }
 
+        [TestMethod]
+        public void ImageWithTildePathAndAppPathResolvesCorrectly() {
+            HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary(), "/app");
+            string imageResult = html.Image("~/system/web/mvc.jpg");
+            Assert.AreEqual("<img src=\"/$(SESSION)/app/system/web/mvc.jpg\" />", imageResult);
+        }
+
+        [TestMethod]
+        public void ImageWithTildePathWithoutAppPathResolvesCorrectly() {
+            HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary(), "/");
+            string imageResult = html.Image("~/system/web/mvc.jpg");
+            Assert.AreEqual("<img src=\"/$(SESSION)/system/web/mvc.jpg\" />", imageResult);
+        }
     }
 }

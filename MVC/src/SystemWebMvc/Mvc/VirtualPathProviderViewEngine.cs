@@ -4,12 +4,9 @@
     using System.Globalization;
     using System.Linq;
     using System.Web;
-    using System.Web.Caching;
     using System.Web.Hosting;
     using System.Web.Mvc.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public abstract class VirtualPathProviderViewEngine : IViewEngine {
         // format is ":ViewCacheEntry:{cacheType}:{prefix}:{name}:{controllerName}:"
         private const string _cacheKeyFormat = ":ViewCacheEntry:{0}:{1}:{2}:{3}:";

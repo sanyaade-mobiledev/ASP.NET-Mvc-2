@@ -9,11 +9,9 @@
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
     
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class SelectExtensions {
         public static string DropDownList(this HtmlHelper htmlHelper, string name, string optionLabel) {
-            IEnumerable<SelectListItem> selectList = htmlHelper.GetSelectData(name);
-            return SelectInternal(htmlHelper, optionLabel, name, selectList, true /* usedViewData */, false /* allowMultiple */, (IDictionary<string, object>)null /* htmlAttributes */);
+            return SelectInternal(htmlHelper, optionLabel, name, null/* selectList */, false /* allowMultiple */, (IDictionary<string, object>)null /* htmlAttributes */);
         }
 
         public static string DropDownList(this HtmlHelper htmlHelper, string name, IEnumerable<SelectListItem> selectList, string optionLabel) {
@@ -25,8 +23,7 @@
         }
 
         public static string DropDownList(this HtmlHelper htmlHelper, string name) {
-            IEnumerable<SelectListItem> selectList = htmlHelper.GetSelectData(name);
-            return SelectInternal(htmlHelper, null /* optionLabel */, name, selectList, true /* usedViewData */, false /* allowMultiple */, (IDictionary<string, object>)null /* htmlAttributes */);
+            return SelectInternal(htmlHelper, null /* optionLabel */, name, null /* selectList */, false /* allowMultiple */, (IDictionary<string, object>)null /* htmlAttributes */);
         }
 
         public static string DropDownList(this HtmlHelper htmlHelper, string name, IEnumerable<SelectListItem> selectList) {
@@ -40,18 +37,17 @@
         [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters",
             Justification = "This type is appropriate for indicating a single selection.")]
         public static string DropDownList(this HtmlHelper htmlHelper, string name, IEnumerable<SelectListItem> selectList, IDictionary<string, object> htmlAttributes) {
-            return SelectInternal(htmlHelper, null /* optionLabel */, name, selectList, false /* usedViewData */, false /* allowMultiple */, htmlAttributes);
+            return SelectInternal(htmlHelper, null /* optionLabel */, name, selectList, false /* allowMultiple */, htmlAttributes);
         }
 
         [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters",
             Justification = "This type is appropriate for indicating a single selection.")]
         public static string DropDownList(this HtmlHelper htmlHelper, string name, IEnumerable<SelectListItem> selectList, string optionLabel, IDictionary<string, object> htmlAttributes) {
-            return SelectInternal(htmlHelper, optionLabel, name, selectList, false /* usedViewData */, false /* allowMultiple */, htmlAttributes);
+            return SelectInternal(htmlHelper, optionLabel, name, selectList, false /* allowMultiple */, htmlAttributes);
         }
 
         public static string ListBox(this HtmlHelper htmlHelper, string name) {
-            IEnumerable<SelectListItem> selectList = htmlHelper.GetSelectData(name);
-            return SelectInternal(htmlHelper, null /* optionLabel */, name, selectList, true /* usedViewData */, true /* allowMultiple */, (IDictionary<string, object>)null /* htmlAttributes */);
+            return SelectInternal(htmlHelper, null/* optionLabel */, name, null/* selectList */, true/* allowMultiple */, (IDictionary<string, object>)null /* htmlAttributes */);
         }
 
         public static string ListBox(this HtmlHelper htmlHelper, string name, IEnumerable<SelectListItem> selectList) {
@@ -63,7 +59,7 @@
         }
 
         public static string ListBox(this HtmlHelper htmlHelper, string name, IEnumerable<SelectListItem> selectList, IDictionary<string, object> htmlAttributes) {
-            return SelectInternal(htmlHelper, null /* optionLabel */, name, selectList, false /* usedViewData */, true /* allowMultiple */, htmlAttributes);
+            return SelectInternal(htmlHelper, null /* optionLabel */, name, selectList, true /* allowMultiple */, htmlAttributes);
         }
 
         private static IEnumerable<SelectListItem> GetSelectData(this HtmlHelper htmlHelper, string name) {
@@ -105,12 +101,17 @@
             return builder.ToString(TagRenderMode.Normal);
         }
 
-        private static string SelectInternal(this HtmlHelper htmlHelper, string optionLabel, string name, IEnumerable<SelectListItem> selectList, bool usedViewData, bool allowMultiple, IDictionary<string, object> htmlAttributes) {
+        private static string SelectInternal(this HtmlHelper htmlHelper, string optionLabel, string name, IEnumerable<SelectListItem> selectList, bool allowMultiple, IDictionary<string, object> htmlAttributes) {
             if (String.IsNullOrEmpty(name)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "name");
             }
+
+            bool usedViewData = false;
+
+            // If we got a null selectList, try to use ViewData to get the list of items.
             if (selectList == null) {
-                throw new ArgumentNullException("selectList");
+                selectList = htmlHelper.GetSelectData(name);
+                usedViewData = true;
             }
 
             object defaultValue = (allowMultiple) ? htmlHelper.GetModelStateValue(name, typeof(string[])) : htmlHelper.GetModelStateValue(name, typeof(string));

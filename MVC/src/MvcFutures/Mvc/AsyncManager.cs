@@ -2,11 +2,8 @@
     using System;
     using System.Collections.Generic;
     using System.Threading;
-    using System.Web;
     using Microsoft.Web.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class AsyncManager {
 
         // default timeout is 30 sec

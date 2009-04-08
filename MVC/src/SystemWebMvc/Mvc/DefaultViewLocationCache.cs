@@ -1,16 +1,11 @@
 ﻿namespace System.Web.Mvc {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
-    using System.Text;
     using System.Web.Caching;
     using System.Web.Mvc.Resources;
 
     [SuppressMessage("Microsoft.Security", "CA2112:SecuredTypesShouldNotExposeFields",
         Justification = "The Null field does not have access to secure information")]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class DefaultViewLocationCache : IViewLocationCache {
         private static readonly TimeSpan _defaultTimeSpan = new TimeSpan(0, 15, 0);
 

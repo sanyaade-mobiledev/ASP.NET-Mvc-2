@@ -9,7 +9,6 @@
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class AjaxExtensions {
         private const string LinkOnClickFormat = "Sys.Mvc.AsyncHyperlink.handleClick(this, new Sys.UI.DomEvent(event), {0});";
         private const string FormOnSubmitFormat = "Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), {0});";
@@ -57,7 +56,7 @@
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "linkText");
             }
 
-            string targetUrl = UrlHelper.GenerateUrl(null, actionName, controllerName, routeValues, ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext);
+            string targetUrl = UrlHelper.GenerateUrl(null, actionName, controllerName, routeValues, ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext, true /* includeImplicitMvcValues */);
 
             return GenerateLink(linkText, targetUrl, GetAjaxOptions(ajaxOptions), htmlAttributes);
         }
@@ -73,13 +72,13 @@
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "linkText");
             }
 
-            string targetUrl = UrlHelper.GenerateUrl(null /* routeName */, actionName, controllerName, protocol, hostName, fragment, routeValues, ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext);
+            string targetUrl = UrlHelper.GenerateUrl(null /* routeName */, actionName, controllerName, protocol, hostName, fragment, routeValues, ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext, true /* includeImplicitMvcValues */);
 
             return GenerateLink(linkText, targetUrl, ajaxOptions, htmlAttributes);
         }
 
         public static MvcForm BeginForm(this AjaxHelper ajaxHelper, AjaxOptions ajaxOptions) {
-            string formAction = ajaxHelper.ViewContext.HttpContext.Request.Url.ToString();
+            string formAction = ajaxHelper.ViewContext.HttpContext.Request.RawUrl;
 
             TagBuilder builder = new TagBuilder("form");
 
@@ -132,7 +131,7 @@
 
         public static MvcForm BeginForm(this AjaxHelper ajaxHelper, string actionName, string controllerName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
             // get target URL
-            string formAction = UrlHelper.GenerateUrl(null, actionName, controllerName, routeValues ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext);
+            string formAction = UrlHelper.GenerateUrl(null, actionName, controllerName, routeValues ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext, true /* includeImplicitMvcValues */);
             return FormHelper(ajaxHelper, formAction, ajaxOptions, htmlAttributes);
         }
 
@@ -154,7 +153,7 @@
         }
 
         public static MvcForm BeginRouteForm(this AjaxHelper ajaxHelper, string routeName, RouteValueDictionary routeValues, AjaxOptions ajaxOptions, IDictionary<string, object> htmlAttributes) {
-            string formAction = UrlHelper.GenerateUrl(routeName, null /* actionName */, null /* controllerName */, routeValues ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext);
+            string formAction = UrlHelper.GenerateUrl(routeName, null /* actionName */, null /* controllerName */, routeValues ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext, false /* includeImplicitMvcValues */);
             return FormHelper(ajaxHelper, formAction, ajaxOptions, htmlAttributes);
         }
 
@@ -221,7 +220,7 @@
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "linkText");
             }
 
-            string targetUrl = UrlHelper.GenerateUrl(routeName, null /* actionName */, null /* controllerName */, routeValues ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext);
+            string targetUrl = UrlHelper.GenerateUrl(routeName, null /* actionName */, null /* controllerName */, routeValues ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext, false /* includeImplicitMvcValues */);
 
             return GenerateLink(linkText, targetUrl, GetAjaxOptions(ajaxOptions), htmlAttributes);
         }
@@ -231,7 +230,7 @@
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "linkText");
             }
 
-            string targetUrl = UrlHelper.GenerateUrl(routeName, null /* actionName */, null /* controllerName */, protocol, hostName, fragment, routeValues ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext);
+            string targetUrl = UrlHelper.GenerateUrl(routeName, null /* actionName */, null /* controllerName */, protocol, hostName, fragment, routeValues ?? new RouteValueDictionary(), ajaxHelper.RouteCollection, ajaxHelper.ViewContext.RequestContext, false /* includeImplicitMvcValues */);
 
             return GenerateLink(linkText, targetUrl, GetAjaxOptions(ajaxOptions), htmlAttributes);
         }

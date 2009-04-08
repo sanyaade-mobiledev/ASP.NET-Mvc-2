@@ -3,13 +3,10 @@
     using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
-    using System.Web;
     using System.Web.Mvc.Resources;
     using System.Web.UI;
 
     [FileLevelControlBuilder(typeof(ViewUserControlControlBuilder))]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ViewUserControl : UserControl, IViewDataContainer {
         private AjaxHelper _ajaxHelper;
         private HtmlHelper _htmlHelper;

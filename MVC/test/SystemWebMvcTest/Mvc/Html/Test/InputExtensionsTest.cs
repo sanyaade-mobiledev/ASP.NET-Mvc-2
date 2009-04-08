@@ -7,7 +7,7 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
-    public class HtmlInputExtensionsTest {
+    public class InputExtensionsTest {
 
         [TestMethod]
         public void CheckBoxDictionaryOverridesImplicitParameters() {
@@ -92,16 +92,16 @@
         }
 
         [TestMethod]
-        public void CheckBoxShouldIgnoreModelStateAttemptedValue() {
+        public void CheckBoxShouldRespectModelStateAttemptedValue() {
             // Arrange
             HtmlHelper helper = HtmlHelperTest.GetHtmlHelper(GetCheckBoxViewData());
-            helper.ViewData.ModelState.SetModelValue("foo", HtmlHelperTest.GetValueProviderResult("fooBarBaz", "fooBarBaz"));
+            helper.ViewData.ModelState.SetModelValue("foo", HtmlHelperTest.GetValueProviderResult("false", "false"));
 
             // Act
             string html = helper.CheckBox("foo");
 
             // Assert
-            Assert.AreEqual(@"<input checked=""checked"" id=""foo"" name=""foo"" type=""checkbox"" value=""true"" />" +
+            Assert.AreEqual(@"<input id=""foo"" name=""foo"" type=""checkbox"" value=""true"" />" +
                 @"<input name=""foo"" type=""hidden"" value=""false"" />",
                 html);
         }
@@ -597,10 +597,10 @@
             HtmlHelper helper = HtmlHelperTest.GetHtmlHelper(GetRadioButtonViewData());
 
             // Act
-            string html = helper.RadioButton("foo", "ViewDataFoo", new { @checked = "chucked", value = "baz" });
+            string html = helper.RadioButton("bar", "ViewDataBar", new { @checked = "chucked", value = "baz" });
 
             // Assert
-            Assert.AreEqual(@"<input checked=""chucked"" id=""foo"" name=""foo"" type=""radio"" value=""ViewDataFoo"" />", html);
+            Assert.AreEqual(@"<input checked=""chucked"" id=""bar"" name=""bar"" type=""radio"" value=""ViewDataBar"" />", html);
         }
 
         [TestMethod]
@@ -609,10 +609,23 @@
             HtmlHelper helper = HtmlHelperTest.GetHtmlHelper(GetRadioButtonViewData());
 
             // Act
-            string html = helper.RadioButton("foo", "ViewDataFoo", false, new { @checked = "checked", value = "baz" });
+            string html = helper.RadioButton("bar", "ViewDataBar", false, new { @checked = "checked", value = "baz" });
 
             // Assert
-            Assert.AreEqual(@"<input id=""foo"" name=""foo"" type=""radio"" value=""ViewDataFoo"" />", html);
+            Assert.AreEqual(@"<input id=""bar"" name=""bar"" type=""radio"" value=""ViewDataBar"" />", html);
+        }
+
+        [TestMethod]
+        public void RadioButtonShouldRespectModelStateAttemptedValue() {
+            // Arrange
+            HtmlHelper helper = HtmlHelperTest.GetHtmlHelper(GetRadioButtonViewData());
+            helper.ViewData.ModelState.SetModelValue("foo", HtmlHelperTest.GetValueProviderResult("ModelStateFoo", "ModelStateFoo"));
+
+            // Act
+            string html = helper.RadioButton("foo", "ModelStateFoo", false, new { @checked = "checked", value = "baz" });
+
+            // Assert
+            Assert.AreEqual(@"<input checked=""checked"" id=""foo"" name=""foo"" type=""radio"" value=""ModelStateFoo"" />", html);
         }
 
         [TestMethod]
@@ -685,10 +698,10 @@
             HtmlHelper helper = HtmlHelperTest.GetHtmlHelper(GetRadioButtonViewData());
 
             // Act
-            string html = helper.RadioButton("foo", "fooValue", false /* isChecked */);
+            string html = helper.RadioButton("bar", "barValue", false /* isChecked */);
 
             // Assert
-            Assert.AreEqual(@"<input id=""foo"" name=""foo"" type=""radio"" value=""fooValue"" />", html);
+            Assert.AreEqual(@"<input id=""bar"" name=""bar"" type=""radio"" value=""barValue"" />", html);
         }
 
         [TestMethod]
@@ -697,10 +710,10 @@
             HtmlHelper helper = HtmlHelperTest.GetHtmlHelper(GetRadioButtonViewData());
 
             // Act
-            string html = helper.RadioButton("foo", "fooValue", true /* isChecked */);
+            string html = helper.RadioButton("bar", "barValue", true /* isChecked */);
 
             // Assert
-            Assert.AreEqual(@"<input checked=""checked"" id=""foo"" name=""foo"" type=""radio"" value=""fooValue"" />", html);
+            Assert.AreEqual(@"<input checked=""checked"" id=""bar"" name=""bar"" type=""radio"" value=""barValue"" />", html);
         }
 
         [TestMethod]

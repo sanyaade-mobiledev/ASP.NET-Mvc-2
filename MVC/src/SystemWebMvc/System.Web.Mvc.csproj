@@ -3,19 +3,19 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{3D3FFD8A-624D-4E9B-954B-E1C105507975}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>System.Web.Mvc</RootNamespace>
+    <RootNamespace>System.Web</RootNamespace>
     <AssemblyName>System.Web.Mvc</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <SignAssembly>false</SignAssembly>
-    <DelaySign>true</DelaySign>
+    <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>..\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <BaseAddress>1609891840</BaseAddress>
@@ -59,10 +59,11 @@
   <ItemGroup>
     <Compile Include="Mvc\ActionExecutedContext.cs" />
     <Compile Include="Mvc\ActionExecutingContext.cs" />
-    <Compile Include="Mvc\AntiForgeryToken.cs" />
-    <Compile Include="Mvc\AntiForgeryTokenSerializer.cs" />
+    <Compile Include="Mvc\AntiForgeryData.cs" />
+    <Compile Include="Mvc\AntiForgeryDataSerializer.cs" />
     <Compile Include="Mvc\AuthorizationContext.cs" />
     <Compile Include="Mvc\ControllerContext.cs" />
+    <Compile Include="Mvc\PathHelpers.cs" />
     <Compile Include="Mvc\ExceptionContext.cs" />
     <Compile Include="Mvc\ResultExecutedContext.cs" />
     <Compile Include="Mvc\ResultExecutingContext.cs" />
@@ -223,14 +224,14 @@
     <Compile Include="Mvc\WebFormView.cs" />
     <Compile Include="Mvc\WebFormViewEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resources\MvcResources.Designer.cs">
+    <Compile Include="Mvc\Resources\MvcResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>MvcResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\MvcResources.resx">
+    <EmbeddedResource Include="Mvc\Resources\MvcResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>MvcResources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>

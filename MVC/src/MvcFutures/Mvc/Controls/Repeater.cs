@@ -2,14 +2,11 @@
     using System;
     using System.Collections;
     using System.ComponentModel;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.UI;
 
     [ParseChildren(true)]
     [PersistChildren(false)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class Repeater : MvcControl {
         private string _name;
 
@@ -60,6 +57,8 @@
                     };
                     ItemTemplate.InstantiateIn(repeaterItem);
                     containerControl.Controls.Add(repeaterItem);
+
+                    index++;
                 }
             }
 

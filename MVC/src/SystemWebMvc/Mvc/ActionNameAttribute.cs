@@ -1,11 +1,8 @@
 ﻿namespace System.Web.Mvc {
     using System;
-    using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
-    using System.Web;
     using System.Web.Mvc.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public sealed class ActionNameAttribute : ActionNameSelectorAttribute {
 

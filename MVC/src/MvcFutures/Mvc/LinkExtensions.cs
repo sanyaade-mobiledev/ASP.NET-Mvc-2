@@ -1,13 +1,11 @@
 ﻿namespace Microsoft.Web.Mvc {
     using System;
     using System.Linq.Expressions;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.Mvc.Html;
     using System.Web.Routing;
     using Microsoft.Web.Mvc.Internal;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class LinkExtensions {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1055:UriReturnValuesShouldNotBeStrings", Justification = "This is a UI method and is required to use strings as Uri"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures", Justification = "This is an Extension Method which allows the user to provide a strongly-typed argument via Expression")]
         public static string BuildUrlFromExpression<TController>(this HtmlHelper helper, Expression<Action<TController>> action) where TController : Controller {

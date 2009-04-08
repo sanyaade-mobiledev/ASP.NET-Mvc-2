@@ -9,7 +9,7 @@
     using Moq;
 
     [TestClass]
-    public class RenderActionTests {
+    public class RenderActionTest {
         [TestMethod]
         public void RenderActionWithActionAndControllerSpecifiedRendersCorrectAction() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary(), "/");

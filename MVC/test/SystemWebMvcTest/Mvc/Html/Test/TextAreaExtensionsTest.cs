@@ -6,7 +6,7 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
-    public class HtmlTextAreaExtensionsTest {
+    public class TextAreaExtensionsTest {
         private static readonly RouteValueDictionary _textAreaAttributesDictionary = new RouteValueDictionary(new { rows = "15", cols = "12" });
         private static readonly object _textAreaAttributesObjectDictionary = new { rows = "15", cols = "12" };
 

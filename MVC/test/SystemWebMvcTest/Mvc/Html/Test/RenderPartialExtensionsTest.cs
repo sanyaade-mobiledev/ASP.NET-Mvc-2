@@ -6,7 +6,7 @@
     using Moq;
 
     [TestClass]
-    public class HtmlRenderPartialExtensionsTest {
+    public class RenderPartialExtensionsTest {
         const string _parentViewName = "parent-view";
         const string _partialViewName = "partial-view";
 

@@ -1,12 +1,10 @@
 ﻿namespace Microsoft.Web.Mvc {
     using System;
     using System.Collections.Generic;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.Routing;
     using Microsoft.Web.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ImageExtensions {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "1#", Justification = "The return value is not a regular URL since it may contain ~/ ASP.NET-specific characters")]
         public static string Image(this HtmlHelper helper, string imageRelativeUrl) {

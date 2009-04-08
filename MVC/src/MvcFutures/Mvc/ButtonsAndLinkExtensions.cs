@@ -1,11 +1,9 @@
 ﻿namespace Microsoft.Web.Mvc {
     using System;
     using System.Collections.Generic;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ButtonsAndLinkExtensions {
         /// <summary>
         /// Creates a submit button for your form

@@ -7,7 +7,7 @@ namespace System.Web.Mvc.Test {
     using Moq;
 
     [TestClass]
-    public class AntiForgeryTokenSerializerTest {
+    public class AntiForgeryDataSerializerTest {
 
         [TestMethod]
         public void DeserializeReturnsDeserializedToken() {
@@ -15,12 +15,12 @@ namespace System.Web.Mvc.Test {
             Mock<IStateFormatter> mockFormatter = new Mock<IStateFormatter>();
             mockFormatter.Expect(f => f.Deserialize("serialized value")).Returns(new Triplet("the salt", "the value", new DateTime(2001, 1, 1)));
 
-            AntiForgeryTokenSerializer serializer = new AntiForgeryTokenSerializer() {
+            AntiForgeryDataSerializer serializer = new AntiForgeryDataSerializer() {
                 Formatter = mockFormatter.Object
             };
 
             // Act
-            AntiForgeryToken token = serializer.Deserialize("serialized value");
+            AntiForgeryData token = serializer.Deserialize("serialized value");
 
             // Assert
             Assert.IsNotNull(token);
@@ -37,7 +37,7 @@ namespace System.Web.Mvc.Test {
             Mock<IStateFormatter> mockFormatter = new Mock<IStateFormatter>();
             mockFormatter.Expect(f => f.Deserialize("bad value")).Throws(innerException);
 
-            AntiForgeryTokenSerializer serializer = new AntiForgeryTokenSerializer() {
+            AntiForgeryDataSerializer serializer = new AntiForgeryDataSerializer() {
                 Formatter = mockFormatter.Object
             };
 
@@ -54,7 +54,7 @@ namespace System.Web.Mvc.Test {
         [TestMethod]
         public void DeserializeThrowsIfSerializedTokenIsEmpty() {
             // Arrange
-            AntiForgeryTokenSerializer serializer = new AntiForgeryTokenSerializer();
+            AntiForgeryDataSerializer serializer = new AntiForgeryDataSerializer();
 
             // Act & assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
@@ -66,7 +66,7 @@ namespace System.Web.Mvc.Test {
         [TestMethod]
         public void DeserializeThrowsIfSerializedTokenIsNull() {
             // Arrange
-            AntiForgeryTokenSerializer serializer = new AntiForgeryTokenSerializer();
+            AntiForgeryDataSerializer serializer = new AntiForgeryDataSerializer();
 
             // Act & assert
             ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(
@@ -78,7 +78,7 @@ namespace System.Web.Mvc.Test {
         [TestMethod]
         public void SerializeReturnsSerializedString() {
             // Arrange
-            AntiForgeryToken token = new AntiForgeryToken() {
+            AntiForgeryData token = new AntiForgeryData() {
                 CreationDate = new DateTime(2001, 1, 1),
                 Salt = "the salt",
                 Value = "the value"
@@ -98,7 +98,7 @@ namespace System.Web.Mvc.Test {
                     }
                 );
 
-            AntiForgeryTokenSerializer serializer = new AntiForgeryTokenSerializer() {
+            AntiForgeryDataSerializer serializer = new AntiForgeryDataSerializer() {
                 Formatter = mockFormatter.Object
             };
 
@@ -112,7 +112,7 @@ namespace System.Web.Mvc.Test {
         [TestMethod]
         public void SerializeThrowsIfTokenIsNull() {
             // Arrange
-            AntiForgeryTokenSerializer serializer = new AntiForgeryTokenSerializer();
+            AntiForgeryDataSerializer serializer = new AntiForgeryDataSerializer();
 
             // Act & assert
             ExceptionHelper.ExpectArgumentNullException(

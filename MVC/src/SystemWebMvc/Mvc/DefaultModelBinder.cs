@@ -7,14 +7,12 @@
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
-    using System.Web;
     using System.Web.Mvc.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class DefaultModelBinder : IModelBinder {
 
         private ModelBinderDictionary _binders;
+        private static string _resourceClassKey;
 
         [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly",
             Justification = "Property is settable so that the dictionary can be provided for unit testing purposes.")]
@@ -27,6 +25,15 @@
             }
             set {
                 _binders = value;
+            }
+        }
+
+        public static string ResourceClassKey {
+            get {
+                return _resourceClassKey ?? String.Empty;
+            }
+            set {
+                _resourceClassKey = value;
             }
         }
 
@@ -324,6 +331,18 @@
             return new PropertyDescriptorCollection(filteredProperties.ToArray());
         }
 
+        private static string GetValueRequiredResource(ControllerContext controllerContext) {
+            string resourceValue = null;
+            if (!String.IsNullOrEmpty(ResourceClassKey) && (controllerContext != null) && (controllerContext.HttpContext != null)) {
+                // If the user specified a ResourceClassKey try to load the resource they specified.
+                // If the class key is invalid, an exception will be thrown.
+                // If the class key is valid but the resource is not found, it returns null, in which
+                // case it will fall back to the MVC default error message.
+                resourceValue = controllerContext.HttpContext.GetGlobalResourceObject(ResourceClassKey, "PropertyValueRequired", CultureInfo.CurrentUICulture) as string;
+            }
+            return resourceValue ?? MvcResources.DefaultModelBinder_ValueRequired;
+        }
+
         protected virtual void OnModelUpdated(ControllerContext controllerContext, ModelBindingContext bindingContext) {
             IDataErrorInfo errorProvider = bindingContext.Model as IDataErrorInfo;
             if (errorProvider != null) {
@@ -355,7 +374,7 @@
             // default implementation just checks to make sure that required text entry fields aren't left blank
 
             string modelStateKey = CreateSubPropertyName(bindingContext.ModelName, propertyDescriptor.Name);
-            return VerifyValueUsability(bindingContext.ModelState, modelStateKey, propertyDescriptor.PropertyType, value);
+            return VerifyValueUsability(controllerContext, bindingContext.ModelState, modelStateKey, propertyDescriptor.PropertyType, value);
         }
 
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes",
@@ -410,7 +429,7 @@
                 object thisElement = elementBinder.BindModel(controllerContext, innerContext);
 
                 // we need to merge model errors up
-                VerifyValueUsability(bindingContext.ModelState, subIndexKey, elementType, thisElement);
+                VerifyValueUsability(controllerContext, bindingContext.ModelState, subIndexKey, elementType, thisElement);
                 modelList.Add(thisElement);
             }
 
@@ -451,7 +470,7 @@
                 object thisKey = keyBinder.BindModel(controllerContext, keyBindingContext);
 
                 // we need to merge model errors up
-                VerifyValueUsability(bindingContext.ModelState, keyFieldKey, keyType, thisKey);
+                VerifyValueUsability(controllerContext, bindingContext.ModelState, keyFieldKey, keyType, thisKey);
                 if (!keyType.IsInstanceOfType(thisKey)) {
                     // we can't add an invalid key, so just move on
                     continue;
@@ -468,7 +487,7 @@
                 object thisValue = valueBinder.BindModel(controllerContext, valueBindingContext);
 
                 // we need to merge model errors up
-                VerifyValueUsability(bindingContext.ModelState, valueFieldKey, valueType, thisValue);
+                VerifyValueUsability(controllerContext, bindingContext.ModelState, valueFieldKey, valueType, thisValue);
                 KeyValuePair<object, object> kvp = new KeyValuePair<object, object>(thisKey, thisValue);
                 modelList.Add(kvp);
             }
@@ -484,11 +503,11 @@
             return dictionary;
         }
 
-        private static bool VerifyValueUsability(ModelStateDictionary modelState, string modelStateKey, Type elementType, object value) {
+        private static bool VerifyValueUsability(ControllerContext controllerContext, ModelStateDictionary modelState, string modelStateKey, Type elementType, object value) {
             if (value == null && !TypeHelpers.TypeAllowsNullValue(elementType)) {
                 if (modelState.IsValidField(modelStateKey)) {
                     // a required entry field was left blank
-                    string message = MvcResources.DefaultModelBinder_ValueRequired;
+                    string message = GetValueRequiredResource(controllerContext);
                     modelState.AddModelError(modelStateKey, message);
                 }
                 // we don't care about "you must enter a value" messages if there was an error

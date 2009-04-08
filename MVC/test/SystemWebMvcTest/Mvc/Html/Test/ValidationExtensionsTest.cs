@@ -6,7 +6,7 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
-    public class HtmlValidationExtensionsTest {
+    public class ValidationExtensionsTest {
 
         [TestMethod]
         public void ValidationMessageAllowsEmptyModelName() {
@@ -155,10 +155,30 @@
             htmlAttributes["class"] = "my-class";
 
             // Act
-            string html = htmlHelper.ValidationSummary(htmlAttributes);
+            string html = htmlHelper.ValidationSummary(null /* message */, htmlAttributes);
 
             // Assert
             Assert.AreEqual(@"<ul class=""my-class""><li>foo error &lt;1&gt;</li>
+<li>foo error 2</li>
+<li>bar error &lt;1&gt;</li>
+<li>bar error 2</li>
+</ul>"
+                , html);
+        }
+
+        [TestMethod]
+        public void ValidationSummaryWithDictionaryAndMessage() {
+            // Arrange
+            HtmlHelper htmlHelper = HtmlHelperTest.GetHtmlHelper(GetViewDataWithModelErrors());
+            RouteValueDictionary htmlAttributes = new RouteValueDictionary();
+            htmlAttributes["class"] = "my-class";
+
+            // Act
+            string html = htmlHelper.ValidationSummary("This is my message.", htmlAttributes);
+
+            // Assert
+            Assert.AreEqual(@"<span class=""my-class"">This is my message.</span>
+<ul class=""my-class""><li>foo error &lt;1&gt;</li>
 <li>foo error 2</li>
 <li>bar error &lt;1&gt;</li>
 <li>bar error 2</li>
@@ -184,10 +204,28 @@
             HtmlHelper htmlHelper = HtmlHelperTest.GetHtmlHelper(GetViewDataWithModelErrors());
 
             // Act
-            string html = htmlHelper.ValidationSummary(new { baz = "baz" });
+            string html = htmlHelper.ValidationSummary(null /* message */, new { baz = "baz" });
 
             // Assert
             Assert.AreEqual(@"<ul baz=""baz"" class=""validation-summary-errors""><li>foo error &lt;1&gt;</li>
+<li>foo error 2</li>
+<li>bar error &lt;1&gt;</li>
+<li>bar error 2</li>
+</ul>"
+                , html);
+        }
+
+        [TestMethod]
+        public void ValidationSummaryWithObjectAttributesAndMessage() {
+            // Arrange
+            HtmlHelper htmlHelper = HtmlHelperTest.GetHtmlHelper(GetViewDataWithModelErrors());
+
+            // Act
+            string html = htmlHelper.ValidationSummary("This is my message.", new { baz = "baz" });
+
+            // Assert
+            Assert.AreEqual(@"<span baz=""baz"" class=""validation-summary-errors"">This is my message.</span>
+<ul baz=""baz"" class=""validation-summary-errors""><li>foo error &lt;1&gt;</li>
 <li>foo error 2</li>
 <li>bar error &lt;1&gt;</li>
 <li>bar error 2</li>

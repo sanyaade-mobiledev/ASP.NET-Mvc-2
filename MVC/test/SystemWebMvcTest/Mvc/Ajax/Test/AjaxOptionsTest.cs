@@ -1,5 +1,4 @@
-﻿namespace System.Web.Mvc.Test {
-    using System.Web.Mvc.Ajax;
+﻿namespace System.Web.Mvc.Ajax.Test {
     using System.Web.TestUtil;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 

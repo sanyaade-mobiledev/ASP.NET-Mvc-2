@@ -6,7 +6,6 @@
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class InputExtensions {
         public static string CheckBox(this HtmlHelper htmlHelper, string name) {
             return CheckBox(htmlHelper, name, (object)null /* htmlAttributes */);
@@ -137,11 +136,25 @@
             tagBuilder.MergeAttribute("name", name, true);
 
             string valueParameter = Convert.ToString(value, CultureInfo.CurrentCulture);
+            bool usedModelState = false;
 
             switch (inputType) {
                 case InputType.CheckBox:
+                    bool? modelStateWasChecked = htmlHelper.GetModelStateValue(name, typeof(bool)) as bool?;
+                    if (modelStateWasChecked.HasValue) {
+                        isChecked = modelStateWasChecked.Value;
+                        usedModelState = true;
+                    }
+                    goto case InputType.Radio;
                 case InputType.Radio:
-                    if (useViewData) {
+                    if (!usedModelState) {
+                        string modelStateValue = htmlHelper.GetModelStateValue(name, typeof(string)) as string;
+                        if (modelStateValue != null) {
+                            isChecked = String.Equals(modelStateValue, valueParameter, StringComparison.Ordinal);
+                            usedModelState = true;
+                        }
+                    }
+                    if (!usedModelState && useViewData) {
                         isChecked = htmlHelper.EvalBoolean(name);
                     }
                     if (isChecked) {

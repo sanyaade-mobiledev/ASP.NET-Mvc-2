@@ -1,10 +1,6 @@
 ﻿namespace System.Web.Mvc {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class AjaxRequestExtensions {
 
         public static bool IsAjaxRequest(this HttpRequestBase request) {

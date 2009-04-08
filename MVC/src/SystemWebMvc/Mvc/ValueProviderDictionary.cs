@@ -5,11 +5,8 @@
     using System.Collections.Specialized;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
-    using System.Web;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ValueProviderDictionary : IDictionary<string, ValueProviderResult> {
 
         private readonly Dictionary<string, ValueProviderResult> _dictionary = new Dictionary<string, ValueProviderResult>(StringComparer.OrdinalIgnoreCase);

@@ -1,11 +1,8 @@
 ﻿namespace System.Web.Mvc {
     using System;
-    using System.Web;
     using System.Web.Mvc.Resources;
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public abstract class FilterAttribute : Attribute {
 
         private int _order = -1;

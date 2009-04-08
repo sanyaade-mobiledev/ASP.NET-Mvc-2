@@ -10,8 +10,6 @@
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public abstract class Controller : ControllerBase, IActionFilter, IAuthorizationFilter, IDisposable, IExceptionFilter, IResultFilter {
 
         private IActionInvoker _actionInvoker;
@@ -302,10 +300,10 @@
             RouteValueDictionary mergedRouteValues;
 
             if (RouteData == null) {
-                mergedRouteValues = RouteValuesHelpers.MergeRouteValues(actionName, controllerName, null, routeValues);
+                mergedRouteValues = RouteValuesHelpers.MergeRouteValues(actionName, controllerName, null, routeValues, true /* includeImplicitMvcValues */);
             }
             else {
-                mergedRouteValues = RouteValuesHelpers.MergeRouteValues(actionName, controllerName, RouteData.Values, routeValues);
+                mergedRouteValues = RouteValuesHelpers.MergeRouteValues(actionName, controllerName, RouteData.Values, routeValues, true /* includeImplicitMvcValues */);
             }
 
             return new RedirectToRouteResult(mergedRouteValues);

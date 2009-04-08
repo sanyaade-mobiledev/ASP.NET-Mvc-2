@@ -1,10 +1,7 @@
 ﻿namespace System.Web.Mvc {
     using System;
-    using System.Web;
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public abstract class ActionFilterAttribute : FilterAttribute, IActionFilter, IResultFilter {
 
         // The OnXxx() methods are virtual rather than abstract so that a developer need override

@@ -2,10 +2,7 @@
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
-    using System.Web;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public abstract class ControllerDescriptor : ICustomAttributeProvider {
 
         public virtual string ControllerName {

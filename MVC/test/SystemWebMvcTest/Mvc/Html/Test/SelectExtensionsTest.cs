@@ -8,7 +8,7 @@ namespace System.Web.Mvc.Html.Test {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
-    public class HtmlSelectExtensionsTest {
+    public class SelectExtensionsTest {
         private static readonly ViewDataDictionary _listBoxViewData = new ViewDataDictionary { { "foo", new[] { "Bravo" } } };
         private static readonly ViewDataDictionary _dropDownListViewData = new ViewDataDictionary { { "foo", "Bravo" } };
 
@@ -157,16 +157,21 @@ namespace System.Web.Mvc.Html.Test {
         }
 
         [TestMethod]
-        public void DropDownListWithNullSelectListThrows() {
+        public void DropDownListWithNullSelectListUsesViewData() {
             // Arrange
-            HtmlHelper helper = HtmlHelperTest.GetHtmlHelper(new ViewDataDictionary());
+            HtmlHelper helper = HtmlHelperTest.GetHtmlHelper();
+            helper.ViewData["foo"] = new MultiSelectList(MultiSelectListTest.GetSampleStrings(), new[] { "Charlie" });
 
-            // Act & Assert
-            ExceptionHelper.ExpectArgumentNullException(
-                delegate {
-                    helper.DropDownList("foo", (SelectList)null /* selectList */, (string)null /* optionLabel */);
-                },
-                "selectList");
+            // Act
+            string html = helper.DropDownList("foo");
+
+            // Assert
+            Assert.AreEqual(
+                 @"<select id=""foo"" name=""foo""><option>Alpha</option>
+<option>Bravo</option>
+<option selected=""selected"">Charlie</option>
+</select>",
+                html);
         }
 
         [TestMethod]
@@ -588,16 +593,21 @@ namespace System.Web.Mvc.Html.Test {
         }
 
         [TestMethod]
-        public void ListBoxWithNullSelectListThrows() {
+        public void ListBoxWithNullSelectListUsesViewData() {
             // Arrange
-            HtmlHelper helper = HtmlHelperTest.GetHtmlHelper(new ViewDataDictionary());
+            HtmlHelper helper = HtmlHelperTest.GetHtmlHelper();
+            helper.ViewData["foo"] = new MultiSelectList(MultiSelectListTest.GetSampleStrings(), new[] { "Charlie" });
 
-            // Act & Assert
-            ExceptionHelper.ExpectArgumentNullException(
-                delegate {
-                    helper.ListBox("foo", (MultiSelectList)null /* selectList */);
-                },
-                "selectList");
+            // Act
+            string html = helper.ListBox("foo", null);
+
+            // Assert
+            Assert.AreEqual(
+                @"<select id=""foo"" multiple=""multiple"" name=""foo""><option>Alpha</option>
+<option>Bravo</option>
+<option selected=""selected"">Charlie</option>
+</select>",
+                html);
         }
 
         [TestMethod]

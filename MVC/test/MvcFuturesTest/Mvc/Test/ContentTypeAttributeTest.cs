@@ -9,7 +9,7 @@
     using Moq;
 
     [TestClass]
-    public class ContentTypeAttrbuteTests {
+    public class ContentTypeAttributeTest {
         [TestMethod]
         public void ContentTypeSetInCtor() {
             var attr = new ContentTypeAttribute("text/html");

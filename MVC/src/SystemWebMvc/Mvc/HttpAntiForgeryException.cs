@@ -4,7 +4,6 @@
     using System.Web;
 
     [Serializable]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public sealed class HttpAntiForgeryException : HttpException {
 
         public HttpAntiForgeryException() {

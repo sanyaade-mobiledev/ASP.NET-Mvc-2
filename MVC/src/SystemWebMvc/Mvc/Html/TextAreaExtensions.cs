@@ -5,7 +5,6 @@
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class TextAreaExtensions {
         // These values are similar to the defaults used by WebForms
         // when using <asp:TextBox TextMode="MultiLine"> without specifying

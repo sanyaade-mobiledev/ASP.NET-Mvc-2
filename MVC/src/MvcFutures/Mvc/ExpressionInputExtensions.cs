@@ -3,19 +3,17 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq.Expressions;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.Mvc.Html;
     using System.Web.Routing;
     using Microsoft.Web.Mvc.Internal;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ExpressionInputExtensions {
         private const int TextAreaRows = 2;
         private const int TextAreaColumns = 20;
 
         public static string TextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression) where TModel : class {
-            return htmlHelper.TextBoxFor(expression, new RouteValueDictionary());
+            return htmlHelper.TextBoxFor(expression, (IDictionary<string, object>)null);
         }
 
         public static string TextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, object htmlAttributes) where TModel : class {
@@ -33,7 +31,7 @@
         }
 
         public static string TextAreaFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression) where TModel : class {
-            return htmlHelper.TextAreaFor(expression, TextAreaRows, TextAreaColumns, new RouteValueDictionary());
+            return htmlHelper.TextAreaFor(expression, TextAreaRows, TextAreaColumns, (IDictionary<string, object>)null);
         }
 
         public static string TextAreaFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, object htmlAttributes) where TModel : class {
@@ -54,7 +52,64 @@
             return htmlHelper.TextArea(inputName, Convert.ToString(value, CultureInfo.CurrentCulture), rows, columns, htmlAttributes);
         }
 
-        private static TProperty GetValue<TModel, TProperty>(HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression) where TModel : class {
+        public static string HiddenFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression) where TModel : class {
+            return htmlHelper.HiddenFor(expression, (IDictionary<string, object>)null);
+        }
+
+        public static string HiddenFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, object htmlAttributes) where TModel : class {
+            return htmlHelper.HiddenFor(expression, new RouteValueDictionary(htmlAttributes));
+        }
+
+        public static string HiddenFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, IDictionary<string, object> htmlAttributes) where TModel : class {
+            string inputName = ExpressionHelper.GetInputName(expression);
+            TProperty value = GetValue(htmlHelper, expression);
+            return htmlHelper.Hidden(inputName, value, htmlAttributes);
+        }
+
+        public static string DropDownListFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, IEnumerable<SelectListItem> selectList) where TModel : class {
+            return htmlHelper.DropDownListFor(expression, selectList, (IDictionary<string, object>)null);
+        }
+
+        public static string DropDownListFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, IEnumerable<SelectListItem> selectList, object htmlAttributes) where TModel : class {
+            return htmlHelper.DropDownListFor(expression, selectList, new RouteValueDictionary(htmlAttributes));
+        }
+
+        public static string DropDownListFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, IEnumerable<SelectListItem> selectList, IDictionary<string, object> htmlAttributes) where TModel : class {
+            string inputName = ExpressionHelper.GetInputName(expression);
+            return htmlHelper.DropDownList(inputName, selectList, htmlAttributes);
+        }
+
+        public static string DropDownListFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, IEnumerable<SelectListItem> selectList, string optionLabel) where TModel : class {
+            return htmlHelper.DropDownListFor(expression, selectList, optionLabel, (IDictionary<string, object>)null);
+        }
+
+        public static string DropDownListFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, IEnumerable<SelectListItem> selectList, string optionLabel, object htmlAttributes) where TModel : class {
+            return htmlHelper.DropDownListFor(expression, selectList, optionLabel, new RouteValueDictionary(htmlAttributes));
+        }
+
+        public static string DropDownListFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, IEnumerable<SelectListItem> selectList, string optionLabel, IDictionary<string, object> htmlAttributes) where TModel : class {
+            string inputName = ExpressionHelper.GetInputName(expression);
+            return htmlHelper.DropDownList(inputName, selectList, optionLabel, htmlAttributes);
+        }
+
+        public static string ValidationMessageFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression) where TModel : class {
+            return htmlHelper.ValidationMessageFor(expression, null, (IDictionary<string, object>)null);
+        }
+
+        public static string ValidationMessageFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, string message) where TModel : class {
+            return htmlHelper.ValidationMessageFor(expression, message, (IDictionary<string, object>)null);
+        }
+
+        public static string ValidationMessageFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, string message, object htmlAttributes) where TModel : class {
+            return htmlHelper.ValidationMessageFor(expression, message, new RouteValueDictionary(htmlAttributes));
+        }
+
+        public static string ValidationMessageFor<TModel, TProperty>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression, string message, IDictionary<string, object> htmlAttributes) where TModel : class {
+            string inputName = ExpressionHelper.GetInputName(expression);
+            return htmlHelper.ValidationMessage(inputName, message, htmlAttributes);
+        }
+
+        internal static TProperty GetValue<TModel, TProperty>(HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TProperty>> expression) where TModel : class {
             TModel model = htmlHelper.ViewData.Model;
             if (model == null) {
                 return default(TProperty);

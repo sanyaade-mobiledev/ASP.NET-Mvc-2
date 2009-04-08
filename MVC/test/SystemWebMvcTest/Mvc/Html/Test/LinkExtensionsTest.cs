@@ -6,7 +6,7 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
-    public class HtmlLinkExtensionsTest {
+    public class LinkExtensionsTest {
         private const string AppPathModifier = HtmlHelperTest.AppPathModifier;
 
         [TestMethod]
@@ -334,6 +334,21 @@
             foreach (var test in tests) {
                 ExceptionHelper.ExpectArgumentExceptionNullOrEmpty(test.Action, test.Parameter);
             }
+        }
+
+        [TestMethod]
+        public void RouteLinkCanUseNamedRouteWithoutSpecifyingDefaults() {
+            // DevDiv 217072: Non-mvc specific helpers should not give default values for controller and action
+
+            // Arrange
+            HtmlHelper htmlHelper = HtmlHelperTest.GetHtmlHelper();
+            htmlHelper.RouteCollection.MapRoute("MyRouteName", "any/url", new { controller = "Charlie" });
+
+            // Act
+            string html = htmlHelper.RouteLink("linktext", "MyRouteName", null /* routeValues */);
+
+            // Assert
+            Assert.AreEqual<string>(@"<a href=""" + AppPathModifier + @"/app/any/url"">linktext</a>", html);
         }
 
         [TestMethod]

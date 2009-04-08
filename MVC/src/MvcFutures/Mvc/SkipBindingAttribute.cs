@@ -1,9 +1,7 @@
 ﻿namespace Microsoft.Web.Mvc {
     using System;
-    using System.Web;
     using System.Web.Mvc;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
     public sealed class SkipBindingAttribute : CustomModelBinderAttribute {
         private static readonly NullBinder _nullBinder = new NullBinder();

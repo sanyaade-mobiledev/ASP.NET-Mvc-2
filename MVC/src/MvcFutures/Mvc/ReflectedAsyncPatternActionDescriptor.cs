@@ -5,12 +5,9 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading;
-    using System.Web;
     using System.Web.Mvc;
     using Microsoft.Web.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ReflectedAsyncPatternActionDescriptor : AsyncActionDescriptor {
 
         private readonly string _actionName;

@@ -5,19 +5,19 @@ namespace System.Web.Mvc.Test {
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
-    public class AntiForgeryTokenTest {
+    public class AntiForgeryDataTest {
 
         [TestMethod]
         public void CopyConstructor() {
             // Arrange
-            AntiForgeryToken originalToken = new AntiForgeryToken() {
+            AntiForgeryData originalToken = new AntiForgeryData() {
                 CreationDate = DateTime.Now,
                 Salt = "some salt",
                 Value = "some value"
             };
 
             // Act
-            AntiForgeryToken newToken = new AntiForgeryToken(originalToken);
+            AntiForgeryData newToken = new AntiForgeryData(originalToken);
 
             // Assert
             Assert.AreEqual(originalToken.CreationDate, newToken.CreationDate);
@@ -30,23 +30,45 @@ namespace System.Web.Mvc.Test {
             // Act & Assert
             ExceptionHelper.ExpectArgumentNullException(
                 delegate {
-                    new AntiForgeryToken(null);
+                    new AntiForgeryData(null);
                 }, "token");
         }
 
         [TestMethod]
         public void CreationDateProperty() {
             // Arrange
-            AntiForgeryToken token = new AntiForgeryToken();
+            AntiForgeryData token = new AntiForgeryData();
 
             // Act & Assert
             MemberHelper.TestPropertyValue(token, "CreationDate", DateTime.Now);
         }
 
         [TestMethod]
+        public void GetAntiForgeryTokenNameReturnsEncodedCookieNameIfAppPathIsNotEmpty() {
+            // Arrange    
+            // the string below (as UTF-8 bytes) base64-encodes to "Pz4/Pj8+Pz4/Pj8+Pz4/Pg=="
+            string original = "?>?>?>?>?>?>?>?>";
+
+            // Act
+            string tokenName = AntiForgeryData.GetAntiForgeryTokenName(original);
+
+            // Assert
+            Assert.AreEqual("__RequestVerificationToken_Pz4-Pj8.Pz4-Pj8.Pz4-Pg__", tokenName);
+        }
+
+        [TestMethod]
+        public void GetAntiForgeryTokenNameReturnsFieldNameIfAppPathIsNull() {
+            // Act
+            string tokenName = AntiForgeryData.GetAntiForgeryTokenName(null);
+
+            // Assert
+            Assert.AreEqual("__RequestVerificationToken", tokenName);
+        }
+
+        [TestMethod]
         public void NewToken() {
             // Act
-            AntiForgeryToken token = AntiForgeryToken.NewToken();
+            AntiForgeryData token = AntiForgeryData.NewToken();
 
             // Assert
             int valueLength = Convert.FromBase64String(token.Value).Length;
@@ -57,7 +79,7 @@ namespace System.Web.Mvc.Test {
         [TestMethod]
         public void SaltProperty() {
             // Arrange
-            AntiForgeryToken token = new AntiForgeryToken();
+            AntiForgeryData token = new AntiForgeryData();
 
             // Act & Assert
             MemberHelper.TestStringProperty(token, "Salt", String.Empty, false /* testDefaultValue */, true /* allowNullAndEmpty */);
@@ -66,7 +88,7 @@ namespace System.Web.Mvc.Test {
         [TestMethod]
         public void ValueProperty() {
             // Arrange
-            AntiForgeryToken token = new AntiForgeryToken();
+            AntiForgeryData token = new AntiForgeryData();
 
             // Act & Assert
             MemberHelper.TestStringProperty(token, "Value", String.Empty, false /* testDefaultValue */, true /* allowNullAndEmpty */);

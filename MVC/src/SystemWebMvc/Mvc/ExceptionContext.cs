@@ -1,10 +1,7 @@
 ﻿namespace System.Web.Mvc {
     using System;
     using System.Diagnostics.CodeAnalysis;
-    using System.Web;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ExceptionContext : ControllerContext {
 
         private ActionResult _result;

@@ -2,10 +2,7 @@
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
-    using System.Web;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public abstract class ParameterDescriptor : ICustomAttributeProvider {
 
         private static readonly EmptyParameterBindingInfo _emptyBindingInfo = new EmptyParameterBindingInfo();

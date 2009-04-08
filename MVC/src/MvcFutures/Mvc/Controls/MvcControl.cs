@@ -2,15 +2,11 @@
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.UI;
 
     // TODO: Consider using custom HTML writer instead of the default one to get prettier rendering
-    // TOOD: Should the attributes be in a list instead of a dictionary? The unit tests can break if the order changes
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public abstract class MvcControl : Control, IAttributeAccessor {
         private IDictionary<string, string> _attributes;
         private IViewDataContainer _viewDataContainer;
@@ -78,7 +74,7 @@
 
         private void EnsureAttributes() {
             if (_attributes == null) {
-                _attributes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                _attributes = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             }
         }
 

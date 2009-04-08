@@ -1,10 +1,8 @@
 ﻿namespace System.Web.Mvc {
     using System;
     using System.Diagnostics.CodeAnalysis;
-    using System.Web;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class RouteCollectionExtensions {
 
         [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "1#",

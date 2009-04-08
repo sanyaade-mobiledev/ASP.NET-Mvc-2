@@ -4,8 +4,6 @@
     using System.Web;
     using System.Web.Mvc;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class MvcHttpAsyncHandler : MvcHttpHandler, IHttpAsyncHandler {
 
         private delegate void ProcessRequestDelegate(HttpContext context);

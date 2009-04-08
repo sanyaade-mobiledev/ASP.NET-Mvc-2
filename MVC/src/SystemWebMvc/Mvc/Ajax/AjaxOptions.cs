@@ -3,11 +3,8 @@
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Text;
-    using System.Web;
     using System.Web.Mvc.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class AjaxOptions {
         private string _confirm;
         private string _httpMethod;

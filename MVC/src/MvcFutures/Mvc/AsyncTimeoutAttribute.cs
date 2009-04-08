@@ -1,12 +1,10 @@
 ﻿namespace Microsoft.Web.Mvc {
     using System;
     using System.Globalization;
-    using System.Web;
     using System.Web.Mvc;
     using Microsoft.Web.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public class AsyncTimeoutAttribute : ActionFilterAttribute {
 
         // duration is specified in seconds

@@ -1,10 +1,8 @@
 ﻿namespace System.Web.Mvc {
     using System;
     using System.Linq;
-    using System.Web;
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Parameter, AllowMultiple = false, Inherited = true)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public sealed class BindAttribute : Attribute {
 
         private string _exclude;

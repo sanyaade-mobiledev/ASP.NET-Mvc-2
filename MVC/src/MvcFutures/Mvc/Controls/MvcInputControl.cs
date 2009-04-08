@@ -1,20 +1,31 @@
 ﻿namespace Microsoft.Web.Mvc.Controls {
     using System;
+    using System.Collections.Generic;
     using System.ComponentModel;
     using System.Globalization;
-    using System.Web;
+    using System.Web.Mvc;
     using System.Web.UI;
+    using Microsoft.Web.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public abstract class MvcInputControl : MvcControl {
+        private string _format;
         private string _name;
 
         protected MvcInputControl(string inputType) {
             if (String.IsNullOrEmpty(inputType)) {
-                throw new ArgumentException("Null or empty", "inputType");
+                throw new ArgumentException(MvcResources.Common_NullOrEmpty, "inputType");
             }
             InputType = inputType;
+        }
+
+        [DefaultValue("")]
+        public string Format {
+            get {
+                return _format ?? String.Empty;
+            }
+            set {
+                _format = value;
+            }
         }
 
         [Browsable(false)]
@@ -33,38 +44,83 @@
             }
         }
 
+        private ModelState GetModelState() {
+            return ViewData.ModelState[Name];
+        }
+
+        private object GetModelStateValue(string key, Type destinationType) {
+            ModelState modelState = GetModelState();
+            if (modelState != null) {
+                return modelState.Value.ConvertTo(destinationType, null /* culture */);
+            }
+            return null;
+        }
+
         protected override void Render(HtmlTextWriter writer) {
             if (!DesignMode && String.IsNullOrEmpty(Name)) {
-                throw new InvalidOperationException("The Name property must be specified.");
+                throw new InvalidOperationException(MvcResources.CommonControls_NameRequired);
             }
 
-            foreach (var attribute in Attributes) {
-                writer.AddAttribute(attribute.Key, attribute.Value);
+            SortedDictionary<string, string> attrs = new SortedDictionary<string, string>();
+
+            foreach (KeyValuePair<string, string> attribute in Attributes) {
+                attrs.Add(attribute.Key, attribute.Value);
             }
 
             if (!Attributes.ContainsKey("type")) {
-                writer.AddAttribute(HtmlTextWriterAttribute.Type, InputType);
+                attrs.Add("type", InputType);
             }
-            if (!Attributes.ContainsKey("name")) {
-                writer.AddAttribute(HtmlTextWriterAttribute.Name, Name);
-            }
-            if (!Attributes.ContainsKey("id")) {
-                writer.AddAttribute(HtmlTextWriterAttribute.Id, Name);
+            attrs.Add("name", Name);
+            if (!String.IsNullOrEmpty(ID)) {
+                attrs.Add("id", ID);
             }
 
-            if (!Attributes.ContainsKey("value")) {
-                string value = null;
-                if (DesignMode) {
-                    value = "Text";
+
+            if (DesignMode) {
+                // Use a dummy value in design mode
+                attrs.Add("value", "TextBox");
+            }
+            else {
+                string attemptedValue = (string)GetModelStateValue(Name, typeof(string));
+
+                if (attemptedValue != null) {
+                    // Never format the attempted value since it was already formatted in the previous request
+                    attrs.Add("value", attemptedValue);
                 }
                 else {
-                    if (ViewData != null) {
-                        value = Convert.ToString(ViewData.Eval(Name), CultureInfo.InvariantCulture);
+                    // Use an explicit value attribute if it is available. Otherwise get it from ViewData.
+                    string attributeValue;
+                    Attributes.TryGetValue("value", out attributeValue);
+                    object rawValue = attributeValue ?? ViewData.Eval(Name);
+                    string stringValue;
+
+                    if (String.IsNullOrEmpty(Format)) {
+                        stringValue = Convert.ToString(rawValue, CultureInfo.CurrentCulture);
+                    }
+                    else {
+                        stringValue = String.Format(CultureInfo.CurrentCulture, Format, rawValue);
+                    }
+
+                    // The HtmlTextWriter will automatically encode this value
+                    attrs.Add("value", stringValue);
+                }
+
+                // If there are any errors for a named field, we add the CSS attribute.
+                ModelState modelState = GetModelState();
+                if ((modelState != null) &&  (modelState.Errors.Count > 0)) {
+                    string currentValue;
+
+                    if (attrs.TryGetValue("class", out currentValue)) {
+                        attrs["class"] = HtmlHelper.ValidationInputCssClassName + " " + currentValue;
+                    }
+                    else {
+                        attrs["class"] = HtmlHelper.ValidationInputCssClassName;
                     }
                 }
-                if (!String.IsNullOrEmpty(value)) {
-                    writer.AddAttribute(HtmlTextWriterAttribute.Value, value);
-                }
+            }
+
+            foreach (KeyValuePair<string, string> attribute in attrs) {
+                writer.AddAttribute(attribute.Key, Convert.ToString(attribute.Value, CultureInfo.CurrentCulture));
             }
 
             writer.RenderBeginTag(HtmlTextWriterTag.Input);

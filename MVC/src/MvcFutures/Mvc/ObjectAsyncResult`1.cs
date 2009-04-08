@@ -1,13 +1,11 @@
 ﻿namespace Microsoft.Web.Mvc {
     using System;
-    using System.Web;
     using System.Threading;
 
     // This class is used to generate a Begin/End wrapper that returns a known object.
 
     // Default implementation uses built-in BeginInvoke / EndInvoke - we need to check performance
     // of these built-in methods.
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public sealed class ObjectAsyncResult<T> {
 
         private readonly Func<T> _itemThunk;

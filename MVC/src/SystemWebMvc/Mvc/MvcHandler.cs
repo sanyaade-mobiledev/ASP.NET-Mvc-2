@@ -9,8 +9,6 @@
     using System.Web.SessionState;
 
     [SuppressMessage("Microsoft.Security", "CA2112:SecuredTypesShouldNotExposeFields", Justification = "There's nothing secret about the value of this field.")]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class MvcHandler : IHttpHandler, IRequiresSessionState {
         private ControllerBuilder _controllerBuilder;
         private static string MvcVersion = GetMvcVersionString();

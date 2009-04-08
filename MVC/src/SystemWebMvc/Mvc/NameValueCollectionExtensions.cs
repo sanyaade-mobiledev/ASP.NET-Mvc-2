@@ -2,9 +2,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
-    using System.Web;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class NameValueCollectionExtensions {
 
         public static void CopyTo(this NameValueCollection collection, IDictionary<string, object> destination) {

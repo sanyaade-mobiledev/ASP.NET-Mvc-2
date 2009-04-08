@@ -37,9 +37,10 @@ using System.Security;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.40112.0")]
+[assembly: AssemblyFileVersion("1.0.40310.0")]
 
 [assembly: AllowPartiallyTrustedCallers]
+[assembly: SecurityTransparent]
 [assembly: CLSCompliant(true)]
 [assembly: InternalsVisibleTo("System.Web.Mvc.Test")]
 [assembly: NeutralResourcesLanguage("en-US")]

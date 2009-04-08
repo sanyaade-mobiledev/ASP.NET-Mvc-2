@@ -3,12 +3,9 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Reflection;
-    using System.Web;
     using System.Web.Mvc;
     using Microsoft.Web.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public abstract class AsyncActionDescriptor : ActionDescriptor, IAsyncActionDescriptor {
 
         private readonly static MethodDispatcherCache _staticDispatcherCache = new MethodDispatcherCache();

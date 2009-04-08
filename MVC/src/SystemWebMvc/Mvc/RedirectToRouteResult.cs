@@ -4,8 +4,6 @@
     using System.Web.Routing;
 
     // represents a result that performs a redirection given some values dictionary
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class RedirectToRouteResult : ActionResult {
 
         private RouteCollection _routes;
@@ -46,12 +44,12 @@
                 throw new ArgumentNullException("context");
             }
 
-            VirtualPathData vpd = Routes.GetVirtualPath(context.RequestContext, RouteName, RouteValues);
-            if (vpd == null || String.IsNullOrEmpty(vpd.VirtualPath)) {
+            string destinationUrl = UrlHelper.GenerateUrl(RouteName, null /* actionName */, null /* controllerName */, RouteValues, Routes, context.RequestContext, false /* includeImplicitMvcValues */);
+            if (String.IsNullOrEmpty(destinationUrl)) {
                 throw new InvalidOperationException(MvcResources.ActionRedirectResult_NoRouteMatched);
             }
-            string target = vpd.VirtualPath;
-            context.HttpContext.Response.Redirect(target, false /* endResponse */);
+
+            context.HttpContext.Response.Redirect(destinationUrl, false /* endResponse */);
         }
     }
 }

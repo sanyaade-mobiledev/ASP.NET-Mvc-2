@@ -1,6 +1,5 @@
 ﻿namespace System.Web.Mvc.Html {
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class RenderPartialExtensions {
         // Renders the partial view with the parent's view data
         public static void RenderPartial(this HtmlHelper htmlHelper, string partialViewName) {

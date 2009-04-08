@@ -2,12 +2,10 @@
     using System;
     using System.Linq.Expressions;
     using System.Reflection;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.Routing;
     using Microsoft.Web.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ExpressionHelper {
         public static RouteValueDictionary GetRouteValuesFromExpression<TController>(Expression<Action<TController>> action) where TController : Controller {
             if (action == null) {

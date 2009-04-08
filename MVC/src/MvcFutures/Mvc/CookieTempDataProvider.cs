@@ -6,8 +6,6 @@
     using System.Web;
     using System.Web.Mvc;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class CookieTempDataProvider : ITempDataProvider {
         internal const string TempDataCookieKey = "__ControllerTempData";
         HttpContextBase _httpContext;

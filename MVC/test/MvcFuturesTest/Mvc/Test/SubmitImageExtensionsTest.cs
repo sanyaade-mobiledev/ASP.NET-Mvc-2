@@ -21,12 +21,19 @@
             string button = html.SubmitImage("specified-name", "/mvc.jpg", new { type = "not-image" });
             Assert.AreEqual("<input id=\"specified-name\" name=\"specified-name\" src=\"/mvc.jpg\" type=\"not-image\" />", button);
         }
-        
+
         [TestMethod]
         public void SubmitImageWithNameAndImageUrlRendersNameAndSrcAttributes() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string button = html.SubmitImage("button-name", "/mvc.gif");
             Assert.AreEqual("<input id=\"button-name\" name=\"button-name\" src=\"/mvc.gif\" type=\"image\" />", button);
+        }
+
+        [TestMethod]
+        public void SubmitImageWithImageUrlStartingWithTildeRendersAppPath() {
+            HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary(), "/app");
+            string button = html.SubmitImage("button-name", "~/mvc.gif");
+            Assert.AreEqual("<input id=\"button-name\" name=\"button-name\" src=\"/$(SESSION)/app/mvc.gif\" type=\"image\" />", button);
         }
 
         [TestMethod]
@@ -40,7 +47,7 @@
         public void SubmitButtonWithNameAndValueSpecifiedAndPassedInAsAttributeChoosesExplicitAttributes() {
             HtmlHelper html = TestHelper.GetHtmlHelper(new ViewDataDictionary());
             string button = html.SubmitImage("specified-name", "/specified-src.bmp"
-                , new RouteValueDictionary(new { name = "name-attribute", src="src-attribute" }));
+                , new RouteValueDictionary(new { name = "name-attribute", src = "src-attribute" }));
             Assert.AreEqual("<input id=\"specified-name\" name=\"name-attribute\" src=\"src-attribute\" type=\"image\" />", button);
         }
     }

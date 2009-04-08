@@ -2,12 +2,10 @@
     using System;
     using System.Linq.Expressions;
     using System.Reflection;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.Routing;
     using Microsoft.Web.Mvc.Internal;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class LinkBuilder {
         /// <summary>
         /// Builds a URL based on the Expression passed in

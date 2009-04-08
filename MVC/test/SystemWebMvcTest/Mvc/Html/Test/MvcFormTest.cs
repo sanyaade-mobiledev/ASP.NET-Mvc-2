@@ -1,4 +1,4 @@
-﻿namespace System.Web.Mvc.Ajax.Test {
+﻿namespace System.Web.Mvc.Html.Test {
     using System.Web;
     using System.Web.Mvc.Html;
     using System.Web.TestUtil;

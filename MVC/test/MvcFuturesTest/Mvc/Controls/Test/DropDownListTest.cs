@@ -46,7 +46,7 @@
             string html = MvcTestHelper.GetControlRendering(c, false);
 
             // Verify
-            Assert.AreEqual<string>(@"<select name=""nameKey"" id=""nameKey"">
+            Assert.AreEqual<string>(@"<select name=""nameKey"">
 	<option>
 		aaa
 	</option><option selected=""selected"">
@@ -80,7 +80,7 @@
             string html = MvcTestHelper.GetControlRendering(c, false);
 
             // Verify
-            Assert.AreEqual<string>(@"<select name=""nameKey"" id=""nameKey"">
+            Assert.AreEqual<string>(@"<select name=""nameKey"">
 	<option value=""111"">
 		aaa
 	</option><option value=""222"" selected=""selected"">
@@ -92,11 +92,11 @@
         }
 
         [TestMethod]
-        public void RenderWithNameAttributeRendersNameAttribute() {
+        public void RenderWithNameAndIdRendersNameAndIdAttribute() {
             // Setup
             DropDownList c = new DropDownList();
             c.Name = "nameKey";
-            c.Attributes["NAME"] = "nameAttribute";
+            c.ID = "someID";
 
             ViewDataContainer vdc = new ViewDataContainer();
             vdc.Controls.Add(c);
@@ -107,34 +107,7 @@
             string html = MvcTestHelper.GetControlRendering(c, false);
 
             // Verify
-            Assert.AreEqual<string>(@"<select NAME=""nameAttribute"" id=""nameKey"">
-	<option>
-		aaa
-	</option><option selected=""selected"">
-		bbb
-	</option><option>
-		ccc
-	</option>
-</select>", html);
-        }
-
-        [TestMethod]
-        public void RenderWithIdAttributeRendersIdAttribute() {
-            // Setup
-            DropDownList c = new DropDownList();
-            c.Name = "nameKey";
-            c.Attributes["ID"] = "idAttribute";
-
-            ViewDataContainer vdc = new ViewDataContainer();
-            vdc.Controls.Add(c);
-            vdc.ViewData = new ViewDataDictionary();
-            vdc.ViewData["nameKey"] = new SelectList(new[] { "aaa", "bbb", "ccc" }, "bbb");
-
-            // Execute
-            string html = MvcTestHelper.GetControlRendering(c, false);
-
-            // Verify
-            Assert.AreEqual<string>(@"<select ID=""idAttribute"" name=""nameKey"">
+            Assert.AreEqual<string>(@"<select id=""someID"" name=""nameKey"">
 	<option>
 		aaa
 	</option><option selected=""selected"">

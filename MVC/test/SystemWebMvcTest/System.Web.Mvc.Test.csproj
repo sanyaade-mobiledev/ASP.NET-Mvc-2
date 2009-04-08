@@ -2,18 +2,18 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{8AC2A2E4-2F11-4D40-A887-62E2583A65E6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>System.Web.Mvc.Test</RootNamespace>
+    <RootNamespace>System.Web</RootNamespace>
     <AssemblyName>System.Web.Mvc.Test</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <SignAssembly>false</SignAssembly>
-    <DelaySign>true</DelaySign>
+    <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>..\..\src\FinalPublicKey.snk</AssemblyOriginatorKeyFile>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -54,17 +54,28 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Mvc\Ajax\Test\AjaxExtensionsTest.cs" />
+    <Compile Include="Mvc\Ajax\Test\AjaxOptionsTest.cs" />
+    <Compile Include="Mvc\Html\Test\FormExtensionsTest.cs" />
+    <Compile Include="Mvc\Html\Test\InputExtensionsTest.cs" />
+    <Compile Include="Mvc\Html\Test\LinkExtensionsTest.cs" />
+    <Compile Include="Mvc\Html\Test\MvcFormTest.cs" />
+    <Compile Include="Mvc\Html\Test\RenderPartialExtensionsTest.cs" />
+    <Compile Include="Mvc\Html\Test\SelectExtensionsTest.cs" />
+    <Compile Include="Mvc\Html\Test\TextAreaExtensionsTest.cs" />
+    <Compile Include="Mvc\Html\Test\ValidationExtensionsTest.cs" />
     <Compile Include="Mvc\Test\ActionExecutedContextTest.cs" />
     <Compile Include="Mvc\Test\ActionExecutingContextTest.cs" />
+    <Compile Include="Mvc\Test\AntiForgeryDataSerializerTest.cs" />
+    <Compile Include="Mvc\Test\AntiForgeryDataTest.cs" />
     <Compile Include="Mvc\Test\BindAttributeTest.cs" />
     <Compile Include="Mvc\Test\ControllerBaseTest.cs" />
     <Compile Include="Mvc\Test\ActionMethodSelectorTest.cs" />
     <Compile Include="Mvc\Test\ActionMethodSelectorCacheTest.cs" />
     <Compile Include="Mvc\Test\ActionNameAttributeTest.cs" />
     <Compile Include="Mvc\Test\AcceptVerbsAttributeTest.cs" />
-    <Compile Include="Mvc\Test\AntiForgeryTokenTest.cs" />
-    <Compile Include="Mvc\Test\AntiForgeryTokenSerializerTest.cs" />
     <Compile Include="Mvc\Test\ControllerContextTest.cs" />
+    <Compile Include="Mvc\Test\PathHelpersTest.cs" />
     <Compile Include="Mvc\Test\ExceptionContextTest.cs" />
     <Compile Include="Mvc\Test\ModelBindingContextTest.cs" />
     <Compile Include="Mvc\Test\ResultExecutedContextTest.cs" />
@@ -93,17 +104,9 @@
     <Compile Include="Mvc\Test\ReflectedActionDescriptorTest.cs" />
     <Compile Include="Mvc\Test\ReflectedParameterDescriptorTest.cs" />
     <Compile Include="Mvc\Test\ParameterDescriptorTest.cs" />
-    <Compile Include="Mvc\Test\MvcFormTest.cs" />
     <Compile Include="Mvc\Test\DefaultModelBinderTest.cs" />
     <Compile Include="Mvc\Test\ValueProviderDictionaryTest.cs" />
     <Compile Include="Mvc\Test\ValueProviderResultTest.cs" />
-    <Compile Include="Mvc\Test\HtmlLinkExtensionsTest.cs" />
-    <Compile Include="Mvc\Test\HtmlFormExtensionsTest.cs" />
-    <Compile Include="Mvc\Test\HtmlRenderPartialExtensionsTest.cs" />
-    <Compile Include="Mvc\Test\HtmlSelectExtensionsTest.cs" />
-    <Compile Include="Mvc\Test\HtmlTextAreaExtensionsTest.cs" />
-    <Compile Include="Mvc\Test\HtmlValidationExtensionsTest.cs" />
-    <Compile Include="Mvc\Test\HtmlInputExtensionsTest.cs" />
     <Compile Include="Mvc\Test\ModelBinderAttributeTest.cs" />
     <Compile Include="Mvc\Test\ModelBindersTest.cs" />
     <Compile Include="Mvc\Test\ViewContextTest.cs" />
@@ -114,15 +117,12 @@
     <Compile Include="Mvc\Test\ModelErrorCollectionTest.cs" />
     <Compile Include="Mvc\Test\ModelErrorTest.cs" />
     <Compile Include="Mvc\Test\AjaxHelperTest.cs" />
-    <Compile Include="Mvc\Test\AspNetHostingPermissionAttributeTest.cs" />
     <Compile Include="Mvc\Test\AuthorizeAttributeTest.cs" />
     <Compile Include="Mvc\Test\ControllerActionInvokerTest.cs" />
     <Compile Include="Mvc\Test\ActionFilterAttributeTest.cs" />
     <Compile Include="Mvc\Test\ControllerBuilderTest.cs" />
     <Compile Include="Mvc\Test\ControllerTest.cs" />
     <Compile Include="Mvc\Test\ContentResultTest.cs" />
-    <Compile Include="Mvc\Test\AjaxExtensionsTest.cs" />
-    <Compile Include="Mvc\Test\AjaxOptionsTest.cs" />
     <Compile Include="Mvc\Test\ActionMethodDispatcherTest.cs" />
     <Compile Include="Mvc\Test\ActionMethodDispatcherCacheTest.cs" />
     <Compile Include="Mvc\Test\PartialViewResultTest.cs" />

@@ -10,7 +10,7 @@
 
     [TestClass]
     public class AjaxExtensionsTest {
-        private const string AjaxForm = @"<form action=""http://foo.bar.baz/"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
+        private const string AjaxForm = @"<form action=""/rawUrl"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
         private const string AjaxFormWithDefaultAction = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/home/oldaction"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
         private const string AjaxFormWithDefaultController = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/home/Action"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
         private const string AjaxFormWithId = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action/5"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
@@ -20,6 +20,7 @@
         private const string AjaxFormWithHtmlAttributes = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/Controller/Action"" method=""get"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'some-id' });"">";
         private const string AjaxFormClose = "</form>";
         private const string AjaxRouteFormWithNamedRoute = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/named/home/oldaction"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
+        private const string AjaxRouteFormWithNamedRouteNoDefaults = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/any/url"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
         private const string AjaxRouteFormWithEmptyOptions = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/named/home/oldaction"" method=""post"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace });"">";
         private const string AjaxRouteFormWithHtmlAttributes = @"<form action=""" + HtmlHelperTest.AppPathModifier + @"/app/named/home/oldaction"" method=""get"" onsubmit=""Sys.Mvc.AsyncForm.handleSubmit(this, new Sys.UI.DomEvent(event), { insertionMode: Sys.Mvc.InsertionMode.replace, updateTargetId: 'some-id' });"">";
 
@@ -864,6 +865,25 @@
         }
 
         [TestMethod]
+        public void RouteFormCanUseNamedRouteWithoutSpecifyingDefaults() {
+            // DevDiv 217072: Non-mvc specific helpers should not give default values for controller and action
+
+            // Arrange
+            Mock<HttpResponseBase> mockResponse = new Mock<HttpResponseBase>(MockBehavior.Strict);
+            AjaxHelper ajaxHelper = GetAjaxHelper(mockResponse);
+            ajaxHelper.RouteCollection.MapRoute("MyRouteName", "any/url", new { controller = "Charlie" });
+
+            // Arrange expectations
+            mockResponse.Expect(response => response.Write(AjaxRouteFormWithNamedRouteNoDefaults)).Verifiable();
+
+            // Act
+            IDisposable form = ajaxHelper.BeginRouteForm("MyRouteName", new AjaxOptions());
+
+            // Assert
+            mockResponse.Verify();
+        }
+
+        [TestMethod]
         public void RouteFormTypedValues() {
             // Arrange
             Mock<HttpResponseBase> mockResponse = new Mock<HttpResponseBase>(MockBehavior.Strict);
@@ -931,6 +951,7 @@
                 mockRequest.Expect(o => o.ApplicationPath).Returns(appPath);
             }
             mockRequest.Expect(o => o.Url).Returns(new Uri("http://foo.bar.baz"));
+            mockRequest.Expect(o => o.RawUrl).Returns("/rawUrl");
             mockRequest.Expect(o => o.PathInfo).Returns(String.Empty);
             mockContext.Expect(o => o.Request).Returns(mockRequest.Object);
             mockContext.Expect(o => o.Session).Returns((HttpSessionStateBase)null);

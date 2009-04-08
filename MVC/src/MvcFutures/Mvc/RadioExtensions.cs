@@ -4,13 +4,11 @@
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using System.Web;
     using System.Web.Mvc;
     using System.Web.Mvc.Html;
     using System.Web.Routing;
     using Microsoft.Web.Resources;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class RadioListExtensions {
         public static string[] RadioButtonList(this HtmlHelper htmlHelper, string name) {
             return RadioButtonList(htmlHelper, name, (IDictionary<string, object>)null);

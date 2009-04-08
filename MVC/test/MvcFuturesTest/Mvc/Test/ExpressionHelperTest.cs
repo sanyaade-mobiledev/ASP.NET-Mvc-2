@@ -8,41 +8,68 @@
     using Microsoft.Web.Mvc.Internal;
 
     [TestClass]
-    public class ExpressionHelperTests {
+    public class ExpressionHelperTest {
         [TestMethod]
         public void BuildRouteValueDictionaryWithNullExpressionThrowsArgumentNullException() {
-            ExceptionHelper.ExpectArgumentNullException(() => ExpressionHelper.GetRouteValuesFromExpression<TestController>(null), "action");
+            ExceptionHelper.ExpectArgumentNullException(
+                () => ExpressionHelper.GetRouteValuesFromExpression<TestController>(null),
+                "action");
         }
 
         [TestMethod]
         public void BuildRouteValueDictionaryWithNonMethodExpressionThrowsInvalidOperationException() {
+            // Arrange
             Expression<Action<TestController>> expression = c => new TestController();
-            ExceptionHelper.ExpectArgumentException(() => ExpressionHelper.GetRouteValuesFromExpression<TestController>(expression), "Expression must be a method call" + Environment.NewLine + "Parameter name: action");
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentException(
+                () => ExpressionHelper.GetRouteValuesFromExpression<TestController>(expression),
+                "Expression must be a method call." + Environment.NewLine + "Parameter name: action");
         }
 
         [TestMethod]
         public void BuildRouteValueDictionaryWithoutControllerSuffixThrowsInvalidOperationException() {
+            // Arrange
             Expression<Action<TestControllerNot>> index = (c => c.Index(123));
-            ExceptionHelper.ExpectArgumentException(() => ExpressionHelper.GetRouteValuesFromExpression(index), "Controller name must end in 'Controller'" + Environment.NewLine + "Parameter name: action");
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentException(
+                () => ExpressionHelper.GetRouteValuesFromExpression(index),
+                "Controller name must end in 'Controller'." + Environment.NewLine + "Parameter name: action");
         }
 
         [TestMethod]
         public void BuildRouteValueDictionaryWithControllerBaseClassThrowsInvalidOperationException() {
+            // Arrange
             Expression<Action<Controller>> index = (c => c.Dispose());
-            ExceptionHelper.ExpectArgumentException(() => ExpressionHelper.GetRouteValuesFromExpression(index), "Cannot route to class named 'Controller'" + Environment.NewLine + "Parameter name: action");
+
+            // Act & Assert
+            ExceptionHelper.ExpectArgumentException(
+                () => ExpressionHelper.GetRouteValuesFromExpression(index),
+                "Cannot route to class named 'Controller'." + Environment.NewLine + "Parameter name: action");
         }
 
         [TestMethod]
         public void BuildRouteValueDictionaryAddsControllerNameToDictionary() {
+            // Arrange
             Expression<Action<TestController>> index = (c => c.Index(123));
+
+            // Act
             RouteValueDictionary rvd = ExpressionHelper.GetRouteValuesFromExpression(index);
+
+            // Assert
             Assert.AreEqual("Test", rvd["Controller"]);
         }
 
         [TestMethod]
         public void BuildRouteValueDictionaryFromExpressionReturnsCorrectDictionary() {
+            // Arrange
             Expression<Action<TestController>> index = (c => c.Index(123));
+
+            // Act
             RouteValueDictionary rvd = ExpressionHelper.GetRouteValuesFromExpression(index);
+
+            // Assert
             Assert.AreEqual("Test", rvd["Controller"]);
             Assert.AreEqual("Index", rvd["Action"]);
             Assert.AreEqual(123, rvd["page"]);
@@ -50,8 +77,13 @@
 
         [TestMethod]
         public void BuildRouteValueDictionaryFromNonConstantExpressionReturnsCorrectDictionary() {
+            // Arrange
             Expression<Action<TestController>> index = (c => c.About(Foo));
+
+            // Act
             RouteValueDictionary rvd = ExpressionHelper.GetRouteValuesFromExpression(index);
+
+            // Assert
             Assert.AreEqual("Test", rvd["Controller"]);
             Assert.AreEqual("About", rvd["Action"]);
             Assert.AreEqual("FooValue", rvd["s"]);
@@ -128,9 +160,9 @@
         }
 
         public class TestModel {
-            public int IntProperty { 
-                get; 
-                set; 
+            public int IntProperty {
+                get;
+                set;
             }
             public string StringProperty {
                 get;

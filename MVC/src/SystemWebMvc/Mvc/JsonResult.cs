@@ -4,8 +4,6 @@
     using System.Web;
     using System.Web.Script.Serialization;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class JsonResult : ActionResult {
 
         public Encoding ContentEncoding {

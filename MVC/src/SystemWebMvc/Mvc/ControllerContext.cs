@@ -10,8 +10,6 @@
     // null, property setters would be no-ops). By sealing these properties, we are forcing them to have the default
     // "get or store a value" semantics that they were intended to have.
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public class ControllerContext {
 
         private HttpContextBase _httpContext;

@@ -1,11 +1,9 @@
 ﻿namespace System.Web.Mvc.Test {
     using System.IO;
-    using System.Reflection;
     using System.Web.Mvc;
     using System.Web.Routing;
     using System.Web.TestUtil;
     using System.Web.UI;
-    using System.Web.UI.HtmlControls;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Moq;
 
@@ -109,49 +107,6 @@
         }
 
         [TestMethod]
-        public void ReplaceHtmlTitleAddsEmptyHtmlTitleControlIfNoneExistsAndPageHasNoTitle() {
-            // Arrange
-            Type expectedType = typeof(ViewPage).GetNestedType("EmptyTitle", BindingFlags.NonPublic);
-            ViewPage vp = GetViewPageWithHeader();
-
-            // Act
-            vp.ReplaceHtmlTitle();
-
-            // Assert
-            Assert.AreEqual(1, vp.Header.Controls.Count, "Should have added dummy control.");
-            Assert.IsInstanceOfType(vp.Header.Controls[0], expectedType);
-        }
-
-        [TestMethod]
-        public void ReplaceHtmlTitleDoesNotAddEmptyTitleControlIfPageHasTitle() {
-            // Arrange
-            ViewPage vp = GetViewPageWithHeader();
-            vp.Title = "Some title";
-
-            // Act
-            vp.ReplaceHtmlTitle();
-
-            // Assert
-            Assert.AreEqual(0, vp.Header.Controls.Count, "Should not have changed control count.");
-        }
-
-        [TestMethod]
-        public void ReplaceHtmlTitleRetainsExistingHtmlTitleIfControlExists() {
-            // Arrange
-            HtmlTitle title = new HtmlTitle();
-
-            ViewPage vp = GetViewPageWithHeader();
-            vp.Header.Controls.Add(title);
-
-            // Act
-            vp.ReplaceHtmlTitle();
-
-            // Assert
-            Assert.AreEqual(1, vp.Header.Controls.Count, "Should not have changed control count.");
-            Assert.AreSame(title, vp.Header.Controls[0], "Should have retained original HtmlTitle.");
-        }
-
-        [TestMethod]
         public void GenericPageRenderInitsHelpersAndSetsID() {
             // Arrange
             Mock<ViewContext> mockViewContext = new Mock<ViewContext>();
@@ -205,16 +160,6 @@
         [TestMethod]
         public void WriterSetCorrectlyThrowException() {
             WriterSetCorrectlyInternal(true /* throwException */);
-        }
-
-        private static ViewPage GetViewPageWithHeader() {
-            ViewPage vp = new ViewPage();
-
-            // easiest method to set the header is just to use private reflection
-            MethodInfo setHeader = typeof(Page).GetMethod("SetHeader", BindingFlags.Instance | BindingFlags.NonPublic);
-            setHeader.Invoke(vp, new object[] { new HtmlHead() });
-
-            return vp;
         }
 
         private sealed class ViewPageWithNoProcessRequest : ViewPage {

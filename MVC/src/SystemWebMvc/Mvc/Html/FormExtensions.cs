@@ -1,10 +1,7 @@
 ﻿namespace System.Web.Mvc.Html {
-    using System;
     using System.Collections.Generic;
-    using System.Web.Mvc.Resources;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class FormExtensions {
         public static MvcForm BeginForm(this HtmlHelper htmlHelper) {
             // generates <form action="{current url}" method="post">...</form>
@@ -57,7 +54,7 @@
         }
 
         public static MvcForm BeginForm(this HtmlHelper htmlHelper, string actionName, string controllerName, RouteValueDictionary routeValues, FormMethod method, IDictionary<string, object> htmlAttributes) {
-            string formAction = UrlHelper.GenerateUrl(null /* routeName */, actionName, controllerName, routeValues, htmlHelper.RouteCollection, htmlHelper.ViewContext.RequestContext);
+            string formAction = UrlHelper.GenerateUrl(null /* routeName */, actionName, controllerName, routeValues, htmlHelper.RouteCollection, htmlHelper.ViewContext.RequestContext, true /* includeImplicitMvcValues */);
             return FormHelper(htmlHelper, formAction, method, htmlAttributes);
         }
 
@@ -106,7 +103,7 @@
         }
 
         public static MvcForm BeginRouteForm(this HtmlHelper htmlHelper, string routeName, RouteValueDictionary routeValues, FormMethod method, IDictionary<string, object> htmlAttributes) {
-            string formAction = UrlHelper.GenerateUrl(routeName, null, null, routeValues, htmlHelper.RouteCollection, htmlHelper.ViewContext.RequestContext);
+            string formAction = UrlHelper.GenerateUrl(routeName, null, null, routeValues, htmlHelper.RouteCollection, htmlHelper.ViewContext.RequestContext, false /* includeImplicitMvcValues */);
             return FormHelper(htmlHelper, formAction, method, htmlAttributes);
         }
 

@@ -1,4 +1,4 @@
-﻿namespace System.Web.Mvc.Test.Mvc.Test {
+﻿namespace System.Web.Mvc.Test {
     using System;
     using System.Text;
     using System.Collections.Generic;

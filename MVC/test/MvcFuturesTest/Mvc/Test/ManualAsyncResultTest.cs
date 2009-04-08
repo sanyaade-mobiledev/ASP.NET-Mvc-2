@@ -57,13 +57,13 @@
                 Assert.IsTrue(ar.CompletedSynchronously);
                 Assert.IsTrue(ar.IsCompleted);
 
-                bool wasSignaledBefore = ar.AsyncWaitHandle.WaitOne(0);
+                bool wasSignaledBefore = ar.AsyncWaitHandle.WaitOne(0, false /* exitContext */);
                 Assert.IsFalse(wasSignaledBefore, "The WaitHandle should not yet have been signaled.");
             };
 
             // Act
             asyncResult.MarkCompleted(true, callback);
-            bool wasSignaledAfter = asyncResult.AsyncWaitHandle.WaitOne(0);
+            bool wasSignaledAfter = asyncResult.AsyncWaitHandle.WaitOne(0, false /* exitContext */);
 
             // Assert
             Assert.IsTrue(callbackWasCalled);
@@ -76,7 +76,7 @@
             ManualAsyncResult asyncResult = new ManualAsyncResult();
 
             // Act
-            bool wasSet = asyncResult.AsyncWaitHandle.WaitOne(0);
+            bool wasSet = asyncResult.AsyncWaitHandle.WaitOne(0, false /* exitContext */);
 
             // Assert
             Assert.IsFalse(wasSet);
@@ -88,9 +88,9 @@
             ManualAsyncResult asyncResult = new ManualAsyncResult();
 
             // Act
-            bool wasSet1 = asyncResult.AsyncWaitHandle.WaitOne(0);
+            bool wasSet1 = asyncResult.AsyncWaitHandle.WaitOne(0, false /* exitContext */);
             asyncResult.MarkCompleted(false, null);
-            bool wasSet2 = asyncResult.AsyncWaitHandle.WaitOne(0);
+            bool wasSet2 = asyncResult.AsyncWaitHandle.WaitOne(0, false /* exitContext */);
 
             // Assert
             Assert.IsFalse(wasSet1);
@@ -104,7 +104,7 @@
             asyncResult.MarkCompleted(false, null);
 
             // Act
-            bool wasSet = asyncResult.AsyncWaitHandle.WaitOne(0);
+            bool wasSet = asyncResult.AsyncWaitHandle.WaitOne(0, false /* exitContext */);
 
             // Assert
             Assert.IsTrue(wasSet);

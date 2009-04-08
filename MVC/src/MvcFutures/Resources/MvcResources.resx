@@ -175,13 +175,13 @@
     <value>The IControllerFactory '{0}' did not return a controller for a controller named '{1}'.</value>
   </data>
   <data name="ExpressionHelper_CannotRouteToController" xml:space="preserve">
-    <value>Cannot route to class named 'Controller'</value>
+    <value>Cannot route to class named 'Controller'.</value>
   </data>
   <data name="ExpressionHelper_MustBeMethodCall" xml:space="preserve">
-    <value>Expression must be a method call</value>
+    <value>Expression must be a method call.</value>
   </data>
   <data name="ExpressionHelper_TargetMustEndInController" xml:space="preserve">
-    <value>Controller name must end in 'Controller'</value>
+    <value>Controller name must end in 'Controller'.</value>
   </data>
   <data name="HtmlHelper_MissingSelectData" xml:space="preserve">
     <value>There is no ViewData item with the key '{0}' of type '{1}'.</value>
@@ -203,5 +203,11 @@
   </data>
   <data name="AsyncTimeoutAttribute_DurationMustBeNonNegative" xml:space="preserve">
     <value>The timeout duration cannot be negative.</value>
+  </data>
+  <data name="RequireSslAttribute_MustUseSsl" xml:space="preserve">
+    <value>Access forbidden. The requested resource requires an SSL connection.</value>
+  </data>
+  <data name="CommonControls_NameRequired" xml:space="preserve">
+    <value>The 'Name' property must be set.</value>
   </data>
 </root>

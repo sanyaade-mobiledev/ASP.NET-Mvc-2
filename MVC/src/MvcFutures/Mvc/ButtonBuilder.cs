@@ -1,10 +1,8 @@
 ﻿namespace Microsoft.Web.Mvc {
     using System;
     using System.Collections.Generic;
-    using System.Web;
     using System.Web.Mvc;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class ButtonBuilder {
         public static TagBuilder SubmitButton(string name, string buttonText, IDictionary<string, object> htmlAttributes) {
             TagBuilder buttonTag = new TagBuilder("input");

@@ -4,7 +4,6 @@
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     public static class LinkExtensions {
         public static string ActionLink(this HtmlHelper htmlHelper, string linkText, string actionName) {
             return ActionLink(htmlHelper, linkText, actionName, null /* controllerName */, new RouteValueDictionary(), new RouteValueDictionary());
@@ -84,7 +83,7 @@
             if (String.IsNullOrEmpty(linkText)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "linkText");
             }
-            return HtmlHelper.GenerateLink(htmlHelper.ViewContext.RequestContext, htmlHelper.RouteCollection, linkText, routeName, null /* actionName */, null /* controllerName */, routeValues, htmlAttributes);
+            return HtmlHelper.GenerateRouteLink(htmlHelper.ViewContext.RequestContext, htmlHelper.RouteCollection, linkText, routeName, routeValues, htmlAttributes);
         }
 
         public static string RouteLink(this HtmlHelper htmlHelper, string linkText, string routeName, string protocol, string hostName, string fragment, object routeValues, object htmlAttributes) {
@@ -95,7 +94,7 @@
             if (String.IsNullOrEmpty(linkText)) {
                 throw new ArgumentException(MvcResources.Common_NullOrEmpty, "linkText");
             }
-            return HtmlHelper.GenerateLink(htmlHelper.ViewContext.RequestContext, htmlHelper.RouteCollection, linkText, routeName, null /* actionName */, null /* controllerName */, protocol, hostName, fragment, routeValues, htmlAttributes);
+            return HtmlHelper.GenerateRouteLink(htmlHelper.ViewContext.RequestContext, htmlHelper.RouteCollection, linkText, routeName, protocol, hostName, fragment, routeValues, htmlAttributes);
         }
     }
 }

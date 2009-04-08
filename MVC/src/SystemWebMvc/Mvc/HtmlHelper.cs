@@ -8,20 +8,17 @@
     using System.Web.Mvc.Resources;
     using System.Web.Routing;
 
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.LinkDemand, Level = AspNetHostingPermissionLevel.Minimal)]
-    [AspNetHostingPermission(System.Security.Permissions.SecurityAction.InheritanceDemand, Level = AspNetHostingPermissionLevel.Minimal)]
     [SuppressMessage("Microsoft.Security", "CA2112:SecuredTypesShouldNotExposeFields",
         Justification = "Public fields for CSS names do not contain secure information.")]
     public class HtmlHelper {
 
-        internal const string AntiForgeryTokenFieldName = "__RequestVerificationToken";
         private static string _idAttributeDotReplacement;
 
         public static readonly string ValidationInputCssClassName = "input-validation-error";
         public static readonly string ValidationMessageCssClassName = "field-validation-error";
         public static readonly string ValidationSummaryCssClassName = "validation-summary-errors";
 
-        private AntiForgeryTokenSerializer _serializer;
+        private AntiForgeryDataSerializer _serializer;
 
         public HtmlHelper(ViewContext viewContext, IViewDataContainer viewDataContainer)
             : this(viewContext, viewDataContainer, RouteTable.Routes) {
@@ -59,10 +56,10 @@
             private set;
         }
 
-        internal AntiForgeryTokenSerializer Serializer {
+        internal AntiForgeryDataSerializer Serializer {
             get {
                 if (_serializer == null) {
-                    _serializer = new AntiForgeryTokenSerializer();
+                    _serializer = new AntiForgeryDataSerializer();
                 }
                 return _serializer;
             }
@@ -92,11 +89,16 @@
         }
 
         public string AntiForgeryToken(string salt) {
-            string formValue = GetAntiForgeryTokenAndSetCookie(salt);
+            return AntiForgeryToken(salt, null /* domain */, null /* path */);
+        }
+
+        public string AntiForgeryToken(string salt, string domain, string path) {
+            string formValue = GetAntiForgeryTokenAndSetCookie(salt, domain, path);
+            string fieldName = AntiForgeryData.GetAntiForgeryTokenName(null);
 
             TagBuilder builder = new TagBuilder("input");
             builder.Attributes["type"] = "hidden";
-            builder.Attributes["name"] = AntiForgeryTokenFieldName;
+            builder.Attributes["name"] = fieldName;
             builder.Attributes["value"] = formValue;
             return builder.ToString(TagRenderMode.SelfClosing);
         }
@@ -150,7 +152,11 @@
         }
 
         public static string GenerateLink(RequestContext requestContext, RouteCollection routeCollection, string linkText, string routeName, string actionName, string controllerName, string protocol, string hostName, string fragment, RouteValueDictionary routeValues, IDictionary<string, object> htmlAttributes) {
-            string url = UrlHelper.GenerateUrl(routeName, actionName, controllerName, protocol, hostName, fragment, routeValues, routeCollection, requestContext);
+            return GenerateLinkInternal(requestContext, routeCollection, linkText, routeName, actionName, controllerName, protocol, hostName, fragment, routeValues, htmlAttributes, true /* includeImplicitMvcValues */);
+        }
+
+        private static string GenerateLinkInternal(RequestContext requestContext, RouteCollection routeCollection, string linkText, string routeName, string actionName, string controllerName, string protocol, string hostName, string fragment, RouteValueDictionary routeValues, IDictionary<string, object> htmlAttributes, bool includeImplicitMvcValues) {
+            string url = UrlHelper.GenerateUrl(routeName, actionName, controllerName, protocol, hostName, fragment, routeValues, routeCollection, requestContext, includeImplicitMvcValues);
             TagBuilder tagBuilder = new TagBuilder("a") {
                 InnerHtml = (!String.IsNullOrEmpty(linkText)) ? HttpUtility.HtmlEncode(linkText) : String.Empty
             };
@@ -159,20 +165,34 @@
             return tagBuilder.ToString(TagRenderMode.Normal);
         }
 
-        private string GetAntiForgeryTokenAndSetCookie(string salt) {
-            AntiForgeryToken cookieToken;
-            HttpCookie cookie = ViewContext.HttpContext.Request.Cookies[AntiForgeryTokenFieldName];
+        public static string GenerateRouteLink(RequestContext requestContext, RouteCollection routeCollection, string linkText, string routeName, RouteValueDictionary routeValues, IDictionary<string, object> htmlAttributes) {
+            return GenerateRouteLink(requestContext, routeCollection, linkText, routeName, null/* protocol */, null/* hostName */, null/* fragment */, routeValues, htmlAttributes);
+        }
+
+        public static string GenerateRouteLink(RequestContext requestContext, RouteCollection routeCollection, string linkText, string routeName, string protocol, string hostName, string fragment, RouteValueDictionary routeValues, IDictionary<string, object> htmlAttributes) {
+            return GenerateLinkInternal(requestContext, routeCollection, linkText, routeName, null /* actionName */, null /* controllerName */, protocol, hostName, fragment, routeValues, htmlAttributes, false /* includeImplicitMvcValues */);
+        }
+
+        private string GetAntiForgeryTokenAndSetCookie(string salt, string domain, string path) {
+            string cookieName = AntiForgeryData.GetAntiForgeryTokenName(ViewContext.HttpContext.Request.ApplicationPath);
+
+            AntiForgeryData cookieToken;
+            HttpCookie cookie = ViewContext.HttpContext.Request.Cookies[cookieName];
             if (cookie != null) {
                 cookieToken = Serializer.Deserialize(cookie.Value);
             }
             else {
-                cookieToken = System.Web.Mvc.AntiForgeryToken.NewToken();
+                cookieToken = AntiForgeryData.NewToken();
                 string cookieValue = Serializer.Serialize(cookieToken);
-                HttpCookie newCookie = new HttpCookie(AntiForgeryTokenFieldName, cookieValue) { HttpOnly = true };
+
+                HttpCookie newCookie = new HttpCookie(cookieName, cookieValue) { HttpOnly = true, Domain = domain };
+                if (!String.IsNullOrEmpty(path)) {
+                    newCookie.Path = path;
+                }
                 ViewContext.HttpContext.Response.Cookies.Set(newCookie);
             }
 
-            AntiForgeryToken formToken = new AntiForgeryToken(cookieToken) {
+            AntiForgeryData formToken = new AntiForgeryData(cookieToken) {
                 CreationDate = DateTime.Now,
                 Salt = salt
             };
