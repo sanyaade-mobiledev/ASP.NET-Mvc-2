@@ -1,0 +1,84 @@
+﻿body
+{
+    font-family: Tahoma;
+    font-size: 11px;
+    height:100%;
+}
+.desc
+{
+    text-align: left;
+    font-size: 11px;
+    color: #667777;
+    padding-bottom: 7px;
+}
+select
+{
+    font-family: Tahoma;
+    font-size: 11px;
+}
+.atl_row
+{
+    background-color: #F5F5F5;
+}
+.row
+{
+    background-color: #FFFFFF;
+}
+.pager
+{
+    text-align: center;
+    font-size: 13px;
+    font-weight: bold;
+}
+.grid
+{
+    border-collapse: collapse;
+    border: 1px solid #CCC;
+    width: 70%;
+}
+.grid td
+{
+    padding: 10px;
+}
+.grid th
+{
+    padding: 10px;
+}
+.selected_row
+{
+    background-color: Yellow;
+}
+
+.spacer
+{
+    padding: 5px;
+    font-weight: bold;
+}
+
+
+.links a
+{
+    font-size: 13px;
+    margin-bottom: 5px;        
+}
+
+.progress
+{
+    background-color: Red;
+    color: White;
+}
+
+.description {
+    color:#667777;
+    margin: 10px 0px 10px 0px;
+    text-align:left;
+    font-size:13px;
+}
+
+.clear {
+    clear:both;
+}
+
+fieldset {
+border:0;
+}

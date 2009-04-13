@@ -1,0 +1,60 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Main.master.cs" Inherits="DataSourcesDemo.Main" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>DataSources Sample</title>
+    <link href="/Content/main.css" rel="stylesheet" type="text/css" />
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+</head>
+<body>
+    <form id="form1" runat="server">
+    <div style="float: left; width: 20%">
+        <h2>Samples</h2>
+        <div class="links">
+            <h3>DomainDataSource</h3>
+            <div class="description">
+                <a href="/TestPages/Basic.aspx">Basic</a> (DomainServices, Linq To SQL)
+            </div>
+            <div class="description">
+                <a href="/TestPages/WithQuery.aspx">With Query Block</a> (DomainServices, Linq To SQL)
+            </div>
+            <div class="description">
+                <a href="/TestPages/ValidationAuthentication.aspx">Validation & Authentication</a> (DomainServices, Linq To Entities)
+            </div>
+            <div class="description">
+                <a href="/TestPages/ClassBrowser.aspx">Web Reflector</a> (DomainServices, Linq To Objects)
+            </div>
+            <h3>LinqDataSource</h3>
+            <div class="description">
+                <a href="/TestPages/LinqDataSourceWithQuery.aspx">With Query Block</a> (Linq to SQL)
+            </div>
+        </div>
+    </div>
+    <div style="float: left; width: 75%;">
+        <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePartialRendering="false">
+        </asp:ScriptManager>
+        <asp:UpdatePanel ID="UpdatePanel1" runat="server">
+            <ContentTemplate>
+                <asp:UpdateProgress ID="UpdateProgress1" runat="server">
+                    <ProgressTemplate>
+                        <span class="progress">Loading....</span>
+                    </ProgressTemplate>
+                </asp:UpdateProgress>
+                <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+                </asp:ContentPlaceHolder>
+                <br />
+                <br />
+                <asp:Label EnableViewState="false" Font-Bold="true" Font-Size="Larger" ID="err" runat="server"
+                    ForeColor="Red" Text=""></asp:Label>
+                <br />
+                <br />
+            </ContentTemplate>
+        </asp:UpdatePanel>
+    </div>
+    <div class="clear">
+    </div>
+    </form>
+</body>
+</html>

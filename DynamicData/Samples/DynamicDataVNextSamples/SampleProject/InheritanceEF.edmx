@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="NORTHWNDModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2005" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2006/04/edm/ssdl">
+        <EntityContainer Name="NORTHWNDModelStoreContainer">
+          <EntitySet Name="Person" EntityType="NORTHWNDModel.Store.Person" store:Type="Tables" Schema="dbo" />
+        </EntityContainer>
+        <EntityType Name="Person">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="PersonType" Type="int" Nullable="false" />
+          <Property Name="FirstName" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="LastName" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="Birthdate" Type="smalldatetime" />
+          <Property Name="EmailAddress" Type="nvarchar" MaxLength="200" />
+          <Property Name="Phone" Type="nvarchar" MaxLength="50" />
+          <Property Name="HireDate" Type="smalldatetime" />
+          <Property Name="JobTitle" Type="nvarchar" MaxLength="50" />
+          <Property Name="Salary" Type="money" />
+          <Property Name="BaseBonus" Type="money" />
+          <Property Name="CommissionRate" Type="smallmoney" />
+          <Property Name="TerritoryName" Type="nvarchar" MaxLength="50" />
+          <Property Name="FavoriteLanguage" Type="nvarchar" MaxLength="50" />
+        </EntityType>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="NORTHWNDModel" Alias="Self" xmlns="http://schemas.microsoft.com/ado/2006/04/edm">
+        <EntityContainer Name="InheritanceEntities">
+          <EntitySet Name="Person" EntityType="NORTHWNDModel.Person" />
+        </EntityContainer>
+        <EntityType Name="Person">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" />
+          <Property Name="FirstName" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="LastName" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="Birthdate" Type="DateTime" />
+        </EntityType>
+        <EntityType Name="Contact" BaseType="NORTHWNDModel.Person" >
+          <Property Name="EmailAddress" Type="String" Nullable="true" />
+          <Property Name="Phone" Type="String" Nullable="true" />
+        </EntityType>
+        <EntityType Name="Employee" BaseType="NORTHWNDModel.Person" >
+          <Property Name="Phone" Type="String" Nullable="true" />
+          <Property Name="JobTitle" Type="String" Nullable="true" />
+          <Property Name="Salary" Type="Decimal" Nullable="true" />
+          <Property Name="HireDate" Type="DateTime" Nullable="true" />
+        </EntityType>
+        <EntityType Name="SalesPerson" BaseType="NORTHWNDModel.Employee" >
+          <Property Name="TerritoryName" Type="String" Nullable="true" />
+          <Property Name="CommissionRate" Type="Decimal" Nullable="true" />
+          <Property Name="BaseBonus" Type="Decimal" Nullable="true" />
+        </EntityType>
+        <EntityType Name="Programmer" BaseType="NORTHWNDModel.Employee" >
+          <Property Name="FavoriteLanguage" Type="String" Nullable="true" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="urn:schemas-microsoft-com:windows:storage:mapping:CS">
+        <EntityContainerMapping StorageEntityContainer="NORTHWNDModelStoreContainer" CdmEntityContainer="InheritanceEntities">
+          <EntitySetMapping Name="Person">
+            <EntityTypeMapping TypeName="NORTHWNDModel.Person">
+              <MappingFragment StoreEntitySet="Person">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="Birthdate" ColumnName="Birthdate" />
+                <Condition ColumnName="PersonType" Value="1" />
+              </MappingFragment>
+            </EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(NORTHWNDModel.Contact)">
+              <MappingFragment StoreEntitySet="Person" >
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="Birthdate" ColumnName="Birthdate" />
+                <ScalarProperty Name="EmailAddress" ColumnName="EmailAddress" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <Condition ColumnName="PersonType" Value="2" />
+              </MappingFragment>
+            </EntityTypeMapping>
+            <EntityTypeMapping TypeName="NORTHWNDModel.Employee">
+              <MappingFragment StoreEntitySet="Person">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="Birthdate" ColumnName="Birthdate" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="HireDate" ColumnName="HireDate" />
+                <ScalarProperty Name="JobTitle" ColumnName="JobTitle" />
+                <ScalarProperty Name="Salary" ColumnName="Salary" />
+                <Condition ColumnName="PersonType" Value="3" />
+              </MappingFragment>
+            </EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(NORTHWNDModel.SalesPerson)">
+              <MappingFragment StoreEntitySet="Person" >
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="Birthdate" ColumnName="Birthdate" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="HireDate" ColumnName="HireDate" />
+                <ScalarProperty Name="JobTitle" ColumnName="JobTitle" />
+                <ScalarProperty Name="Salary" ColumnName="Salary" />
+                <ScalarProperty Name="BaseBonus" ColumnName="BaseBonus" />
+                <ScalarProperty Name="CommissionRate" ColumnName="CommissionRate" />
+                <ScalarProperty Name="TerritoryName" ColumnName="TerritoryName" />
+                <Condition ColumnName="PersonType" Value="4" />
+              </MappingFragment>
+            </EntityTypeMapping>
+            <EntityTypeMapping TypeName="IsTypeOf(NORTHWNDModel.Programmer)">
+              <MappingFragment StoreEntitySet="Person" >
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="Birthdate" ColumnName="Birthdate" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="HireDate" ColumnName="HireDate" />
+                <ScalarProperty Name="JobTitle" ColumnName="JobTitle" />
+                <ScalarProperty Name="Salary" ColumnName="Salary" />
+                <ScalarProperty Name="FavoriteLanguage" ColumnName="FavoriteLanguage" />
+                <Condition ColumnName="PersonType" Value="5" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2007/06/edmx">
+    <edmx:Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </edmx:Connection>
+    <edmx:Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+      </DesignerInfoPropertySet>
+    </edmx:Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram Name="Northwind">
+        <EntityTypeShape EntityType="NORTHWNDModel.Person" Width="1.5" PointX="1.5" PointY="0.5" Height="1.787985026041667" IsExpanded="true" />
+        <EntityTypeShape EntityType="NORTHWNDModel.Contact" Width="1.5" PointX="0.5" PointY="2.625" Height="1.4033821614583326" />
+        <EntityTypeShape EntityType="NORTHWNDModel.Employee" Width="1.5" PointX="2.25" PointY="2.625" Height="1.7879850260416665" />
+        <InheritanceConnector EntityType="NORTHWNDModel.Contact" ManuallyRouted="false">
+          <ConnectorPoint PointX="1.75" PointY="2.287985026041667" />
+          <ConnectorPoint PointX="1.75" PointY="2.625" />
+        </InheritanceConnector>
+        <EntityTypeShape EntityType="NORTHWNDModel.SalesPerson" Width="1.5" PointX="1.375" PointY="4.75" Height="1.5956835937499996" />
+        <EntityTypeShape EntityType="NORTHWNDModel.Programmer" Width="1.5" PointX="3.125" PointY="4.75" Height="1.2110807291666665" />
+        <InheritanceConnector EntityType="NORTHWNDModel.Programmer" ManuallyRouted="false">
+          <ConnectorPoint PointX="3.4375" PointY="4.4129850260416665" />
+          <ConnectorPoint PointX="3.4375" PointY="4.75" />
+        </InheritanceConnector>
+        <InheritanceConnector EntityType="NORTHWNDModel.Employee" ManuallyRouted="false">
+          <ConnectorPoint PointX="2.625" PointY="2.287985026041667" />
+          <ConnectorPoint PointX="2.625" PointY="2.625" />
+        </InheritanceConnector>
+        <InheritanceConnector EntityType="NORTHWNDModel.SalesPerson" ManuallyRouted="false">
+          <ConnectorPoint PointX="2.5625" PointY="4.4129850260416665" />
+          <ConnectorPoint PointX="2.5625" PointY="4.75" />
+        </InheritanceConnector>
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

@@ -1,0 +1,56 @@
+﻿a
+{
+    text-decoration: none;
+}
+a:hover
+{
+    text-decoration: underline;
+}
+
+.type
+{
+    padding: 2px;
+}
+.type img
+{
+    width: 16px;
+    height: 16px;
+    padding-right: 2px;
+    vertical-align:middle;    
+}
+.member
+{
+    padding-left: 30px;
+}
+.member img
+{
+    width: 16px;
+    height: 16px;
+    padding-right: 2px;
+    vertical-align:middle;
+    padding-top:2px; 
+}
+
+.primitive
+{
+    color: blue;
+    font-weight: bold;
+}
+
+.nonprimitive
+{
+    color: #2B91AF;
+    font-weight: bold;
+}
+
+.name {
+   font-weight:bold;
+}
+
+.symbol {
+    font-weight:bold;    
+}
+
+.type input[type="image"] {
+    vertical-align:bottom;
+}

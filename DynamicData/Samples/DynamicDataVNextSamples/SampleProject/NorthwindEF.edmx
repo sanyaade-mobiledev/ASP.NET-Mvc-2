@@ -1,0 +1,1134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="NORTHWNDModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2005" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2006/04/edm/ssdl">
+        <EntityContainer Name="NORTHWNDModelStoreContainer">
+          <EntitySet Name="Categories" EntityType="NORTHWNDModel.Store.Categories" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Cities" EntityType="NORTHWNDModel.Store.Cities" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="CustomerCustomerDemo" EntityType="NORTHWNDModel.Store.CustomerCustomerDemo" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="CustomerDemographics" EntityType="NORTHWNDModel.Store.CustomerDemographics" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Customers" EntityType="NORTHWNDModel.Store.Customers" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Employees" EntityType="NORTHWNDModel.Store.Employees" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="EmployeeTerritories" EntityType="NORTHWNDModel.Store.EmployeeTerritories" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Order Details" EntityType="NORTHWNDModel.Store.Order Details" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Orders" EntityType="NORTHWNDModel.Store.Orders" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Products" EntityType="NORTHWNDModel.Store.Products" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Region" EntityType="NORTHWNDModel.Store.Region" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Shippers" EntityType="NORTHWNDModel.Store.Shippers" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Suppliers" EntityType="NORTHWNDModel.Store.Suppliers" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Territories" EntityType="NORTHWNDModel.Store.Territories" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="TrainRoute" EntityType="NORTHWNDModel.Store.TrainRoute" store:Type="Tables" Schema="dbo" />
+          <AssociationSet Name="FK_CustomerCustomerDemo" Association="NORTHWNDModel.Store.FK_CustomerCustomerDemo">
+            <End Role="CustomerDemographics" EntitySet="CustomerDemographics" />
+            <End Role="CustomerCustomerDemo" EntitySet="CustomerCustomerDemo" />
+          </AssociationSet>
+          <AssociationSet Name="FK_CustomerCustomerDemo_Customers" Association="NORTHWNDModel.Store.FK_CustomerCustomerDemo_Customers">
+            <End Role="Customers" EntitySet="Customers" />
+            <End Role="CustomerCustomerDemo" EntitySet="CustomerCustomerDemo" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Employees_Employees" Association="NORTHWNDModel.Store.FK_Employees_Employees">
+            <End Role="Employees" EntitySet="Employees" />
+            <End Role="Employees1" EntitySet="Employees" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EmployeeTerritories_Employees" Association="NORTHWNDModel.Store.FK_EmployeeTerritories_Employees">
+            <End Role="Employees" EntitySet="Employees" />
+            <End Role="EmployeeTerritories" EntitySet="EmployeeTerritories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EmployeeTerritories_Territories" Association="NORTHWNDModel.Store.FK_EmployeeTerritories_Territories">
+            <End Role="Territories" EntitySet="Territories" />
+            <End Role="EmployeeTerritories" EntitySet="EmployeeTerritories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Order_Details_Orders" Association="NORTHWNDModel.Store.FK_Order_Details_Orders">
+            <End Role="Orders" EntitySet="Orders" />
+            <End Role="Order Details" EntitySet="Order Details" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Order_Details_Products" Association="NORTHWNDModel.Store.FK_Order_Details_Products">
+            <End Role="Products" EntitySet="Products" />
+            <End Role="Order Details" EntitySet="Order Details" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Orders_Customers" Association="NORTHWNDModel.Store.FK_Orders_Customers">
+            <End Role="Customers" EntitySet="Customers" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Orders_Employees" Association="NORTHWNDModel.Store.FK_Orders_Employees">
+            <End Role="Employees" EntitySet="Employees" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Orders_Shippers" Association="NORTHWNDModel.Store.FK_Orders_Shippers">
+            <End Role="Shippers" EntitySet="Shippers" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Products_Categories" Association="NORTHWNDModel.Store.FK_Products_Categories">
+            <End Role="Categories" EntitySet="Categories" />
+            <End Role="Products" EntitySet="Products" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Products_Suppliers" Association="NORTHWNDModel.Store.FK_Products_Suppliers">
+            <End Role="Suppliers" EntitySet="Suppliers" />
+            <End Role="Products" EntitySet="Products" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Territories_Region" Association="NORTHWNDModel.Store.FK_Territories_Region">
+            <End Role="Region" EntitySet="Region" />
+            <End Role="Territories" EntitySet="Territories" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TrainRoute_Cities_End" Association="NORTHWNDModel.Store.FK_TrainRoute_Cities_End">
+            <End Role="Cities" EntitySet="Cities" />
+            <End Role="TrainRoute" EntitySet="TrainRoute" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TrainRoute_Cities_Start" Association="NORTHWNDModel.Store.FK_TrainRoute_Cities_Start">
+            <End Role="Cities" EntitySet="Cities" />
+            <End Role="TrainRoute" EntitySet="TrainRoute" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Categories">
+          <Key>
+            <PropertyRef Name="CategoryID" />
+          </Key>
+          <Property Name="CategoryID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="CategoryName" Type="nvarchar" Nullable="false" MaxLength="15" />
+          <Property Name="Description" Type="ntext" />
+          <Property Name="Picture" Type="image" />
+        </EntityType>
+        <EntityType Name="Cities">
+          <Key>
+            <PropertyRef Name="ID1" />
+            <PropertyRef Name="ID2" />
+          </Key>
+          <Property Name="ID1" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="ID2" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="50" />
+          <Property Name="Population" Type="int" />
+        </EntityType>
+        <EntityType Name="CustomerCustomerDemo">
+          <Key>
+            <PropertyRef Name="CustomerID" />
+            <PropertyRef Name="CustomerTypeID" />
+          </Key>
+          <Property Name="CustomerID" Type="nchar" Nullable="false" MaxLength="5" />
+          <Property Name="CustomerTypeID" Type="nchar" Nullable="false" MaxLength="10" />
+        </EntityType>
+        <EntityType Name="CustomerDemographics">
+          <Key>
+            <PropertyRef Name="CustomerTypeID" />
+          </Key>
+          <Property Name="CustomerTypeID" Type="nchar" Nullable="false" MaxLength="10" />
+          <Property Name="CustomerDesc" Type="ntext" />
+        </EntityType>
+        <EntityType Name="Customers">
+          <Key>
+            <PropertyRef Name="CustomerID" />
+          </Key>
+          <Property Name="CustomerID" Type="nchar" Nullable="false" MaxLength="5" />
+          <Property Name="CompanyName" Type="nvarchar" Nullable="false" MaxLength="40" />
+          <Property Name="ContactName" Type="nvarchar" MaxLength="30" />
+          <Property Name="ContactTitle" Type="nvarchar" MaxLength="30" />
+          <Property Name="Address" Type="nvarchar" MaxLength="60" />
+          <Property Name="City" Type="nvarchar" MaxLength="15" />
+          <Property Name="Region" Type="nvarchar" MaxLength="15" />
+          <Property Name="PostalCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="Country" Type="nvarchar" MaxLength="15" />
+          <Property Name="Phone" Type="nvarchar" MaxLength="24" />
+          <Property Name="Fax" Type="nvarchar" MaxLength="24" />
+        </EntityType>
+        <EntityType Name="Employees">
+          <Key>
+            <PropertyRef Name="EmployeeID" />
+          </Key>
+          <Property Name="EmployeeID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="LastName" Type="nvarchar" Nullable="false" MaxLength="20" />
+          <Property Name="FirstName" Type="nvarchar" Nullable="false" MaxLength="10" />
+          <Property Name="Title" Type="nvarchar" MaxLength="30" />
+          <Property Name="TitleOfCourtesy" Type="nvarchar" MaxLength="25" />
+          <Property Name="BirthDate" Type="datetime" />
+          <Property Name="HireDate" Type="datetime" />
+          <Property Name="Address" Type="nvarchar" MaxLength="60" />
+          <Property Name="City" Type="nvarchar" MaxLength="15" />
+          <Property Name="Region" Type="nvarchar" MaxLength="15" />
+          <Property Name="PostalCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="Country" Type="nvarchar" MaxLength="15" />
+          <Property Name="HomePhone" Type="nvarchar" MaxLength="24" />
+          <Property Name="Extension" Type="nvarchar" MaxLength="4" />
+          <Property Name="Photo" Type="image" />
+          <Property Name="Notes" Type="ntext" />
+          <Property Name="ReportsTo" Type="int" />
+          <Property Name="PhotoPath" Type="nvarchar" MaxLength="255" />
+        </EntityType>
+        <EntityType Name="EmployeeTerritories">
+          <Key>
+            <PropertyRef Name="EmployeeID" />
+            <PropertyRef Name="TerritoryID" />
+          </Key>
+          <Property Name="EmployeeID" Type="int" Nullable="false" />
+          <Property Name="TerritoryID" Type="nvarchar" Nullable="false" MaxLength="20" />
+        </EntityType>
+        <EntityType Name="Order Details">
+          <Key>
+            <PropertyRef Name="OrderID" />
+            <PropertyRef Name="ProductID" />
+          </Key>
+          <Property Name="OrderID" Type="int" Nullable="false" />
+          <Property Name="ProductID" Type="int" Nullable="false" />
+          <Property Name="UnitPrice" Type="money" Nullable="false" />
+          <Property Name="Quantity" Type="smallint" Nullable="false" />
+          <Property Name="Discount" Type="real" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Orders">
+          <Key>
+            <PropertyRef Name="OrderID" />
+          </Key>
+          <Property Name="OrderID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="CustomerID" Type="nchar" MaxLength="5" />
+          <Property Name="EmployeeID" Type="int" />
+          <Property Name="OrderDate" Type="datetime" />
+          <Property Name="RequiredDate" Type="datetime" />
+          <Property Name="ShippedDate" Type="datetime" />
+          <Property Name="ShipVia" Type="int" />
+          <Property Name="Freight" Type="money" />
+          <Property Name="ShipName" Type="nvarchar" MaxLength="40" />
+          <Property Name="ShipAddress" Type="nvarchar" MaxLength="60" />
+          <Property Name="ShipCity" Type="nvarchar" MaxLength="15" />
+          <Property Name="ShipRegion" Type="nvarchar" MaxLength="15" />
+          <Property Name="ShipPostalCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="ShipCountry" Type="nvarchar" MaxLength="15" />
+        </EntityType>
+        <EntityType Name="Products">
+          <Key>
+            <PropertyRef Name="ProductID" />
+          </Key>
+          <Property Name="ProductID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="ProductName" Type="nvarchar" Nullable="false" MaxLength="40" />
+          <Property Name="SupplierID" Type="int" />
+          <Property Name="CategoryID" Type="int" />
+          <Property Name="QuantityPerUnit" Type="nvarchar" MaxLength="20" />
+          <Property Name="UnitPrice" Type="money" />
+          <Property Name="UnitsInStock" Type="smallint" />
+          <Property Name="UnitsOnOrder" Type="smallint" />
+          <Property Name="ReorderLevel" Type="smallint" />
+          <Property Name="Discontinued" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Region">
+          <Key>
+            <PropertyRef Name="RegionID" />
+          </Key>
+          <Property Name="RegionID" Type="int" Nullable="false" />
+          <Property Name="RegionDescription" Type="nchar" Nullable="false" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="Shippers">
+          <Key>
+            <PropertyRef Name="ShipperID" />
+          </Key>
+          <Property Name="ShipperID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="CompanyName" Type="nvarchar" Nullable="false" MaxLength="40" />
+          <Property Name="Phone" Type="nvarchar" MaxLength="24" />
+        </EntityType>
+        <EntityType Name="Suppliers">
+          <Key>
+            <PropertyRef Name="SupplierID" />
+          </Key>
+          <Property Name="SupplierID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="CompanyName" Type="nvarchar" Nullable="false" MaxLength="40" />
+          <Property Name="ContactName" Type="nvarchar" MaxLength="30" />
+          <Property Name="ContactTitle" Type="nvarchar" MaxLength="30" />
+          <Property Name="Address" Type="nvarchar" MaxLength="60" />
+          <Property Name="City" Type="nvarchar" MaxLength="15" />
+          <Property Name="Region" Type="nvarchar" MaxLength="15" />
+          <Property Name="PostalCode" Type="nvarchar" MaxLength="10" />
+          <Property Name="Country" Type="nvarchar" MaxLength="15" />
+          <Property Name="Phone" Type="nvarchar" MaxLength="24" />
+          <Property Name="Fax" Type="nvarchar" MaxLength="24" />
+          <Property Name="HomePage" Type="ntext" />
+        </EntityType>
+        <EntityType Name="Territories">
+          <Key>
+            <PropertyRef Name="TerritoryID" />
+          </Key>
+          <Property Name="TerritoryID" Type="nvarchar" Nullable="false" MaxLength="20" />
+          <Property Name="TerritoryDescription" Type="nchar" Nullable="false" MaxLength="50" />
+          <Property Name="RegionID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="TrainRoute">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="uniqueidentifier" Nullable="false" />
+          <Property Name="RouteName" Type="nchar" MaxLength="20" />
+          <Property Name="Start1" Type="int" />
+          <Property Name="Start2" Type="uniqueidentifier" />
+          <Property Name="End2" Type="uniqueidentifier" />
+          <Property Name="End1" Type="int" />
+        </EntityType>
+        <Association Name="FK_CustomerCustomerDemo">
+          <End Role="CustomerDemographics" Type="NORTHWNDModel.Store.CustomerDemographics" Multiplicity="1" />
+          <End Role="CustomerCustomerDemo" Type="NORTHWNDModel.Store.CustomerCustomerDemo" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CustomerDemographics">
+              <PropertyRef Name="CustomerTypeID" />
+            </Principal>
+            <Dependent Role="CustomerCustomerDemo">
+              <PropertyRef Name="CustomerTypeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_CustomerCustomerDemo_Customers">
+          <End Role="Customers" Type="NORTHWNDModel.Store.Customers" Multiplicity="1" />
+          <End Role="CustomerCustomerDemo" Type="NORTHWNDModel.Store.CustomerCustomerDemo" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Customers">
+              <PropertyRef Name="CustomerID" />
+            </Principal>
+            <Dependent Role="CustomerCustomerDemo">
+              <PropertyRef Name="CustomerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Employees_Employees">
+          <End Role="Employees" Type="NORTHWNDModel.Store.Employees" Multiplicity="0..1" />
+          <End Role="Employees1" Type="NORTHWNDModel.Store.Employees" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Employees">
+              <PropertyRef Name="EmployeeID" />
+            </Principal>
+            <Dependent Role="Employees1">
+              <PropertyRef Name="ReportsTo" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EmployeeTerritories_Employees">
+          <End Role="Employees" Type="NORTHWNDModel.Store.Employees" Multiplicity="1" />
+          <End Role="EmployeeTerritories" Type="NORTHWNDModel.Store.EmployeeTerritories" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Employees">
+              <PropertyRef Name="EmployeeID" />
+            </Principal>
+            <Dependent Role="EmployeeTerritories">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EmployeeTerritories_Territories">
+          <End Role="Territories" Type="NORTHWNDModel.Store.Territories" Multiplicity="1" />
+          <End Role="EmployeeTerritories" Type="NORTHWNDModel.Store.EmployeeTerritories" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Territories">
+              <PropertyRef Name="TerritoryID" />
+            </Principal>
+            <Dependent Role="EmployeeTerritories">
+              <PropertyRef Name="TerritoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Order_Details_Orders">
+          <End Role="Orders" Type="NORTHWNDModel.Store.Orders" Multiplicity="1" />
+          <End Role="Order Details" Type="NORTHWNDModel.Store.Order Details" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Orders">
+              <PropertyRef Name="OrderID" />
+            </Principal>
+            <Dependent Role="Order Details">
+              <PropertyRef Name="OrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Order_Details_Products">
+          <End Role="Products" Type="NORTHWNDModel.Store.Products" Multiplicity="1" />
+          <End Role="Order Details" Type="NORTHWNDModel.Store.Order Details" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Products">
+              <PropertyRef Name="ProductID" />
+            </Principal>
+            <Dependent Role="Order Details">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Orders_Customers">
+          <End Role="Customers" Type="NORTHWNDModel.Store.Customers" Multiplicity="0..1" />
+          <End Role="Orders" Type="NORTHWNDModel.Store.Orders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Customers">
+              <PropertyRef Name="CustomerID" />
+            </Principal>
+            <Dependent Role="Orders">
+              <PropertyRef Name="CustomerID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Orders_Employees">
+          <End Role="Employees" Type="NORTHWNDModel.Store.Employees" Multiplicity="0..1" />
+          <End Role="Orders" Type="NORTHWNDModel.Store.Orders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Employees">
+              <PropertyRef Name="EmployeeID" />
+            </Principal>
+            <Dependent Role="Orders">
+              <PropertyRef Name="EmployeeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Orders_Shippers">
+          <End Role="Shippers" Type="NORTHWNDModel.Store.Shippers" Multiplicity="0..1" />
+          <End Role="Orders" Type="NORTHWNDModel.Store.Orders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Shippers">
+              <PropertyRef Name="ShipperID" />
+            </Principal>
+            <Dependent Role="Orders">
+              <PropertyRef Name="ShipVia" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Products_Categories">
+          <End Role="Categories" Type="NORTHWNDModel.Store.Categories" Multiplicity="0..1" />
+          <End Role="Products" Type="NORTHWNDModel.Store.Products" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Categories">
+              <PropertyRef Name="CategoryID" />
+            </Principal>
+            <Dependent Role="Products">
+              <PropertyRef Name="CategoryID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Products_Suppliers">
+          <End Role="Suppliers" Type="NORTHWNDModel.Store.Suppliers" Multiplicity="0..1" />
+          <End Role="Products" Type="NORTHWNDModel.Store.Products" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Suppliers">
+              <PropertyRef Name="SupplierID" />
+            </Principal>
+            <Dependent Role="Products">
+              <PropertyRef Name="SupplierID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Territories_Region">
+          <End Role="Region" Type="NORTHWNDModel.Store.Region" Multiplicity="1" />
+          <End Role="Territories" Type="NORTHWNDModel.Store.Territories" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Region">
+              <PropertyRef Name="RegionID" />
+            </Principal>
+            <Dependent Role="Territories">
+              <PropertyRef Name="RegionID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TrainRoute_Cities_End">
+          <End Role="Cities" Type="NORTHWNDModel.Store.Cities" Multiplicity="0..1" />
+          <End Role="TrainRoute" Type="NORTHWNDModel.Store.TrainRoute" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Cities">
+              <PropertyRef Name="ID1" />
+              <PropertyRef Name="ID2" />
+            </Principal>
+            <Dependent Role="TrainRoute">
+              <PropertyRef Name="End1" />
+              <PropertyRef Name="End2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_TrainRoute_Cities_Start">
+          <End Role="Cities" Type="NORTHWNDModel.Store.Cities" Multiplicity="0..1" />
+          <End Role="TrainRoute" Type="NORTHWNDModel.Store.TrainRoute" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Cities">
+              <PropertyRef Name="ID1" />
+              <PropertyRef Name="ID2" />
+            </Principal>
+            <Dependent Role="TrainRoute">
+              <PropertyRef Name="Start1" />
+              <PropertyRef Name="Start2" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="DynamicDataEFProject" Alias="Self" xmlns="http://schemas.microsoft.com/ado/2006/04/edm">
+        <EntityContainer Name="NORTHWNDEntities">
+          <EntitySet Name="Categories" EntityType="DynamicDataEFProject.Categories" />
+          <EntitySet Name="Cities" EntityType="DynamicDataEFProject.Cities" />
+          <EntitySet Name="CustomerDemographics" EntityType="DynamicDataEFProject.CustomerDemographics" />
+          <EntitySet Name="Customers" EntityType="DynamicDataEFProject.Customers" />
+          <EntitySet Name="Employees" EntityType="DynamicDataEFProject.Employees" />
+          <EntitySet Name="Order_Details" EntityType="DynamicDataEFProject.Order_Details" />
+          <EntitySet Name="Orders" EntityType="DynamicDataEFProject.Orders" />
+          <EntitySet Name="Products" EntityType="DynamicDataEFProject.Products" />
+          <EntitySet Name="Region" EntityType="DynamicDataEFProject.Region" />
+          <EntitySet Name="Shippers" EntityType="DynamicDataEFProject.Shippers" />
+          <EntitySet Name="Suppliers" EntityType="DynamicDataEFProject.Suppliers" />
+          <EntitySet Name="Territories" EntityType="DynamicDataEFProject.Territories" />
+          <EntitySet Name="TrainRoute" EntityType="DynamicDataEFProject.TrainRoute" />
+          <AssociationSet Name="FK_Products_Categories" Association="DynamicDataEFProject.FK_Products_Categories">
+            <End Role="Categories" EntitySet="Categories" />
+            <End Role="Products" EntitySet="Products" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TrainRoute_Cities_End" Association="DynamicDataEFProject.FK_TrainRoute_Cities_End">
+            <End Role="Cities" EntitySet="Cities" />
+            <End Role="TrainRoute" EntitySet="TrainRoute" />
+          </AssociationSet>
+          <AssociationSet Name="FK_TrainRoute_Cities_Start" Association="DynamicDataEFProject.FK_TrainRoute_Cities_Start">
+            <End Role="Cities" EntitySet="Cities" />
+            <End Role="TrainRoute" EntitySet="TrainRoute" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Orders_Customers" Association="DynamicDataEFProject.FK_Orders_Customers">
+            <End Role="Customers" EntitySet="Customers" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Employees_Employees" Association="DynamicDataEFProject.FK_Employees_Employees">
+            <End Role="Employees" EntitySet="Employees" />
+            <End Role="Employees1" EntitySet="Employees" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Orders_Employees" Association="DynamicDataEFProject.FK_Orders_Employees">
+            <End Role="Employees" EntitySet="Employees" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Order_Details_Orders" Association="DynamicDataEFProject.FK_Order_Details_Orders">
+            <End Role="Orders" EntitySet="Orders" />
+            <End Role="Order_Details" EntitySet="Order_Details" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Order_Details_Products" Association="DynamicDataEFProject.FK_Order_Details_Products">
+            <End Role="Products" EntitySet="Products" />
+            <End Role="Order_Details" EntitySet="Order_Details" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Orders_Shippers" Association="DynamicDataEFProject.FK_Orders_Shippers">
+            <End Role="Shippers" EntitySet="Shippers" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Products_Suppliers" Association="DynamicDataEFProject.FK_Products_Suppliers">
+            <End Role="Suppliers" EntitySet="Suppliers" />
+            <End Role="Products" EntitySet="Products" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Territories_Region" Association="DynamicDataEFProject.FK_Territories_Region">
+            <End Role="Region" EntitySet="Region" />
+            <End Role="Territories" EntitySet="Territories" />
+          </AssociationSet>
+          <AssociationSet Name="CustomerCustomerDemo" Association="DynamicDataEFProject.CustomerCustomerDemo">
+            <End Role="CustomerDemographics" EntitySet="CustomerDemographics" />
+            <End Role="Customers" EntitySet="Customers" />
+          </AssociationSet>
+          <AssociationSet Name="EmployeeTerritories" Association="DynamicDataEFProject.EmployeeTerritories">
+            <End Role="Employees" EntitySet="Employees" />
+            <End Role="Territories" EntitySet="Territories" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Categories">
+          <Key>
+            <PropertyRef Name="CategoryID" />
+          </Key>
+          <Property Name="CategoryID" Type="Int32" Nullable="false" />
+          <Property Name="CategoryName" Type="String" Nullable="false" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="Description" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="Picture" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <NavigationProperty Name="Products" Relationship="DynamicDataEFProject.FK_Products_Categories" FromRole="Categories" ToRole="Products" />
+        </EntityType>
+        <EntityType Name="Cities">
+          <Key>
+            <PropertyRef Name="ID1" />
+            <PropertyRef Name="ID2" />
+          </Key>
+          <Property Name="ID1" Type="Int32" Nullable="false" />
+          <Property Name="ID2" Type="Guid" Nullable="false" />
+          <Property Name="Name" Type="String" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="Population" Type="Int32" />
+          <NavigationProperty Name="TrainRoute" Relationship="DynamicDataEFProject.FK_TrainRoute_Cities_End" FromRole="Cities" ToRole="TrainRoute" />
+          <NavigationProperty Name="TrainRoute1" Relationship="DynamicDataEFProject.FK_TrainRoute_Cities_Start" FromRole="Cities" ToRole="TrainRoute" />
+        </EntityType>
+        <EntityType Name="CustomerDemographics">
+          <Key>
+            <PropertyRef Name="CustomerTypeID" />
+          </Key>
+          <Property Name="CustomerTypeID" Type="String" Nullable="false" MaxLength="10" Unicode="true" FixedLength="true" />
+          <Property Name="CustomerDesc" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Customers" Relationship="DynamicDataEFProject.CustomerCustomerDemo" FromRole="CustomerDemographics" ToRole="Customers" />
+        </EntityType>
+        <EntityType Name="Customers">
+          <Key>
+            <PropertyRef Name="CustomerID" />
+          </Key>
+          <Property Name="CustomerID" Type="String" Nullable="false" MaxLength="5" Unicode="true" FixedLength="true" />
+          <Property Name="CompanyName" Type="String" Nullable="false" MaxLength="40" Unicode="true" FixedLength="false" />
+          <Property Name="ContactName" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="ContactTitle" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="Address" Type="String" MaxLength="60" Unicode="true" FixedLength="false" />
+          <Property Name="City" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="Region" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="PostalCode" Type="String" MaxLength="10" Unicode="true" FixedLength="false" />
+          <Property Name="Country" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="Phone" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
+          <Property Name="Fax" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Orders" Relationship="DynamicDataEFProject.FK_Orders_Customers" FromRole="Customers" ToRole="Orders" />
+          <NavigationProperty Name="CustomerDemographics" Relationship="DynamicDataEFProject.CustomerCustomerDemo" FromRole="Customers" ToRole="CustomerDemographics" />
+        </EntityType>
+        <EntityType Name="Employees">
+          <Key>
+            <PropertyRef Name="EmployeeID" />
+          </Key>
+          <Property Name="EmployeeID" Type="Int32" Nullable="false" />
+          <Property Name="LastName" Type="String" Nullable="false" MaxLength="20" Unicode="true" FixedLength="false" />
+          <Property Name="FirstName" Type="String" Nullable="false" MaxLength="10" Unicode="true" FixedLength="false" />
+          <Property Name="Title" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="TitleOfCourtesy" Type="String" MaxLength="25" Unicode="true" FixedLength="false" />
+          <Property Name="BirthDate" Type="DateTime" />
+          <Property Name="HireDate" Type="DateTime" />
+          <Property Name="Address" Type="String" MaxLength="60" Unicode="true" FixedLength="false" />
+          <Property Name="City" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="Region" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="PostalCode" Type="String" MaxLength="10" Unicode="true" FixedLength="false" />
+          <Property Name="Country" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="HomePhone" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
+          <Property Name="Extension" Type="String" MaxLength="4" Unicode="true" FixedLength="false" />
+          <Property Name="Photo" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <Property Name="Notes" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="PhotoPath" Type="String" MaxLength="255" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Employees1" Relationship="DynamicDataEFProject.FK_Employees_Employees" FromRole="Employees" ToRole="Employees1" />
+          <NavigationProperty Name="Employees2" Relationship="DynamicDataEFProject.FK_Employees_Employees" FromRole="Employees1" ToRole="Employees" />
+          <NavigationProperty Name="Orders" Relationship="DynamicDataEFProject.FK_Orders_Employees" FromRole="Employees" ToRole="Orders" />
+          <NavigationProperty Name="Territories" Relationship="DynamicDataEFProject.EmployeeTerritories" FromRole="Employees" ToRole="Territories" />
+        </EntityType>
+        <EntityType Name="Order_Details">
+          <Key>
+            <PropertyRef Name="OrderID" />
+            <PropertyRef Name="ProductID" />
+          </Key>
+          <Property Name="OrderID" Type="Int32" Nullable="false" />
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="UnitPrice" Type="Decimal" Nullable="false" Precision="19" Scale="4" />
+          <Property Name="Quantity" Type="Int16" Nullable="false" />
+          <Property Name="Discount" Type="Single" Nullable="false" />
+          <NavigationProperty Name="Orders" Relationship="DynamicDataEFProject.FK_Order_Details_Orders" FromRole="Order_Details" ToRole="Orders" />
+          <NavigationProperty Name="Products" Relationship="DynamicDataEFProject.FK_Order_Details_Products" FromRole="Order_Details" ToRole="Products" />
+        </EntityType>
+        <EntityType Name="Orders">
+          <Key>
+            <PropertyRef Name="OrderID" />
+          </Key>
+          <Property Name="OrderID" Type="Int32" Nullable="false" />
+          <Property Name="OrderDate" Type="DateTime" />
+          <Property Name="RequiredDate" Type="DateTime" />
+          <Property Name="ShippedDate" Type="DateTime" />
+          <Property Name="Freight" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="ShipName" Type="String" MaxLength="40" Unicode="true" FixedLength="false" />
+          <Property Name="ShipAddress" Type="String" MaxLength="60" Unicode="true" FixedLength="false" />
+          <Property Name="ShipCity" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="ShipRegion" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="ShipPostalCode" Type="String" MaxLength="10" Unicode="true" FixedLength="false" />
+          <Property Name="ShipCountry" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Customers" Relationship="DynamicDataEFProject.FK_Orders_Customers" FromRole="Orders" ToRole="Customers" />
+          <NavigationProperty Name="Employees" Relationship="DynamicDataEFProject.FK_Orders_Employees" FromRole="Orders" ToRole="Employees" />
+          <NavigationProperty Name="Order_Details" Relationship="DynamicDataEFProject.FK_Order_Details_Orders" FromRole="Orders" ToRole="Order_Details" />
+          <NavigationProperty Name="Shippers" Relationship="DynamicDataEFProject.FK_Orders_Shippers" FromRole="Orders" ToRole="Shippers" />
+        </EntityType>
+        <EntityType Name="Products">
+          <Key>
+            <PropertyRef Name="ProductID" />
+          </Key>
+          <Property Name="ProductID" Type="Int32" Nullable="false" />
+          <Property Name="ProductName" Type="String" Nullable="false" MaxLength="40" Unicode="true" FixedLength="false" />
+          <Property Name="QuantityPerUnit" Type="String" MaxLength="20" Unicode="true" FixedLength="false" />
+          <Property Name="UnitPrice" Type="Decimal" Precision="19" Scale="4" />
+          <Property Name="UnitsInStock" Type="Int16" />
+          <Property Name="UnitsOnOrder" Type="Int16" />
+          <Property Name="ReorderLevel" Type="Int16" />
+          <Property Name="Discontinued" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="Categories" Relationship="DynamicDataEFProject.FK_Products_Categories" FromRole="Products" ToRole="Categories" />
+          <NavigationProperty Name="Order_Details" Relationship="DynamicDataEFProject.FK_Order_Details_Products" FromRole="Products" ToRole="Order_Details" />
+          <NavigationProperty Name="Suppliers" Relationship="DynamicDataEFProject.FK_Products_Suppliers" FromRole="Products" ToRole="Suppliers" />
+        </EntityType>
+        <EntityType Name="Region">
+          <Key>
+            <PropertyRef Name="RegionID" />
+          </Key>
+          <Property Name="RegionID" Type="Int32" Nullable="false" />
+          <Property Name="RegionDescription" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="true" />
+          <NavigationProperty Name="Territories" Relationship="DynamicDataEFProject.FK_Territories_Region" FromRole="Region" ToRole="Territories" />
+        </EntityType>
+        <EntityType Name="Shippers">
+          <Key>
+            <PropertyRef Name="ShipperID" />
+          </Key>
+          <Property Name="ShipperID" Type="Int32" Nullable="false" />
+          <Property Name="CompanyName" Type="String" Nullable="false" MaxLength="40" Unicode="true" FixedLength="false" />
+          <Property Name="Phone" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Orders" Relationship="DynamicDataEFProject.FK_Orders_Shippers" FromRole="Shippers" ToRole="Orders" />
+        </EntityType>
+        <EntityType Name="Suppliers">
+          <Key>
+            <PropertyRef Name="SupplierID" />
+          </Key>
+          <Property Name="SupplierID" Type="Int32" Nullable="false" />
+          <Property Name="CompanyName" Type="String" Nullable="false" MaxLength="40" Unicode="true" FixedLength="false" />
+          <Property Name="ContactName" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="ContactTitle" Type="String" MaxLength="30" Unicode="true" FixedLength="false" />
+          <Property Name="Address" Type="String" MaxLength="60" Unicode="true" FixedLength="false" />
+          <Property Name="City" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="Region" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="PostalCode" Type="String" MaxLength="10" Unicode="true" FixedLength="false" />
+          <Property Name="Country" Type="String" MaxLength="15" Unicode="true" FixedLength="false" />
+          <Property Name="Phone" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
+          <Property Name="Fax" Type="String" MaxLength="24" Unicode="true" FixedLength="false" />
+          <Property Name="HomePage" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Products" Relationship="DynamicDataEFProject.FK_Products_Suppliers" FromRole="Suppliers" ToRole="Products" />
+        </EntityType>
+        <EntityType Name="Territories">
+          <Key>
+            <PropertyRef Name="TerritoryID" />
+          </Key>
+          <Property Name="TerritoryID" Type="String" Nullable="false" MaxLength="20" Unicode="true" FixedLength="false" />
+          <Property Name="TerritoryDescription" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="true" />
+          <NavigationProperty Name="Region" Relationship="DynamicDataEFProject.FK_Territories_Region" FromRole="Territories" ToRole="Region" />
+          <NavigationProperty Name="Employees" Relationship="DynamicDataEFProject.EmployeeTerritories" FromRole="Territories" ToRole="Employees" />
+        </EntityType>
+        <EntityType Name="TrainRoute">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Guid" Nullable="false" />
+          <Property Name="RouteName" Type="String" MaxLength="20" Unicode="true" FixedLength="true" />
+          <NavigationProperty Name="Cities" Relationship="DynamicDataEFProject.FK_TrainRoute_Cities_End" FromRole="TrainRoute" ToRole="Cities" />
+          <NavigationProperty Name="Cities1" Relationship="DynamicDataEFProject.FK_TrainRoute_Cities_Start" FromRole="TrainRoute" ToRole="Cities" />
+        </EntityType>
+        <Association Name="FK_Products_Categories">
+          <End Role="Categories" Type="DynamicDataEFProject.Categories" Multiplicity="0..1" />
+          <End Role="Products" Type="DynamicDataEFProject.Products" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_TrainRoute_Cities_End">
+          <End Role="Cities" Type="DynamicDataEFProject.Cities" Multiplicity="0..1" />
+          <End Role="TrainRoute" Type="DynamicDataEFProject.TrainRoute" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_TrainRoute_Cities_Start">
+          <End Role="Cities" Type="DynamicDataEFProject.Cities" Multiplicity="0..1" />
+          <End Role="TrainRoute" Type="DynamicDataEFProject.TrainRoute" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_Orders_Customers">
+          <End Role="Customers" Type="DynamicDataEFProject.Customers" Multiplicity="0..1" />
+          <End Role="Orders" Type="DynamicDataEFProject.Orders" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_Employees_Employees">
+          <End Role="Employees" Type="DynamicDataEFProject.Employees" Multiplicity="0..1" />
+          <End Role="Employees1" Type="DynamicDataEFProject.Employees" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_Orders_Employees">
+          <End Role="Employees" Type="DynamicDataEFProject.Employees" Multiplicity="0..1" />
+          <End Role="Orders" Type="DynamicDataEFProject.Orders" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_Order_Details_Orders">
+          <End Role="Orders" Type="DynamicDataEFProject.Orders" Multiplicity="1" />
+          <End Role="Order_Details" Type="DynamicDataEFProject.Order_Details" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Orders">
+              <PropertyRef Name="OrderID" />
+            </Principal>
+            <Dependent Role="Order_Details">
+              <PropertyRef Name="OrderID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Order_Details_Products">
+          <End Role="Products" Type="DynamicDataEFProject.Products" Multiplicity="1" />
+          <End Role="Order_Details" Type="DynamicDataEFProject.Order_Details" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Products">
+              <PropertyRef Name="ProductID" />
+            </Principal>
+            <Dependent Role="Order_Details">
+              <PropertyRef Name="ProductID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Orders_Shippers">
+          <End Role="Shippers" Type="DynamicDataEFProject.Shippers" Multiplicity="0..1" />
+          <End Role="Orders" Type="DynamicDataEFProject.Orders" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_Products_Suppliers">
+          <End Role="Suppliers" Type="DynamicDataEFProject.Suppliers" Multiplicity="0..1" />
+          <End Role="Products" Type="DynamicDataEFProject.Products" Multiplicity="*" />
+        </Association>
+        <Association Name="FK_Territories_Region">
+          <End Role="Region" Type="DynamicDataEFProject.Region" Multiplicity="1" />
+          <End Role="Territories" Type="DynamicDataEFProject.Territories" Multiplicity="*" />
+        </Association>
+        <Association Name="CustomerCustomerDemo">
+          <End Role="CustomerDemographics" Type="DynamicDataEFProject.CustomerDemographics" Multiplicity="*" />
+          <End Role="Customers" Type="DynamicDataEFProject.Customers" Multiplicity="*" />
+        </Association>
+        <Association Name="EmployeeTerritories">
+          <End Role="Employees" Type="DynamicDataEFProject.Employees" Multiplicity="*" />
+          <End Role="Territories" Type="DynamicDataEFProject.Territories" Multiplicity="*" />
+        </Association>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="urn:schemas-microsoft-com:windows:storage:mapping:CS">
+        <EntityContainerMapping StorageEntityContainer="NORTHWNDModelStoreContainer" CdmEntityContainer="NORTHWNDEntities">
+          <EntitySetMapping Name="Categories">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.Categories)">
+              <MappingFragment StoreEntitySet="Categories">
+                <ScalarProperty Name="CategoryID" ColumnName="CategoryID" />
+                <ScalarProperty Name="CategoryName" ColumnName="CategoryName" />
+                <ScalarProperty Name="Description" ColumnName="Description" />
+                <ScalarProperty Name="Picture" ColumnName="Picture" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Cities">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.Cities)">
+              <MappingFragment StoreEntitySet="Cities">
+                <ScalarProperty Name="ID1" ColumnName="ID1" />
+                <ScalarProperty Name="ID2" ColumnName="ID2" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="Population" ColumnName="Population" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CustomerDemographics">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.CustomerDemographics)">
+              <MappingFragment StoreEntitySet="CustomerDemographics">
+                <ScalarProperty Name="CustomerTypeID" ColumnName="CustomerTypeID" />
+                <ScalarProperty Name="CustomerDesc" ColumnName="CustomerDesc" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Customers">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.Customers)">
+              <MappingFragment StoreEntitySet="Customers">
+                <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
+                <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
+                <ScalarProperty Name="ContactName" ColumnName="ContactName" />
+                <ScalarProperty Name="ContactTitle" ColumnName="ContactTitle" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="Region" ColumnName="Region" />
+                <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
+                <ScalarProperty Name="Country" ColumnName="Country" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="Fax" ColumnName="Fax" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Employees">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.Employees)">
+              <MappingFragment StoreEntitySet="Employees">
+                <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+                <ScalarProperty Name="LastName" ColumnName="LastName" />
+                <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+                <ScalarProperty Name="Title" ColumnName="Title" />
+                <ScalarProperty Name="TitleOfCourtesy" ColumnName="TitleOfCourtesy" />
+                <ScalarProperty Name="BirthDate" ColumnName="BirthDate" />
+                <ScalarProperty Name="HireDate" ColumnName="HireDate" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="Region" ColumnName="Region" />
+                <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
+                <ScalarProperty Name="Country" ColumnName="Country" />
+                <ScalarProperty Name="HomePhone" ColumnName="HomePhone" />
+                <ScalarProperty Name="Extension" ColumnName="Extension" />
+                <ScalarProperty Name="Photo" ColumnName="Photo" />
+                <ScalarProperty Name="Notes" ColumnName="Notes" />
+                <ScalarProperty Name="PhotoPath" ColumnName="PhotoPath" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Order_Details">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.Order_Details)">
+              <MappingFragment StoreEntitySet="Order Details">
+                <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="UnitPrice" ColumnName="UnitPrice" />
+                <ScalarProperty Name="Quantity" ColumnName="Quantity" />
+                <ScalarProperty Name="Discount" ColumnName="Discount" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Orders">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.Orders)">
+              <MappingFragment StoreEntitySet="Orders">
+                <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+                <ScalarProperty Name="OrderDate" ColumnName="OrderDate" />
+                <ScalarProperty Name="RequiredDate" ColumnName="RequiredDate" />
+                <ScalarProperty Name="ShippedDate" ColumnName="ShippedDate" />
+                <ScalarProperty Name="Freight" ColumnName="Freight" />
+                <ScalarProperty Name="ShipName" ColumnName="ShipName" />
+                <ScalarProperty Name="ShipAddress" ColumnName="ShipAddress" />
+                <ScalarProperty Name="ShipCity" ColumnName="ShipCity" />
+                <ScalarProperty Name="ShipRegion" ColumnName="ShipRegion" />
+                <ScalarProperty Name="ShipPostalCode" ColumnName="ShipPostalCode" />
+                <ScalarProperty Name="ShipCountry" ColumnName="ShipCountry" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Products">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.Products)">
+              <MappingFragment StoreEntitySet="Products">
+                <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+                <ScalarProperty Name="ProductName" ColumnName="ProductName" />
+                <ScalarProperty Name="QuantityPerUnit" ColumnName="QuantityPerUnit" />
+                <ScalarProperty Name="UnitPrice" ColumnName="UnitPrice" />
+                <ScalarProperty Name="UnitsInStock" ColumnName="UnitsInStock" />
+                <ScalarProperty Name="UnitsOnOrder" ColumnName="UnitsOnOrder" />
+                <ScalarProperty Name="ReorderLevel" ColumnName="ReorderLevel" />
+                <ScalarProperty Name="Discontinued" ColumnName="Discontinued" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Region">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.Region)">
+              <MappingFragment StoreEntitySet="Region">
+                <ScalarProperty Name="RegionID" ColumnName="RegionID" />
+                <ScalarProperty Name="RegionDescription" ColumnName="RegionDescription" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Shippers">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.Shippers)">
+              <MappingFragment StoreEntitySet="Shippers">
+                <ScalarProperty Name="ShipperID" ColumnName="ShipperID" />
+                <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Suppliers">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.Suppliers)">
+              <MappingFragment StoreEntitySet="Suppliers">
+                <ScalarProperty Name="SupplierID" ColumnName="SupplierID" />
+                <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
+                <ScalarProperty Name="ContactName" ColumnName="ContactName" />
+                <ScalarProperty Name="ContactTitle" ColumnName="ContactTitle" />
+                <ScalarProperty Name="Address" ColumnName="Address" />
+                <ScalarProperty Name="City" ColumnName="City" />
+                <ScalarProperty Name="Region" ColumnName="Region" />
+                <ScalarProperty Name="PostalCode" ColumnName="PostalCode" />
+                <ScalarProperty Name="Country" ColumnName="Country" />
+                <ScalarProperty Name="Phone" ColumnName="Phone" />
+                <ScalarProperty Name="Fax" ColumnName="Fax" />
+                <ScalarProperty Name="HomePage" ColumnName="HomePage" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Territories">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.Territories)">
+              <MappingFragment StoreEntitySet="Territories">
+                <ScalarProperty Name="TerritoryID" ColumnName="TerritoryID" />
+                <ScalarProperty Name="TerritoryDescription" ColumnName="TerritoryDescription" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="TrainRoute">
+            <EntityTypeMapping TypeName="IsTypeOf(DynamicDataEFProject.TrainRoute)">
+              <MappingFragment StoreEntitySet="TrainRoute">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="RouteName" ColumnName="RouteName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <AssociationSetMapping Name="FK_Products_Categories" TypeName="DynamicDataEFProject.FK_Products_Categories" StoreEntitySet="Products">
+            <EndProperty Name="Categories">
+              <ScalarProperty Name="CategoryID" ColumnName="CategoryID" />
+            </EndProperty>
+            <EndProperty Name="Products">
+              <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+            </EndProperty>
+            <Condition ColumnName="CategoryID" IsNull="false" />
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_TrainRoute_Cities_End" TypeName="DynamicDataEFProject.FK_TrainRoute_Cities_End" StoreEntitySet="TrainRoute">
+            <EndProperty Name="Cities">
+              <ScalarProperty Name="ID1" ColumnName="End1" />
+              <ScalarProperty Name="ID2" ColumnName="End2" />
+            </EndProperty>
+            <EndProperty Name="TrainRoute">
+              <ScalarProperty Name="ID" ColumnName="ID" />
+            </EndProperty>
+            <Condition ColumnName="End1" IsNull="false" />
+            <Condition ColumnName="End2" IsNull="false" />
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_TrainRoute_Cities_Start" TypeName="DynamicDataEFProject.FK_TrainRoute_Cities_Start" StoreEntitySet="TrainRoute">
+            <EndProperty Name="Cities">
+              <ScalarProperty Name="ID1" ColumnName="Start1" />
+              <ScalarProperty Name="ID2" ColumnName="Start2" />
+            </EndProperty>
+            <EndProperty Name="TrainRoute">
+              <ScalarProperty Name="ID" ColumnName="ID" />
+            </EndProperty>
+            <Condition ColumnName="Start1" IsNull="false" />
+            <Condition ColumnName="Start2" IsNull="false" />
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_Orders_Customers" TypeName="DynamicDataEFProject.FK_Orders_Customers" StoreEntitySet="Orders">
+            <EndProperty Name="Customers">
+              <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
+            </EndProperty>
+            <EndProperty Name="Orders">
+              <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+            </EndProperty>
+            <Condition ColumnName="CustomerID" IsNull="false" />
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_Employees_Employees" TypeName="DynamicDataEFProject.FK_Employees_Employees" StoreEntitySet="Employees">
+            <EndProperty Name="Employees">
+              <ScalarProperty Name="EmployeeID" ColumnName="ReportsTo" />
+            </EndProperty>
+            <EndProperty Name="Employees1">
+              <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+            </EndProperty>
+            <Condition ColumnName="ReportsTo" IsNull="false" />
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_Orders_Employees" TypeName="DynamicDataEFProject.FK_Orders_Employees" StoreEntitySet="Orders">
+            <EndProperty Name="Employees">
+              <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+            </EndProperty>
+            <EndProperty Name="Orders">
+              <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+            </EndProperty>
+            <Condition ColumnName="EmployeeID" IsNull="false" />
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_Order_Details_Orders" TypeName="DynamicDataEFProject.FK_Order_Details_Orders" StoreEntitySet="Order Details">
+            <EndProperty Name="Orders">
+              <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+            </EndProperty>
+            <EndProperty Name="Order_Details">
+              <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+              <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_Order_Details_Products" TypeName="DynamicDataEFProject.FK_Order_Details_Products" StoreEntitySet="Order Details">
+            <EndProperty Name="Products">
+              <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+            </EndProperty>
+            <EndProperty Name="Order_Details">
+              <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+              <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_Orders_Shippers" TypeName="DynamicDataEFProject.FK_Orders_Shippers" StoreEntitySet="Orders">
+            <EndProperty Name="Shippers">
+              <ScalarProperty Name="ShipperID" ColumnName="ShipVia" />
+            </EndProperty>
+            <EndProperty Name="Orders">
+              <ScalarProperty Name="OrderID" ColumnName="OrderID" />
+            </EndProperty>
+            <Condition ColumnName="ShipVia" IsNull="false" />
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_Products_Suppliers" TypeName="DynamicDataEFProject.FK_Products_Suppliers" StoreEntitySet="Products">
+            <EndProperty Name="Suppliers">
+              <ScalarProperty Name="SupplierID" ColumnName="SupplierID" />
+            </EndProperty>
+            <EndProperty Name="Products">
+              <ScalarProperty Name="ProductID" ColumnName="ProductID" />
+            </EndProperty>
+            <Condition ColumnName="SupplierID" IsNull="false" />
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="FK_Territories_Region" TypeName="DynamicDataEFProject.FK_Territories_Region" StoreEntitySet="Territories">
+            <EndProperty Name="Region">
+              <ScalarProperty Name="RegionID" ColumnName="RegionID" />
+            </EndProperty>
+            <EndProperty Name="Territories">
+              <ScalarProperty Name="TerritoryID" ColumnName="TerritoryID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="CustomerCustomerDemo" TypeName="DynamicDataEFProject.CustomerCustomerDemo" StoreEntitySet="CustomerCustomerDemo">
+            <EndProperty Name="CustomerDemographics">
+              <ScalarProperty Name="CustomerTypeID" ColumnName="CustomerTypeID" />
+            </EndProperty>
+            <EndProperty Name="Customers">
+              <ScalarProperty Name="CustomerID" ColumnName="CustomerID" />
+            </EndProperty>
+          </AssociationSetMapping>
+          <AssociationSetMapping Name="EmployeeTerritories" TypeName="DynamicDataEFProject.EmployeeTerritories" StoreEntitySet="EmployeeTerritories">
+            <EndProperty Name="Employees">
+              <ScalarProperty Name="EmployeeID" ColumnName="EmployeeID" />
+            </EndProperty>
+            <EndProperty Name="Territories">
+              <ScalarProperty Name="TerritoryID" ColumnName="TerritoryID" />
+            </EndProperty>
+          </AssociationSetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2007/06/edmx">
+    <edmx:Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </edmx:Connection>
+    <edmx:Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+      </DesignerInfoPropertySet>
+    </edmx:Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram Name="Northwind">
+        <EntityTypeShape EntityType="DynamicDataEFProject.Categories" Width="1.5" PointX="3" PointY="13.25" Height="1.7566536458333317" IsExpanded="true" />
+        <EntityTypeShape EntityType="DynamicDataEFProject.Cities" Width="1.5" PointX="5.75" PointY="5.875" Height="1.9210009765624996" IsExpanded="true" />
+        <EntityTypeShape EntityType="DynamicDataEFProject.CustomerDemographics" Width="1.5" PointX="0.75" PointY="2" Height="1.4279589843750002" IsExpanded="true" />
+        <EntityTypeShape EntityType="DynamicDataEFProject.Customers" Width="1.5" PointX="3" PointY="1.125" Height="3.0714322916666652" IsExpanded="true" />
+        <EntityTypeShape EntityType="DynamicDataEFProject.Employees" Width="1.5" PointX="3" PointY="7.375" Height="4.3862109375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DynamicDataEFProject.Order_Details" Width="1.5" PointX="7.5" PointY="1.625" Height="2.0853483072916665" IsExpanded="true" />
+        <EntityTypeShape EntityType="DynamicDataEFProject.Orders" Width="1.5" PointX="5.25" PointY="1" Height="3.4001269531249996" IsExpanded="true" />
+        <EntityTypeShape EntityType="DynamicDataEFProject.Products" Width="1.5" PointX="5.25" PointY="14.625" Height="2.7427376302083335" IsExpanded="true" />
+        <EntityTypeShape EntityType="DynamicDataEFProject.Region" Width="1.5" PointX="5.75" PointY="9" Height="1.4279589843749996" IsExpanded="true" />
+        <EntityTypeShape EntityType="DynamicDataEFProject.Shippers" Width="1.5" PointX="3" PointY="5" Height="1.5923063151041674" IsExpanded="true" />
+        <EntityTypeShape EntityType="DynamicDataEFProject.Suppliers" Width="1.5" PointX="3" PointY="15.75" Height="3.0714322916666674" IsExpanded="true" />
+        <EntityTypeShape EntityType="DynamicDataEFProject.Territories" Width="1.5" PointX="8" PointY="8.75" Height="1.5923063151041674" IsExpanded="true" />
+        <EntityTypeShape EntityType="DynamicDataEFProject.TrainRoute" Width="1.5" PointX="8" PointY="6.125" Height="1.5923063151041674" IsExpanded="true" />
+        <AssociationConnector Association="DynamicDataEFProject.FK_Products_Categories" ManuallyRouted="false">
+          <ConnectorPoint PointX="4.5" PointY="14.815826822916666" />
+          <ConnectorPoint PointX="5.25" PointY="14.815826822916666" /></AssociationConnector>
+        <AssociationConnector Association="DynamicDataEFProject.FK_TrainRoute_Cities_End" ManuallyRouted="false">
+          <ConnectorPoint PointX="7.25" PointY="6.9211531575520837" />
+          <ConnectorPoint PointX="7.635416666666667" PointY="6.9211531575520828" />
+          <ConnectorPoint PointX="7.802083333333333" PointY="6.9211531575520837" />
+          <ConnectorPoint PointX="8" PointY="6.9211531575520837" /></AssociationConnector>
+        <AssociationConnector Association="DynamicDataEFProject.FK_TrainRoute_Cities_Start" ManuallyRouted="false">
+          <ConnectorPoint PointX="7.25" PointY="6.4605765787760419" />
+          <ConnectorPoint PointX="7.635416666666667" PointY="6.460576578776041" />
+          <ConnectorPoint PointX="7.802083333333333" PointY="6.4605765787760419" />
+          <ConnectorPoint PointX="8" PointY="6.4605765787760419" /></AssociationConnector>
+        <AssociationConnector Association="DynamicDataEFProject.FK_Orders_Customers" ManuallyRouted="false">
+          <ConnectorPoint PointX="4.5" PointY="2.6607161458333328" />
+          <ConnectorPoint PointX="5.25" PointY="2.6607161458333328" /></AssociationConnector>
+        <AssociationConnector Association="DynamicDataEFProject.FK_Employees_Employees" ManuallyRouted="false">
+          <ConnectorPoint PointX="3.5319230769230767" PointY="11.7612109375" />
+          <ConnectorPoint PointX="3.5319230769230767" PointY="12.0112109375" />
+          <ConnectorPoint PointX="3.9784615384615383" PointY="12.0112109375" />
+          <ConnectorPoint PointX="3.9784615384615383" PointY="11.7612109375" /></AssociationConnector>
+        <AssociationConnector Association="DynamicDataEFProject.FK_Orders_Employees" ManuallyRouted="false">
+          <ConnectorPoint PointX="4.5" PointY="11.1258349609375" />
+          <ConnectorPoint PointX="5.46875" PointY="11.1258349609375" />
+          <ConnectorPoint PointX="5.46875" PointY="4.400126953125" /></AssociationConnector>
+        <AssociationConnector Association="DynamicDataEFProject.FK_Order_Details_Orders" ManuallyRouted="false">
+          <ConnectorPoint PointX="6.75" PointY="2.6676741536458333" />
+          <ConnectorPoint PointX="7.5" PointY="2.6676741536458333" /></AssociationConnector>
+        <AssociationConnector Association="DynamicDataEFProject.FK_Order_Details_Products" ManuallyRouted="false">
+          <ConnectorPoint PointX="6.75" PointY="15.996368815104166" />
+          <ConnectorPoint PointX="7.71875" PointY="15.996368815104166" />
+          <ConnectorPoint PointX="7.71875" PointY="3.7103483072916665" /></AssociationConnector>
+        <AssociationConnector Association="DynamicDataEFProject.FK_Orders_Shippers" ManuallyRouted="false">
+          <ConnectorPoint PointX="4.5" PointY="5.40625" />
+          <ConnectorPoint PointX="5.3281225" PointY="5.40625" />
+          <ConnectorPoint PointX="5.3281225" PointY="4.400126953125" /></AssociationConnector>
+        <AssociationConnector Association="DynamicDataEFProject.FK_Products_Suppliers" ManuallyRouted="false">
+          <ConnectorPoint PointX="4.5" PointY="16.558868815104166" />
+          <ConnectorPoint PointX="5.25" PointY="16.558868815104166" /></AssociationConnector>
+        <AssociationConnector Association="DynamicDataEFProject.FK_Territories_Region" ManuallyRouted="false">
+          <ConnectorPoint PointX="7.25" PointY="9.6711531575520837" />
+          <ConnectorPoint PointX="7.635416666666667" PointY="9.6711531575520837" />
+          <ConnectorPoint PointX="7.802083333333333" PointY="9.6711531575520837" />
+          <ConnectorPoint PointX="8" PointY="9.6711531575520837" /></AssociationConnector>
+        <AssociationConnector Association="DynamicDataEFProject.CustomerCustomerDemo" ManuallyRouted="false">
+          <ConnectorPoint PointX="2.25" PointY="2.7139794921875002" />
+          <ConnectorPoint PointX="3" PointY="2.7139794921875002" /></AssociationConnector>
+        <AssociationConnector Association="DynamicDataEFProject.EmployeeTerritories" ManuallyRouted="false">
+          <ConnectorPoint PointX="4.5" PointY="8.84375" />
+          <ConnectorPoint PointX="5.385416666666667" PointY="8.84375" />
+          <ConnectorPoint PointX="5.552083333333333" PointY="8.84375" />
+          <ConnectorPoint PointX="7.635416666666667" PointY="8.84375" />
+          <ConnectorPoint PointX="7.802083333333333" PointY="8.84375" />
+          <ConnectorPoint PointX="8" PointY="8.84375" /></AssociationConnector></Diagram></edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

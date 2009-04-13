@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Database Name="NORTHWND" Class="InheritanceDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="WebSettings" ConnectionString="Data Source=.\SQLEXPRESS;AttachDbFilename=|DataDirectory|\NORTHWND.MDF;Integrated Security=True;User Instance=True" SettingsObjectName="System.Configuration.ConfigurationManager.ConnectionStrings" SettingsPropertyName="NORTHWNDConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.Person" Member="Persons">
+    <Type Name="Person" InheritanceCode="1" IsInheritanceDefault="true">
+      <Column Name="ID" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="PersonType" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" IsDiscriminator="true" />
+      <Column Name="FirstName" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="LastName" Type="System.String" DbType="NVarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="Birthdate" Type="System.DateTime" DbType="SmallDateTime" CanBeNull="true" />
+      <Type Name="Contact" InheritanceCode="2">
+        <Column Name="EmailAddress" Type="System.String" DbType="NVarChar(200)" CanBeNull="true" />
+        <Column Name="Phone" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+      </Type>
+      <Type Name="RegularEmployee" InheritanceCode="3">
+        <Column Name="Phone" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+        <Column Name="HireDate" Type="System.DateTime" DbType="SmallDateTime" CanBeNull="true" />
+        <Column Name="JobTitle" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+        <Column Name="Salary" Type="System.Decimal" DbType="Money" CanBeNull="true" />
+        <Type Name="SalesPerson" InheritanceCode="4">
+          <Column Name="BaseBonus" Type="System.Decimal" DbType="Money" CanBeNull="true" />
+          <Column Name="CommissionRate" Type="System.Decimal" DbType="SmallMoney" CanBeNull="true" />
+          <Column Name="TerritoryName" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+        </Type>
+        <Type Name="Programmer" InheritanceCode="5">
+          <Column Name="FavoriteLanguage" Type="System.String" DbType="NVarChar(50)" CanBeNull="true" />
+        </Type>
+      </Type>
+    </Type>
+  </Table>
+</Database>

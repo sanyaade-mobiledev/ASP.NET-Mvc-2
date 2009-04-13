@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Web.Misc", "Experimental\Microsoft.Web.Misc.csproj", "{032A18D2-E335-4F5C-98C2-1802997B2834}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicDataFuturesSample", "DynamicDataFuturesSample\DynamicDataFuturesSample.csproj", "{F35A9962-A791-4702-8DF6-EEA00F51EE12}"
+EndProject
+Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = DynamicDataVNext.vsmdi
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{032A18D2-E335-4F5C-98C2-1802997B2834}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{032A18D2-E335-4F5C-98C2-1802997B2834}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{032A18D2-E335-4F5C-98C2-1802997B2834}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{032A18D2-E335-4F5C-98C2-1802997B2834}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F35A9962-A791-4702-8DF6-EEA00F51EE12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F35A9962-A791-4702-8DF6-EEA00F51EE12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F35A9962-A791-4702-8DF6-EEA00F51EE12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F35A9962-A791-4702-8DF6-EEA00F51EE12}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

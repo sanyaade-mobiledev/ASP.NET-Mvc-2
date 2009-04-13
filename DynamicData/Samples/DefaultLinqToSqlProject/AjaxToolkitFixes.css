@@ -1,0 +1,5 @@
+﻿/* Ensures the calendar has a high stacking order so it appears on top of other ACT controls, like slider */
+div.ajax__calendar_container 
+{ 
+   z-index: 100;
+}
