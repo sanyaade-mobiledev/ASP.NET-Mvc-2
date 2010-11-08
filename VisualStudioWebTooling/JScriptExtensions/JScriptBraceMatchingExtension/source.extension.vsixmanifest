@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Vsix xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
+  <Identifier Id="JScriptBraceMatchingExtension.VSWeb.7aaba75e-a231-41c6-bf15-d648ec276bff">
+    <Name>JScript Brace Matching Extension</Name>
+    <Author>Microsoft</Author>
+    <Version>1.0</Version>
+    <Description xml:space="preserve">Adds support for brace matching to the JScript editor.</Description>
+    <Locale>1033</Locale>
+    <MoreInfoUrl>http://aspnet.codeplex.com</MoreInfoUrl>
+    <License>license.txt</License>
+    <Icon>vs-logo.ico</Icon>
+    <PreviewImage>preview.png</PreviewImage>
+    <SupportedProducts>
+      <VisualStudio Version="10.0">
+        <Edition>Pro</Edition>
+      </VisualStudio>
+    </SupportedProducts>
+    <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.0" />
+  </Identifier>
+  <References />
+  <Content>
+    <MefComponent>|%CurrentProject%|</MefComponent>
+  </Content>
+</Vsix>

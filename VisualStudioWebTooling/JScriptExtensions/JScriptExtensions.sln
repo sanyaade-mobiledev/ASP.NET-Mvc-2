@@ -1,0 +1,65 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JScriptIntelliSenseParaExtension", "JScriptIntelliSenseParaExtension\JScriptIntelliSenseParaExtension.csproj", "{8CD43FAE-0041-4D49-B0E9-0A030988789B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JScriptBraceMatchingExtension", "JScriptBraceMatchingExtension\JScriptBraceMatchingExtension.csproj", "{E2E10731-BCF2-4DA9-B60B-3CC7C3DCB6FE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8FD5F125-C6ED-446B-9D6F-CBF39FA6E798}"
+	ProjectSection(SolutionItems) = preProject
+		jquery-1.4.2.js = jquery-1.4.2.js
+		license.txt = license.txt
+		test.js = test.js
+		vs-logo.ico = vs-logo.ico
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JScriptWordHighlighterExtension", "JScriptWordHighlighterExtension\JScriptWordHighlighterExtension.csproj", "{08C99A15-BEEA-4A4B-BCF6-F96E68728177}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{72E00216-EA74-4C48-946C-5AA85F1D1C2B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JScriptOutliningExtension", "JScriptOutliningExtension\JScriptOutliningExtension.csproj", "{1D4583E6-5D76-4982-B357-E06852AF0E43}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JScriptEditorExtensions", "JScriptEditorExtensions\JScriptEditorExtensions.csproj", "{6536FE61-2670-49B1-8548-34B7E3558112}"
+	ProjectSection(ProjectDependencies) = postProject
+		{08C99A15-BEEA-4A4B-BCF6-F96E68728177} = {08C99A15-BEEA-4A4B-BCF6-F96E68728177}
+		{72E00216-EA74-4C48-946C-5AA85F1D1C2B} = {72E00216-EA74-4C48-946C-5AA85F1D1C2B}
+		{E2E10731-BCF2-4DA9-B60B-3CC7C3DCB6FE} = {E2E10731-BCF2-4DA9-B60B-3CC7C3DCB6FE}
+		{8CD43FAE-0041-4D49-B0E9-0A030988789B} = {8CD43FAE-0041-4D49-B0E9-0A030988789B}
+		{1D4583E6-5D76-4982-B357-E06852AF0E43} = {1D4583E6-5D76-4982-B357-E06852AF0E43}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8CD43FAE-0041-4D49-B0E9-0A030988789B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CD43FAE-0041-4D49-B0E9-0A030988789B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CD43FAE-0041-4D49-B0E9-0A030988789B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CD43FAE-0041-4D49-B0E9-0A030988789B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2E10731-BCF2-4DA9-B60B-3CC7C3DCB6FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2E10731-BCF2-4DA9-B60B-3CC7C3DCB6FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2E10731-BCF2-4DA9-B60B-3CC7C3DCB6FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2E10731-BCF2-4DA9-B60B-3CC7C3DCB6FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08C99A15-BEEA-4A4B-BCF6-F96E68728177}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08C99A15-BEEA-4A4B-BCF6-F96E68728177}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08C99A15-BEEA-4A4B-BCF6-F96E68728177}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08C99A15-BEEA-4A4B-BCF6-F96E68728177}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72E00216-EA74-4C48-946C-5AA85F1D1C2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72E00216-EA74-4C48-946C-5AA85F1D1C2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72E00216-EA74-4C48-946C-5AA85F1D1C2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72E00216-EA74-4C48-946C-5AA85F1D1C2B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D4583E6-5D76-4982-B357-E06852AF0E43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D4583E6-5D76-4982-B357-E06852AF0E43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D4583E6-5D76-4982-B357-E06852AF0E43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D4583E6-5D76-4982-B357-E06852AF0E43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6536FE61-2670-49B1-8548-34B7E3558112}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6536FE61-2670-49B1-8548-34B7E3558112}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6536FE61-2670-49B1-8548-34B7E3558112}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6536FE61-2670-49B1-8548-34B7E3558112}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

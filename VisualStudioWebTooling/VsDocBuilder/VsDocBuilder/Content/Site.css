@@ -1,0 +1,88 @@
+body {
+    font-family: Calibri, Verdana, Arial, Sans-Serif;
+    background: #efefef;
+}
+
+textarea {
+    font-family: Consolas;
+    font-size: 12px;
+    
+}
+
+#pageContainer {
+    width: 940px;
+    margin: 0 auto;
+}
+
+#memberList {
+    float: left;
+    margin-right: 20px;
+}
+
+#memberDetails {
+    float: left;
+    position: relative; 
+}
+
+    #memberDetails #merge {
+        position: absolute;
+        right: 0;
+        width: 160px;
+    }
+    
+    #memberDetails #useParaCheckbox {
+        position: absolute;
+        right: 0;
+        top: 24px;
+    }
+    
+    #memberDetails #status {
+        position: absolute;
+        margin: 0; padding: 0;
+        right: 0; top: 44px;
+        width: 160px;
+        text-align: center;
+    }
+    
+    #memberDetails ul {
+        margin: 0; padding: 0;
+        list-style-type: none;
+    }
+    
+    #memberDetails li {
+        clear: both;
+    }
+    
+    #memberDetails label {
+        display: block;
+        width: 100px;
+        float: left;
+    }
+    
+    #memberDetails .checkbox label {
+        display: inline;
+        width: auto;
+        float: none;
+    }
+    
+    #memberDetails #name,
+    #memberDetails #aliases,
+    #memberDetails #type {
+        width: 220px;
+    }
+    
+    #memberDetails #docComment {
+        color: Green;
+    }
+
+.wide {
+    clear: both;
+}
+
+    .wide label {
+        display: block;
+    }
+    
+    .wide textarea {
+        width: 85%;
+    }

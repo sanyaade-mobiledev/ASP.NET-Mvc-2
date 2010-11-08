@@ -1,0 +1,195 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Xml;
+using System.Xml.Linq;
+using System.Web.Caching;
+using System.IO;
+using System.Net;
+
+namespace VsDocBuilder.Controllers
+{
+    public class BuildController : Controller
+    {
+        public ActionResult Index()
+        {
+            return View();
+        }
+
+        public JsonResult jQueryDoc()
+        {
+            var entries = GetjQueryDocFromCacheOrjQueryWebsite()
+                .Element("entries")
+                .Elements("entry")
+                .Where(e => e.Attribute("type") != null && e.Attribute("type").Value == "method");
+            var doc = entries
+                .Distinct(new EntryComparer())
+                .Select(e => new
+                {
+                    name = e.Attribute("name").Value,
+                    returns = DisambiguateType(BuildReturns(e, entries)),
+                    summary = BuildSummary(e, entries),
+                    parameters = BuildParameters(e, entries)
+                });
+            
+            return Json(doc, JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult jQueryDocTypes()
+        {
+            var types = GetjQueryDocFromCacheOrjQueryWebsite()
+                .Element("entries")
+                .Elements("entry")
+                .SelectMany(e => e.Elements("signature"))
+                .SelectMany(s => s.Elements("argument"))
+                .Select(a => a.Attribute("type").Value)
+                .Distinct();
+            return View(types);
+        }
+
+        private class EntryComparer : IEqualityComparer<XElement>
+        {
+            public bool Equals(XElement x, XElement y)
+            {
+                return x.Attribute("name").Value == y.Attribute("name").Value;
+            }
+
+            public int GetHashCode(XElement obj)
+            {
+                return obj.Attribute("name").Value.GetHashCode();
+            }
+        }
+
+        private XElement GetjQueryDocFromCacheOrjQueryWebsite()
+        {
+            var result = HttpContext.Cache["jQueryDocXml"] as XElement;
+            if (result == null)
+            {
+                // Check file system
+                var apiFilePath = Server.MapPath("~/api.xml");
+                if (!System.IO.File.Exists(apiFilePath))
+                {
+                    // Download from api.jquery.com and save
+                    using (var wc = new WebClient())
+                    {
+                        wc.DownloadFile("http://api.jquery.com/api", apiFilePath);
+                    }
+                }
+                using (var fileStream = new FileStream(apiFilePath, FileMode.Open))
+                {
+                    result = XElement.Load(fileStream);
+                }
+                
+                HttpContext.Cache.Add("jQueryDocXml", result, null, Cache.NoAbsoluteExpiration, TimeSpan.FromHours(1),
+                                      CacheItemPriority.Normal, null);
+            }
+            return result;
+        }
+
+        private static string BuildSummary(XElement entry, IEnumerable<XElement> entries)
+        {
+            var name = entry.Attribute("name").Value;
+            var summary = "";
+
+            // Need to deal with multiple entries, e.g. jQuery itself has 3
+            // Detect and merge into the 1., 2. format?
+            var matchingEntries = entries.Where(e => e.Attribute("name").Value == name);
+
+            var entryNumber = 0;
+            var entryCount = matchingEntries.Count();
+            foreach (var ent in matchingEntries)
+            {
+                entryNumber++;
+                var desc = ent.Element("desc") != null ? ent.Element("desc").Value : "";
+                if (entryNumber > 1)
+                    summary += "\r\n";
+                if (entryCount > 1)
+                    summary += entryNumber + ": ";
+                summary += desc + "\r\n";
+
+                var signatureNumber = 0;
+                var signatureCount = ent.Elements("signature").Count();
+                if (entryCount <= 1 && signatureCount <= 1)
+                    continue;
+                foreach (var signature in ent.Elements("signature"))
+                {
+                    signatureNumber++;
+                    var sigSummary = string.Format("{0} - {1}({2})",
+                        signatureNumber,
+                        name,
+                        string.Join(", ", signature.Elements("argument").Select(e => e.Attribute("name").Value))
+                        );
+                    if (entryCount > 1)
+                        sigSummary = string.Format("    {0}.{1}", entryNumber, sigSummary);
+                    summary += (signatureNumber > 1 ? " \r\n" : "") + sigSummary;
+                }
+            }
+
+            return summary;
+        }
+
+        private static IEnumerable<object> BuildParameters(XElement entry, IEnumerable<XElement> entries)
+        {
+            // Need to deal with multiple entries, e.g. jQuery itself has 3
+            var matchingEntries = entries.Where(e => e.Attribute("name").Value == entry.Attribute("name").Value);
+
+            var signatures = matchingEntries.SelectMany(e => e.Elements("signature"));
+
+            //var signatures = entry.Elements("signature");
+            var signatureToUse =
+                signatures.Where(s => s.Elements("argument").Count() ==
+                    signatures.Max(e => e.Elements("argument").Count()))
+                .FirstOrDefault();
+
+            return signatureToUse.Elements("argument")
+                .Select(a => new {
+                                     name = a.Attribute("name").Value,
+                                     type = DisambiguateType(a.Attribute("type").Value),
+                                     summary = a.Element("desc").Value
+                                 }
+                    );
+        }
+
+        private static string BuildReturns(XElement entry, IEnumerable<XElement> entries)
+        {
+            // Need to deal with multiple entries, e.g. jQuery itself has 3
+            var matchingEntries = entries.Where(e => e.Attribute("name").Value == entry.Attribute("name").Value);
+
+            // Get candidate return types
+            var returnTypes = matchingEntries.Select(e => e.Attribute("return").Value).Distinct();
+
+            // Use return type 'jQuery' if exists, otherwise first one
+            return returnTypes.SingleOrDefault(s => s == "jQuery") ??
+                returnTypes.First();
+        }
+
+        private static string DisambiguateType(string type)
+        {
+            if (type.Contains(","))
+                return type.Split(',').Last().Trim();
+
+            if (type.Contains("/"))
+                return type.Split('/').Last().Trim();
+
+            if (type == "Callback")
+                return "Function";
+
+            if ((new [] { "Options", "Map", "Any" }).Contains(type))
+                return "Object";
+
+            if (type.Equals("selector", StringComparison.OrdinalIgnoreCase) ||
+                type.Equals("HTML", StringComparison.OrdinalIgnoreCase))
+                return "String";
+
+            if (type == "Integer")
+                return "Number";
+
+            if (type == "Elements")
+                return "Array";
+
+            return type;
+        }
+    }
+}
