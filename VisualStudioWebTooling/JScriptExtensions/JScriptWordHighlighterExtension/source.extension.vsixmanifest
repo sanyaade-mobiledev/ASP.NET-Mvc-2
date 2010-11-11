@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Vsix xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
-  <Identifier Id="JScriptWordHighlighterExtension.VSWeb.a4ab535f-5fbd-4eed-ad1b-b796fc549d41">
+  <Identifier Id="JScriptWordHighlighterExtension.Microsoft.a4ab535f-5fbd-4eed-ad1b-b796fc549d41">
     <Name>JScript Word Highlighter Extension</Name>
     <Author>Microsoft</Author>
     <Version>1.0</Version>

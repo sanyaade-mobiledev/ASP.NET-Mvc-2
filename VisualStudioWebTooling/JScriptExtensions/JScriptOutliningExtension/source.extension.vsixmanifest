@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Vsix xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
-  <Identifier Id="JScriptOutlining.VSWeb.3ebcc43c-7a74-4fc0-aef5-bbc62a59b084">
+  <Identifier Id="JScriptOutlining.Microsoft.3ebcc43c-7a74-4fc0-aef5-bbc62a59b084">
     <Name>JScript Outlining Extension</Name>
     <Author>Microsoft</Author>
     <Version>1.0</Version>

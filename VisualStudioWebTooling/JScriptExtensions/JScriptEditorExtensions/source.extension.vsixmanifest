@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Vsix xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2010">
-  <Identifier Id="JScriptEditorExtensions.VSWeb.2d58dc16-2465-4760-8c2d-e3b4885e2236">
+  <Identifier Id="JScriptEditorExtensions.Microsoft.2d58dc16-2465-4760-8c2d-e3b4885e2236">
     <Name>JScript Editor Extensions</Name>
     <Author>Microsoft</Author>
     <Version>1.0</Version>
