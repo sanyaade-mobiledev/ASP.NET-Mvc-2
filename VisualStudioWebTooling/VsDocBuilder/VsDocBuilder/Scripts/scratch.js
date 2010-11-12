@@ -2,7 +2,10 @@
 var el = $("el").css();
 var x = el.animate({});
 
-
+$("").click(function (e) {
+    /// <param name="e" type="jQuery.Event">Description</param>
+    
+});
 
 $("div").click(function (e) {
     

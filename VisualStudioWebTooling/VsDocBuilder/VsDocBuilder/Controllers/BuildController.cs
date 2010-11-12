@@ -103,6 +103,7 @@ namespace VsDocBuilder.Controllers
             {
                 entryNumber++;
                 var desc = ent.Element("desc") != null ? ent.Element("desc").Value : "";
+                desc = desc.Trim();
                 if (entryNumber > 1)
                     summary += "\r\n";
                 if (entryCount > 1)

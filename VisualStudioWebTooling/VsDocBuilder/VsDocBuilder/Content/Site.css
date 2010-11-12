@@ -73,6 +73,7 @@ textarea {
     
     #memberDetails #docComment {
         color: Green;
+        height: 140px;
     }
 
 .wide {
@@ -83,6 +84,13 @@ textarea {
         display: block;
     }
     
-    .wide textarea {
-        width: 85%;
+    .wide #value {
+        
     }
+    
+pre {
+    width: 550px;
+    height: 100px;
+    overflow: auto;
+    background: #fff;
+}

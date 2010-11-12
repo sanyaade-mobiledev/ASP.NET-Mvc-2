@@ -1,9 +1,5 @@
 ﻿/// <reference path="jquery-1.4.2.js" />
 /// <reference path="underscore.js" />
-/// <reference path="json2.js" />
-/// <reference path="Serializer.js" />
-/// <reference path="SerializerJS.js" />
-
 
 String.prototype.supplant = function (o) {
     return this.replace(/{([^{}]*)}/g,
@@ -36,8 +32,9 @@ $(function () {
         ref: jQuery,
         doc: ""
     });
-
-    for (var m in jQuery) {
+    
+    var m;
+    for (m in jQuery) {
         members.push({
             name: "jQuery." + m,
             aliases: "",
@@ -45,7 +42,7 @@ $(function () {
             doc: ""
         });
     }
-    for (var m in jQuery.prototype) {
+    for (m in jQuery.prototype) {
         membersP.push({
             name: "jQuery.prototype." + m,
             aliases: "",
@@ -82,7 +79,7 @@ $(function () {
 
     function injectParaTags(text) {
         /// <param name="text" type="String">The text to inject para tags into</param>
-        var result = text
+        var result = $.trim(text)
             .replace(/(\r\n)|\n/g, "</para>\r\n<para>") // Replace all new lines with </para>\r\n<para>
             .replace(/<\/para>/, ""); // Remove the first </para> as the first paragraph doesn't need to be wrapped
         if (result.indexOf("<para>") >= 0)
@@ -91,6 +88,7 @@ $(function () {
     }
 
     function injectNewLinePrefixSlashes(text, paddingLength) {
+        text = $.trim(text);
         if (typeof (paddingLength) !== "number") paddingLength = 4;
         var padding = "";
         _(paddingLength).times(function () { padding = padding + " "; });
@@ -103,7 +101,7 @@ $(function () {
 
         if (generatePara) entry.summary = injectParaTags(entry.summary);
 
-        entry.summary = injectNewLinePrefixSlashes(entry.summary);
+        entry.summary = injectNewLinePrefixSlashes($.trim(entry.summary));
 
         if (typeof (aliases) === "string" && $.trim(aliases) !== "") {
             // Alias is defined, replace instances of entry name with first alias name in summary
@@ -117,37 +115,37 @@ $(function () {
 
         var comment = ("/// <summary>\r\n" +
                        "///     {summary}\r\n" +
-                       "/// </summary>").supplant(entry);
+                       "/// </summary>\r\n").supplant(entry);
 
         if (typeof (ref) !== "function")
             return comment;
 
-        if (entry.returns) {
-            comment = comment + "\r\n/// <returns type=\"{returns}\" />\r\n".supplant(entry);
-        }
-
         // Get real parameter names from actual signature
-        var realParameters = argsRegEx.exec(ref.toString())[1]
-            .replace(/\s/g, "")
-            .split(",");
+        var paramMatches = argsRegEx.exec(ref.toString());
+        if (paramMatches) {
+            var realParameters = paramMatches[1].replace(/\s/g, "").split(",");
 
-        if (entry.parameters) {
-            $.each(entry.parameters, function (i) {
-                // { name:"", type:"", summary:"" }
-                this.name = realParameters[i];
-                comment += ("/// <param name=\"{name}\" type=\"{type}\">\r\n" +
-                            "///     {summary}\r\n" +
-                            "/// </param>")
-                    .supplant({
-                        name: this.name,
-                        type: this.type,
-                        summary: injectNewLinePrefixSlashes(generatePara ? injectParaTags(this.summary) : this.summary)
+            if (entry.parameters) {
+                $.each(entry.parameters, function (i) {
+                    // { name:"", type:"", summary:"" }
+                    this.name = realParameters[i];
+                    comment += ("/// <param name=\"{name}\" type=\"{type}\">\r\n" +
+                                "///     {summary}\r\n" +
+                                "/// </param>\r\n")
+                        .supplant({
+                            name: $.trim(this.name),
+                            type: $.trim(this.type),
+                            summary: injectNewLinePrefixSlashes(generatePara ? injectParaTags($.trim(this.summary)) : $.trim(this.summary))
                     });
 
-                if (this.type === "Element")
-                    comment = comment.replace("type=\"Element\"", "domElement=\"true\"");
-                comment += "\r\n";
-            });
+                    if (this.type === "Element")
+                        comment = comment.replace("type=\"Element\"", "domElement=\"true\"");
+                });
+            }
+        }
+
+        if (entry.returns) {
+            comment = comment + "/// <returns type=\"{returns}\" />\r\n".supplant(entry);
         }
 
         return comment;
@@ -254,43 +252,47 @@ $(function () {
     $("#buildDoc").click(function () {
         var file = "", member;
 
-        function serialize(obj) {
-            var returnVal;
-            if (obj) {
-                switch (obj.constructor) {
-                    case Array:
-                        var vArr = "[";
-                        for (var i = 0; i < obj.length; i++) {
-                            if (i > 0) vArr += ",";
-                            vArr += serialize(obj[i]);
-                        }
-                        vArr += "]"
-                        return vArr;
-                    case String:
-                        returnVal = escape("'" + obj + "'");
-                        return returnVal;
-                    case Number:
-                        returnVal = isFinite(obj) ? obj.toString() : null;
-                        return returnVal;
-                    case Date:
-                        returnVal = "#" + obj + "#";
-                        return returnVal;
-                    default:
-                        if (typeof obj === "object") {
-                            var vobj = [];
-                            for (attr in obj) {
-                                if (typeof obj[attr] !== "function") {
-                                    vobj.push('"' + attr + '":' + serialize(obj[attr]));
-                                }
+        function serialize(obj, recurse) {
+            if (typeof obj !== "undefined") {
+                if ($.isArray(obj)) {
+                    var vArr = "[";
+                    for (var i = 0; i < obj.length; i++) {
+                        if (i > 0) vArr += ",";
+                        vArr += serialize(obj[i], recurse);
+                    }
+                    vArr += "]"
+                    return vArr;
+
+                } else if (typeof obj === "string") {
+                    return "'" + obj + "'";
+
+                } else if (typeof obj === "number") {
+                    return isFinite(obj) ? obj.toString() : null;
+
+                } else if (typeof obj === "object") {
+                    if (typeof obj.getDay === "function") {
+                        return "new Date({y}, {m}, {d})".supplant({
+                            y: obj.getFullYear(),
+                            m: obj.getMonth(),
+                            d: obj.getDate()
+                        });
+                    }
+                    if (recurse) {
+                        var vobj = [];
+                        for (attr in obj) {
+                            if (typeof obj[attr] !== "function") {
+                                vobj.push('"' + attr + '": ' + serialize(obj[attr], false));
                             }
-                            if (vobj.length > 0)
-                                return "{" + vobj.join(",") + "}";
-                            else
-                                return "{}";
                         }
-                        else {
-                            return obj.toString();
-                        }
+                        if (vobj.length > 0)
+                            return "{ " + vobj.join(",\r\n") + " }";
+                        else
+                            return "{}";
+                    } else {
+                        return "{}";
+                    }
+                } else {
+                    return obj.toString();
                 }
             }
             return "";
@@ -311,7 +313,7 @@ $(function () {
                 "*/\r\n\r\n";
 
         file += "/*!\r\n" +
-                "* jQuery JavaScript Library v1.4.1\r\n" +
+                "* jQuery JavaScript Library v1.4.2\r\n" +
                 "* http://jquery.com/\r\n" +
                 "*\r\n" +
                 "* Distributed in whole under the terms of the MIT\r\n" +
@@ -340,7 +342,7 @@ $(function () {
                 "* Includes Sizzle.js\r\n" +
                 "* http://sizzlejs.com/\r\n" +
                 "* Copyright 2010, The Dojo Foundation\r\n" +
-                "* Released under the MIT, BSD, and GPL Licenses.\r\n" +
+                "* Released under the MIT and BSD Licenses.\r\n" +
                 "*\r\n" +
                 "* Date: Mon Jan 25 19:43:33 2010 -0500\r\n" +
                 "*/\r\n\r\n";
@@ -351,9 +353,8 @@ $(function () {
             member = $(this).data("m");
             var refBody = member.ref.toString();
 
-            if (refBody.indexOf("[native code]") >= 0 ||
-                $.trim(refBody) === "" ||
-                typeof (member.ref) === "string") return true;
+            if (refBody.indexOf("[native code]") >= 0 || $.trim(refBody) === "" || typeof (member.ref) === "string")
+                return true;
 
             if (member.name === "jQuery") {
                 file += "var jQuery = " + injectDoc(refBody, member.doc) + ";";
@@ -364,11 +365,10 @@ $(function () {
                     });
                 }
             } else {
-                var sz = new JSSerializer();
-                sz.Serialize(member.ref);
+                //if (member.name === "jQuery.data") debugger;
                 file += "\r\n{name} = {body};".supplant({
                     name: member.name,
-                    body: typeof (member.ref) === "function" ? injectDoc(refBody, member.doc) : sz.GetJSString()
+                    body: typeof (member.ref) === "function" ? injectDoc(refBody, member.doc) : serialize(member.ref, true)
                 });
             }
         });

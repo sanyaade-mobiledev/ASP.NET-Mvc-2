@@ -31,29 +31,26 @@
                 </li>
                 <li>
                     <label for="docComment">Doc Comment:</label>
-                    <textarea id="docComment" rows="10" cols="60" wrap="off"></textarea>
+                    <pre id="docComment"></pre>
                 </li>
                 <li>
                     <label for="value">Body:</label>
-                    <textarea id="value" rows="10" cols="60" readonly="readonly" wrap="off"></textarea>
+                    <pre id="value"></pre>
                 </li>
             </ul>
         </div>
         <div id="outputPane" class="wide">
-            <label for="output">Output:</label>
-            <textarea id="output" rows="6" cols="90" readonly="readonly" wrap="off"></textarea>
+            <label for="output">Log:</label>
+            <textarea id="output" rows="6" cols="120" readonly="readonly" wrap="off"></textarea>
         </div>
         <div id="buildDocPane" class="wide">
             <input type="button" id="buildDoc" value="Build Doc File" />
             <label for="docFile">Doc File:</label>
-            <textarea id="docFile" rows="20" cols="90" readonly="readonly" wrap="off"></textarea>
+            <textarea id="docFile" rows="20" cols="120" readonly="readonly" wrap="off"></textarea>
         </div>
     </div>
-    <script src="../../Scripts/jquery-1.4.2.js" type="text/javascript"></script>
+    <script src="../../Scripts/jquery-1.4.3.js" type="text/javascript"></script>
     <script src="../../Scripts/underscore.js" type="text/javascript"></script>
-    <script src="../../Scripts/json2.js" type="text/javascript"></script>
-    <script src="../../Scripts/Serializer.js" type="text/javascript"></script>
-    <script src="../../Scripts/SerializerJS.js" type="text/javascript"></script>
     <script src="../../Scripts/build.js" type="text/javascript"></script>
 </body>
 </html>
