@@ -50,6 +50,15 @@ $(function () {
             doc: ""
         });
     }
+    for (m in jQuery.Event.prototype) {
+        membersP.push({
+            name: "jQuery.Event.prototype." + m,
+            aliases: "",
+            ref: jQuery.Event.prototype[m],
+            doc: ""
+        });
+    }
+
     members.sort(function (a, b) {
         return a.name > b.name ? 1 : -1;
     });
@@ -226,7 +235,10 @@ $(function () {
 
             $.each(doc, function () {
                 var name = this.name;
-                if (name !== "jQuery") {
+
+                if (name.indexOf("event.") === 0) {
+                    name = name.replace("event.", "jQuery\\.Event\\.prototype\\.");
+                } else if (name !== "jQuery") {
                     name = name.substr(0, "jQuery.".length) === "jQuery." ?
                        name.replace(".", "\\.") : "jQuery\\.prototype\\." + name;
                 }
@@ -384,6 +396,11 @@ $(function () {
                 }
             } else {
                 //if (member.name === "jQuery.data") debugger;
+
+                if (member.name.indexOf("jQuery.Event.prototype") === 0) {
+
+                }
+
                 file += "\r\n{name} = {body};".supplant({
                     name: member.name,
                     body: typeof (member.ref) === "function" ? injectDoc(refBody, member.doc) : serialize(member.ref, true)
