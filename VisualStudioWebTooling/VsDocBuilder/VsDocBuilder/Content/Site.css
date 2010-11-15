@@ -1,22 +1,89 @@
 body {
     font-family: Calibri, Verdana, Arial, Sans-Serif;
-    background: #efefef;
+    background: #fff;
 }
 
 textarea {
     font-family: Consolas;
-    font-size: 12px;
-    
+    font-size: 12px;    
 }
 
 #pageContainer {
     width: 940px;
     margin: 0 auto;
+    /*outline: solid 1px silver;*/
+}
+
+h1 {
+    font-family: "Segoe UI Light";
+    font-size: 38px;
+    color: #0f67a1;
+}
+
+    h1 span {
+        color: #bbb;
+        font-style: italic;
+    }
+
+input[type='button'], input[type='submit'] {
+    background: #0f67a1;
+    border-radius: 4px;
+    border-color: #426d9c;
+    color: #fff;
+    padding: 5px 8px;
+}
+
+pre, input, select {
+    border: solid 1px #79a2d5;
+}
+
+input[type='checkbox'] {
+    border: none;
+}
+
+#chooseVersion {
+    background: #efefef;
+    border-radius: 6px;
+    margin: 0 0 10px 0;
+    overflow: hidden;
+    height: 32px;
+}
+
+    #chooseVersion form {
+        float: left;
+        padding: 6px 10px;
+    }
+
+    #chooseVersion input {
+        padding: 1px 8px;
+    }
+
+#status {
+    margin: 0;
+    float: right;
+    padding: 6px 10px;
+    font-weight: bold;
+    font-size: 15px;
+    font-family: "Segoe UI";
+    background: #cdfeca;
+    color: #666;
+    border-radius: 0 6px 6px 0;
+    border-left: 2px solid #fff; 
+    height: 100%;
+    display: none;
 }
 
 #memberList {
     float: left;
     margin-right: 20px;
+}
+
+.has-doc {
+    background: #dff7db;
+}
+
+#members {
+    width: 210px;
 }
 
 #memberDetails {
@@ -76,6 +143,25 @@ textarea {
         height: 140px;
     }
 
+#outputPane {
+    margin-top: 10px;
+}
+    
+    #outputPane label {
+        cursor: pointer;
+        background: #0f67a1;
+        border-radius: 4px;
+        border-color: #426d9c;
+        color: #fff;
+        padding: 2px 8px;
+        float: left;
+    }
+    
+    #outputPane textarea {
+        clear: both;
+        display: none;
+    }
+
 .wide {
     clear: both;
 }
@@ -88,9 +174,25 @@ textarea {
         
     }
     
-pre {
+code {
     width: 550px;
-    height: 100px;
+    height: 120px;
     overflow: auto;
     background: #fff;
+    display: inline-block;
+    white-space: pre;
+    border: 1px solid #79a2d5;
+}
+
+#memberPane {
+    overflow: hidden;
+}
+
+#buildDocPane {
+    margin-top: 10px;
+    clear: both;
+}
+
+#docFile {
+    width: 99%;
 }

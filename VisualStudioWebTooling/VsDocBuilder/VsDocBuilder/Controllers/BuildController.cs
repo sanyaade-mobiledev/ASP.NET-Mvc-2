@@ -8,14 +8,26 @@ using System.Xml.Linq;
 using System.Web.Caching;
 using System.IO;
 using System.Net;
+using VsDocBuilder.Models;
 
 namespace VsDocBuilder.Controllers
 {
     public class BuildController : Controller
     {
-        public ActionResult Index()
+        readonly static string _defaultVersion = "1.4.4";
+        readonly static string[] _versions = new[] { "1.4.2", "1.4.3", "1.4.4" };
+
+        public ActionResult Index(string ver, bool para = false)
         {
-            return View();
+            var model = new BuildModel();
+            var versions = new List<SelectListItem>();
+            model.Version = string.IsNullOrEmpty(ver) ? _defaultVersion : ver;
+            foreach (var v in _versions) {
+                versions.Add(new SelectListItem { Text = v, Value = v, Selected = (v == model.Version) });
+            }
+            model.Versions = versions;
+            model.GenerateParaTags = para;
+            return View(model);
         }
 
         public JsonResult jQueryDoc()

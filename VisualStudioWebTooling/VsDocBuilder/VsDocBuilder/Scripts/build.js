@@ -32,7 +32,7 @@ $(function () {
         ref: jQuery,
         doc: ""
     });
-    
+
     var m;
     for (m in jQuery) {
         members.push({
@@ -71,8 +71,11 @@ $(function () {
         $name.val(m.name);
         $aliases.val(m.aliases);
         $type.val(typeof (m.ref));
-        $docComment.text(m.doc);
-        $value.text(m.ref.toString());
+        function linify(t) {
+            return $("<span/>").text(t).html().replace(/\r\n/g, "<br/>");
+        }
+        $value.text(linify(serialize(m.ref, true)));
+        $docComment.html(linify(m.doc));
     });
 
     var argsRegEx = /\s*function\s*\((.*)\)/;
@@ -136,7 +139,7 @@ $(function () {
                             name: $.trim(this.name),
                             type: $.trim(this.type),
                             summary: injectNewLinePrefixSlashes(generatePara ? injectParaTags($.trim(this.summary)) : $.trim(this.summary))
-                    });
+                        });
 
                     if (this.type === "Element")
                         comment = comment.replace("type=\"Element\"", "domElement=\"true\"");
@@ -151,16 +154,66 @@ $(function () {
         return comment;
     }
 
-    $("#merge").click(function () {
+    function serialize(obj, recurse) {
+        if (typeof obj !== "undefined") {
+            if ($.isArray(obj)) {
+                var vArr = "[";
+                for (var i = 0; i < obj.length; i++) {
+                    if (i > 0) vArr += ",";
+                    vArr += serialize(obj[i], recurse);
+                }
+                vArr += "]"
+                return vArr;
+
+            } else if (typeof obj === "string") {
+                return "'" + obj + "'";
+
+            } else if (typeof obj === "number") {
+                return isFinite(obj) ? obj.toString() : null;
+
+            } else if (typeof obj === "object") {
+                if (typeof obj.getDay === "function") {
+                    return "new Date({y}, {m}, {d})".supplant({
+                        y: obj.getFullYear(),
+                        m: obj.getMonth(),
+                        d: obj.getDate()
+                    });
+                }
+                if (recurse) {
+                    var vobj = [];
+                    for (attr in obj) {
+                        if (typeof obj[attr] !== "function") {
+                            vobj.push('"' + attr + '": ' + serialize(obj[attr], false));
+                        }
+                    }
+                    if (vobj.length > 0)
+                        return "{ " + vobj.join(",\r\n") + " }";
+                    else
+                        return "{}";
+                } else {
+                    return "{}";
+                }
+            } else {
+                return obj.toString();
+            }
+        }
+        return "";
+    }
+
+    function downloadAndMergeDoc() {
         var t = this;
         t.disabled = true;
-        var $status = $("#status").text("loading...");
+        var $status = $("#status").show().text("downloading documentation...");
 
         var jQueryDocJsonUrl = document.location.toString();
         if (jQueryDocJsonUrl.lastIndexOf("/") === jQueryDocJsonUrl.length - 1) {
             jQueryDocJsonUrl = jQueryDocJsonUrl.substr(0, jQueryDocJsonUrl.length - 1);
         }
         jQueryDocJsonUrl += "/jQueryDoc";
+
+        if (document.location.search != "") {
+            jQueryDocJsonUrl = jQueryDocJsonUrl.replace("/" + document.location.search, "");
+        }
 
         $.getJSON(jQueryDocJsonUrl, null, function (doc) {
             // doc = { name:"", returns:"", summary:"", parameters: [{ name:"", type:"", summary:""}] }
@@ -200,6 +253,9 @@ $(function () {
                 if (data) {
                     data.doc = makeDocComment(this, data.ref, data.aliases, generatePara);
                     $option.data("m", data);
+                    if (data.doc) {
+                        $option.addClass("has-doc");
+                    }
                 }
             });
 
@@ -223,7 +279,9 @@ $(function () {
                 }
             );
 
-            $status.text("complete");
+            $("#members").css("visibility", "visible"); // Need to force a re-layout
+
+            $status.text("done!");
             window.setTimeout(function () {
                 $status.fadeOut("fast", function () {
                     $status.text("")
@@ -232,7 +290,13 @@ $(function () {
             t.disabled = false;
 
         });
-    });
+    }
+
+    downloadAndMergeDoc();
+    window.setTimeout(function () {
+        $members.get(0).selectedIndex = 0;
+        $members.click();
+    }, 100);
 
     var jQueryPrivates = {
         access: function (elems, key, value, exec, fn, pass) {
@@ -252,52 +316,6 @@ $(function () {
     $("#buildDoc").click(function () {
         var file = "", member;
 
-        function serialize(obj, recurse) {
-            if (typeof obj !== "undefined") {
-                if ($.isArray(obj)) {
-                    var vArr = "[";
-                    for (var i = 0; i < obj.length; i++) {
-                        if (i > 0) vArr += ",";
-                        vArr += serialize(obj[i], recurse);
-                    }
-                    vArr += "]"
-                    return vArr;
-
-                } else if (typeof obj === "string") {
-                    return "'" + obj + "'";
-
-                } else if (typeof obj === "number") {
-                    return isFinite(obj) ? obj.toString() : null;
-
-                } else if (typeof obj === "object") {
-                    if (typeof obj.getDay === "function") {
-                        return "new Date({y}, {m}, {d})".supplant({
-                            y: obj.getFullYear(),
-                            m: obj.getMonth(),
-                            d: obj.getDate()
-                        });
-                    }
-                    if (recurse) {
-                        var vobj = [];
-                        for (attr in obj) {
-                            if (typeof obj[attr] !== "function") {
-                                vobj.push('"' + attr + '": ' + serialize(obj[attr], false));
-                            }
-                        }
-                        if (vobj.length > 0)
-                            return "{ " + vobj.join(",\r\n") + " }";
-                        else
-                            return "{}";
-                    } else {
-                        return "{}";
-                    }
-                } else {
-                    return obj.toString();
-                }
-            }
-            return "";
-        }
-
         function injectDoc(fnString, doc) {
             var injectAt = fnString.indexOf("{") + 1;
             return fnString.substr(0, injectAt) + "\r\n" + doc + fnString.substr(injectAt);
@@ -309,11 +327,11 @@ $(function () {
                 "* intended to be used only for design-time IntelliSense.  Please use the\r\n" +
                 "* standard jQuery library for all production use.\r\n" +
                 "*\r\n" +
-                "* Comment version: 1.4.2\r\n" +
+                "* Comment version: {version}\r\n" +
                 "*/\r\n\r\n";
 
         file += "/*!\r\n" +
-                "* jQuery JavaScript Library v1.4.2\r\n" +
+                "* jQuery JavaScript Library v{version}\r\n" +
                 "* http://jquery.com/\r\n" +
                 "*\r\n" +
                 "* Distributed in whole under the terms of the MIT\r\n" +
@@ -343,9 +361,9 @@ $(function () {
                 "* http://sizzlejs.com/\r\n" +
                 "* Copyright 2010, The Dojo Foundation\r\n" +
                 "* Released under the MIT and BSD Licenses.\r\n" +
-                "*\r\n" +
-                "* Date: Mon Jan 25 19:43:33 2010 -0500\r\n" +
                 "*/\r\n\r\n";
+
+        file = file.supplant({ version: $("#version").val() });
 
         file += "(function ( window, undefined ) {\r\n";
 
@@ -379,5 +397,9 @@ $(function () {
         file += "\r\n})(window);";
 
         $("#docFile").val(file);
+    });
+
+    $("#outputPane label").click(function () {
+        $(this).next().toggle();
     });
 });
