@@ -94,9 +94,9 @@ namespace JScriptBraceMatchingExtension
             }
 
             // get the current char and the previous char
-            char? currentChar = currentCharPoint.Position != currentCharPoint.Snapshot.Length ? (char?)currentCharPoint.GetChar() : null;
+            var currentChar = currentCharPoint.Position != currentCharPoint.Snapshot.Length ? (char?)currentCharPoint.GetChar() : null;
             var prevCharPoint = currentCharPoint == 0 ? currentCharPoint : currentCharPoint - 1; // if currentChar is 0 (beginning of buffer), don't move it back
-            var prevChar = prevCharPoint.GetChar();
+            var prevChar = prevCharPoint != 0 ? prevCharPoint.GetChar() : default(char?); // Can't get prevChar if point is 0
             
             var maxLines = _view.TextViewLines.Count * _viewScreensToSearchOver;
             var maxLinesReached = false;
@@ -141,7 +141,7 @@ namespace JScriptBraceMatchingExtension
                 var prevPairSpan = new SnapshotSpan();
                 maxLinesReached = false;
 
-                if (JScriptBraceMatcher.FindMatchingOpenChar(_classifier, prevCharPoint, openChar, prevChar, maxLines, ref maxLinesReached, out prevPairSpan) == true ||
+                if (JScriptBraceMatcher.FindMatchingOpenChar(_classifier, prevCharPoint, openChar, prevChar.Value, maxLines, ref maxLinesReached, out prevPairSpan) == true ||
                     maxLinesReached)
                 {
                     yield return new TagSpan<TextMarkerTag>(new SnapshotSpan(prevCharPoint, 1), new TextMarkerTag(_tagType));
