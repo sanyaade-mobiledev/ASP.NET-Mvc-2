@@ -26,12 +26,8 @@ namespace JScriptIntelliSenseParaExtension
         {
             if (_broker.GetSessions(_textView).Any())
             {
-                if (UserTypedOperator(pguidCmdGroup, nCmdID, pvaIn))
-                {
-                    ForActiveCompletionSessions(s => s.Dismiss());
-                    Debug.WriteLine("Dismissed all active completion sessions because user typed an operator");
-                }
-                else if (UserPerfomedCommitAction(pguidCmdGroup, nCmdID))
+                var userTypedPeriod = UserTypedPeriod(pguidCmdGroup, nCmdID, pvaIn);
+                if (UserPerfomedCommitAction(pguidCmdGroup, nCmdID, pvaIn) || userTypedPeriod)
                 {
                     ForActiveCompletionSessions(s =>
                         {
@@ -41,33 +37,44 @@ namespace JScriptIntelliSenseParaExtension
                             else
                                 s.Dismiss();
                         });
-                    return VSConstants.S_OK; // Don't let anybody else handle this command
+                    if (!userTypedPeriod)
+                    {
+                        return VSConstants.S_OK; // Don't let anybody else handle this command
+                    }
+                }
+                if (UserTypedOperator(pguidCmdGroup, nCmdID, pvaIn) && !userTypedPeriod)
+                {
+                    ForActiveCompletionSessions(s => s.Dismiss());
+                    Debug.WriteLine("Dismissed all active completion sessions because user typed an operator");
                 }
             }
             return NextCmdTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);
         }
 
-        static bool UserTypedOperator(Guid pguidCmdGroup, uint nCmdID, IntPtr pvaIn)
+        static bool UserTypedPeriod(Guid pguidCmdGroup, uint nCmdID, IntPtr pvaIn)
         {
-            var isOperator = new Func<ushort, bool>(u => 
-                {
-                    var c = (char)u;
-                    // letters, digits, '_' & '$' are valid in an identifier
-                    return !char.IsLetterOrDigit(c) && c != '_' && c != '$';
-                }
-            );
-
-            return pguidCmdGroup == VSConstants.VSStd2K &&
-                   nCmdID == (uint)VSConstants.VSStd2KCmdID.TYPECHAR &&
-                   isOperator((ushort)Marshal.GetObjectForNativeVariant(pvaIn));
+            return UserTyped(pguidCmdGroup, nCmdID, pvaIn, c => c == '.');
         }
 
-        static bool UserPerfomedCommitAction(Guid pguidCmdGroup, uint nCmdID)
+        static bool UserTypedOperator(Guid pguidCmdGroup, uint nCmdID, IntPtr pvaIn)
+        {
+            return UserTyped(pguidCmdGroup, nCmdID, pvaIn,
+                c => !char.IsLetterOrDigit(c) && c != '_' && c != '$'); // letters, digits, '_' & '$' are valid in an identifier
+        }
+
+        static bool UserTyped(Guid pguidCmdGroup, uint nCmdID, IntPtr pvaIn, Func<char, bool> predicate)
         {
             return pguidCmdGroup == VSConstants.VSStd2K &&
-                   (nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB ||
-                    nCmdID == (uint)VSConstants.VSStd2KCmdID.OPENLINEABOVE ||
-                    nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN);
+                   nCmdID == (uint)VSConstants.VSStd2KCmdID.TYPECHAR &&
+                   predicate((char)(ushort)Marshal.GetObjectForNativeVariant(pvaIn));
+        }
+
+        static bool UserPerfomedCommitAction(Guid pguidCmdGroup, uint nCmdID, IntPtr pvaIn)
+        {
+            return pguidCmdGroup == VSConstants.VSStd2K &&
+                    (nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB ||
+                     nCmdID == (uint)VSConstants.VSStd2KCmdID.OPENLINEABOVE ||
+                     nCmdID == (uint)VSConstants.VSStd2KCmdID.RETURN);
         }
 
         void ForActiveCompletionSessions(Action<ICompletionSession> action)
