@@ -311,17 +311,19 @@ $(function () {
     }, 100);
 
     var jQueryPrivates = {
-        access: function (elems, key, value, exec, fn, pass) {
-            var length = elems.length;
-            // Setting many attributes
-            if (typeof key === "object") { for (var k in key) { access(elems, k, key[k], exec, fn, value); } return elems; }
-            // Setting one attribute
-            if (value !== undefined) {
-                // Optionally, function values get executed if exec is true
-                exec = !pass && exec && jQuery.isFunction(value); for (var i = 0; i < length; i++) { fn(elems[i], key, exec ? value.call(elems[i], i, fn(elems[i], key)) : value, pass); } return elems;
+        "1.4.2": {
+            access: function (elems, key, value, exec, fn, pass) {
+                var length = elems.length;
+                // Setting many attributes
+                if (typeof key === "object") { for (var k in key) { access(elems, k, key[k], exec, fn, value); } return elems; }
+                // Setting one attribute
+                if (value !== undefined) {
+                    // Optionally, function values get executed if exec is true
+                    exec = !pass && exec && jQuery.isFunction(value); for (var i = 0; i < length; i++) { fn(elems[i], key, exec ? value.call(elems[i], i, fn(elems[i], key)) : value, pass); } return elems;
+                }
+                // Getting an attribute
+                return length ? fn(elems[0], key) : undefined;
             }
-            // Getting an attribute
-            return length ? fn(elems[0], key) : undefined;
         }
     };
 
@@ -332,6 +334,8 @@ $(function () {
             var injectAt = fnString.indexOf("{") + 1;
             return fnString.substr(0, injectAt) + "\r\n" + doc + fnString.substr(injectAt);
         }
+
+        var version = $("#version").val();
 
         file += "/*\r\n" +
                 "* This file has been generated to support Visual Studio IntelliSense.\r\n" +
@@ -375,7 +379,7 @@ $(function () {
                 "* Released under the MIT and BSD Licenses.\r\n" +
                 "*/\r\n\r\n";
 
-        file = file.supplant({ version: $("#version").val() });
+        file = file.supplant({ version: version });
 
         file += "(function ( window, undefined ) {\r\n";
 
@@ -388,22 +392,22 @@ $(function () {
 
             if (member.name === "jQuery") {
                 file += "var jQuery = " + injectDoc(refBody, member.doc) + ";";
-                for (var priv in jQueryPrivates) {
-                    file += "\r\nfunction {name} {body};".supplant({
-                        name: priv,
-                        body: jQueryPrivates[priv].toString().substr("function ".length)
-                    });
+                if (jQueryPrivates[version]) {
+                    for (var privateMember in jQueryPrivates[version]) {
+                        file += "\r\nfunction {name} {body};".supplant({
+                            name: privateMember,
+                            body: jQueryPrivates[version][privateMember].toString().substr("function ".length)
+                        });
+                    }
                 }
             } else {
                 //if (member.name === "jQuery.data") debugger;
 
-                if (member.name.indexOf("jQuery.Event.prototype") === 0) {
-
-                }
-
                 file += "\r\n{name} = {body};".supplant({
                     name: member.name,
-                    body: typeof (member.ref) === "function" ? injectDoc(refBody, member.doc) : serialize(member.ref, true)
+                    body: typeof (member.ref) === "function"
+                        ? injectDoc(refBody, member.doc)
+                        : serialize(member.ref, member.name !== "jQuery.cache")
                 });
             }
         });

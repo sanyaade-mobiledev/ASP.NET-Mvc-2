@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" Inherits="System.Web.Mvc.ViewPage<dynamic>" %>
+﻿@model dynamic
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,9 +7,9 @@
 <body>
     <div>
         <ul>
-            <% foreach (var t in Model) { %>
-            <li><%: t %></li>
-            <% } %>
+            @foreach (var t in Model) {
+                <li>@t</li>
+            }
         </ul>
     </div>
 </body>
