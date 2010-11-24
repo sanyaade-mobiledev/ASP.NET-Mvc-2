@@ -78,12 +78,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
-    <Content Include="_bin_deployableAssemblies\System.Web.Helpers.dll" />
-    <Content Include="_bin_deployableAssemblies\System.Web.Mvc.dll" />
-    <Content Include="_bin_deployableAssemblies\System.Web.Razor.dll" />
-    <Content Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />
-    <Content Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
+    <None Include="_bin_deployableAssemblies\Microsoft.Web.Infrastructure.dll" />
+    <None Include="_bin_deployableAssemblies\System.Web.Helpers.dll" />
+    <None Include="_bin_deployableAssemblies\System.Web.Mvc.dll" />
+    <None Include="_bin_deployableAssemblies\System.Web.Razor.dll" />
+    <None Include="_bin_deployableAssemblies\System.Web.WebPages.dll" />
+    <None Include="_bin_deployableAssemblies\System.Web.WebPages.Razor.dll" />
     <None Include="api.xml" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
