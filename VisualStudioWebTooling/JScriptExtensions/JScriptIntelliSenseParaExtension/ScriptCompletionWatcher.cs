@@ -27,7 +27,8 @@ namespace JScriptIntelliSenseParaExtension
             if (_broker.GetSessions(_textView).Any())
             {
                 var userTypedPeriod = UserTypedPeriod(pguidCmdGroup, nCmdID, pvaIn);
-                if (UserPerfomedCommitAction(pguidCmdGroup, nCmdID, pvaIn) || userTypedPeriod)
+                var userTypedParens = UserTypedParens(pguidCmdGroup, nCmdID, pvaIn);
+                if (UserPerfomedCommitAction(pguidCmdGroup, nCmdID, pvaIn) || userTypedPeriod || userTypedParens)
                 {
                     ForActiveCompletionSessions(s =>
                         {
@@ -37,7 +38,7 @@ namespace JScriptIntelliSenseParaExtension
                             else
                                 s.Dismiss();
                         });
-                    if (!userTypedPeriod)
+                    if (!userTypedPeriod && !userTypedParens)
                     {
                         return VSConstants.S_OK; // Don't let anybody else handle this command
                     }
@@ -54,6 +55,11 @@ namespace JScriptIntelliSenseParaExtension
         static bool UserTypedPeriod(Guid pguidCmdGroup, uint nCmdID, IntPtr pvaIn)
         {
             return UserTyped(pguidCmdGroup, nCmdID, pvaIn, c => c == '.');
+        }
+
+        static bool UserTypedParens(Guid pguidCmdGroup, uint nCmdID, IntPtr pvaIn)
+        {
+            return UserTyped(pguidCmdGroup, nCmdID, pvaIn, c => c == '(');
         }
 
         static bool UserTypedOperator(Guid pguidCmdGroup, uint nCmdID, IntPtr pvaIn)

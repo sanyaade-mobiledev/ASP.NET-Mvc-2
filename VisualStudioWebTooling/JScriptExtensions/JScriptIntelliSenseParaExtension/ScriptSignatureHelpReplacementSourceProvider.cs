@@ -17,7 +17,7 @@ namespace JScriptIntelliSenseParaExtension
     {
         public ISignatureHelpSource TryCreateSignatureHelpSource(ITextBuffer textBuffer)
         {
-            return new ScriptSignatureHelpReplacementSource(textBuffer);
+            return new ScriptSignatureHelpReplacementSource();
         }
     }
 }
