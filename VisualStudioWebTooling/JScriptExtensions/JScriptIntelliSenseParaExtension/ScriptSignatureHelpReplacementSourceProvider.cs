@@ -13,6 +13,7 @@ namespace JScriptIntelliSenseParaExtension
     [Name("JScript IntelliSense <para> Extension")]
     [Order(Before = "default")]
     [ContentType("jscript")]
+    [ContentType("HTML")]
     internal class ScriptSignatureHelpReplacementSourceProvider : ISignatureHelpSourceProvider
     {
         public ISignatureHelpSource TryCreateSignatureHelpSource(ITextBuffer textBuffer)

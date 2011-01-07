@@ -6,11 +6,13 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using JScriptPowerTools.Shared;
 
 namespace JScriptWordHighlighterExtension
 {
     [Export(typeof(IViewTaggerProvider))]
     [ContentType("jscript")]
+    [ContentType("HTML")]
     [TagType(typeof(TextMarkerTag))]
     internal class HighlightWordTaggerProvider : IViewTaggerProvider
     {
@@ -28,7 +30,9 @@ namespace JScriptWordHighlighterExtension
         {
             var textStructureNavigator = TextStructureNavigatorSelector.GetTextStructureNavigator(textView.TextBuffer);
 
-            return new HighlightWordTagger(textView, buffer, TextSearchService, textStructureNavigator, ClassifierAggregatorService.GetClassifier(buffer)) as ITagger<T>;
+            var classifier = VsServiceManager.GetScriptColorizer(buffer) ?? ClassifierAggregatorService.GetClassifier(buffer);
+
+            return new HighlightWordTagger(textView, buffer, TextSearchService, textStructureNavigator, classifier) as ITagger<T>;
         }
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text.Editor;
+using JScriptPowerTools.Shared;
 
 namespace JScriptIntelliSenseParaExtension
 {
@@ -13,6 +14,9 @@ namespace JScriptIntelliSenseParaExtension
     {
         IWpfTextView _textView;
         ICompletionBroker _broker;
+        ILanguageBlockManager _lbm;
+
+        private bool IsHtmlFile { get { return _lbm != null; } }
 
         internal IOleCommandTarget NextCmdTarget { get; set; }
 
@@ -20,33 +24,46 @@ namespace JScriptIntelliSenseParaExtension
         {
             _textView = view;
             _broker = broker;
+
+            var htmlBuffers = view.BufferGraph.GetTextBuffers(tb => tb.ContentType.TypeName.Equals("HTML", StringComparison.OrdinalIgnoreCase));
+
+            if (htmlBuffers.Any())
+                _lbm = VsServiceManager.GetLanguageBlockManager(htmlBuffers.First());
         }
 
         public int Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {
-            if (_broker.GetSessions(_textView).Any())
+            //_broker.GetSessions(_textView).Any()
+            //_broker.IsCompletionActive(_textView)
+            if (_broker.IsCompletionActive(_textView))
             {
-                var userTypedPeriod = UserTypedPeriod(pguidCmdGroup, nCmdID, pvaIn);
-                var userTypedParens = UserTypedParens(pguidCmdGroup, nCmdID, pvaIn);
-                if (UserPerfomedCommitAction(pguidCmdGroup, nCmdID, pvaIn) || userTypedPeriod || userTypedParens)
+                if (!IsHtmlFile ||
+                    (_broker.GetSessions(_textView).Any(cs =>
+                          cs.IsStarted && !cs.IsDismissed && cs.CompletionSets.Any(set =>
+                            JScriptEditorUtil.IsInJScriptLanguageBlock(_lbm, set.ApplicableTo.GetStartPoint(_textView.TextSnapshot))))))
                 {
-                    ForActiveCompletionSessions(s =>
-                        {
-                            if (nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB // Always complete on TAB
-                                || s.SelectedCompletionSet.SelectionStatus.IsSelected) // If completion is selected (not just highlighted)
-                                s.Commit();
-                            else
-                                s.Dismiss();
-                        });
-                    if (!userTypedPeriod && !userTypedParens)
+                    var userTypedPeriod = UserTypedPeriod(pguidCmdGroup, nCmdID, pvaIn);
+                    var userTypedParens = UserTypedParens(pguidCmdGroup, nCmdID, pvaIn);
+                    if (UserPerfomedCommitAction(pguidCmdGroup, nCmdID, pvaIn) || userTypedPeriod || userTypedParens)
                     {
-                        return VSConstants.S_OK; // Don't let anybody else handle this command
+                        ForActiveCompletionSessions(s =>
+                            {
+                                if (nCmdID == (uint)VSConstants.VSStd2KCmdID.TAB // Always complete on TAB
+                                    || s.SelectedCompletionSet.SelectionStatus.IsSelected) // If completion is selected (not just highlighted)
+                                    s.Commit();
+                                else
+                                    s.Dismiss();
+                            });
+                        if (!userTypedPeriod && !userTypedParens)
+                        {
+                            return VSConstants.S_OK; // Don't let anybody else handle this command
+                        }
                     }
-                }
-                if (UserTypedOperator(pguidCmdGroup, nCmdID, pvaIn) && !userTypedPeriod)
-                {
-                    ForActiveCompletionSessions(s => s.Dismiss());
-                    Debug.WriteLine("Dismissed all active completion sessions because user typed an operator");
+                    if (UserTypedOperator(pguidCmdGroup, nCmdID, pvaIn) && !userTypedPeriod)
+                    {
+                        ForActiveCompletionSessions(s => s.Dismiss());
+                        Debug.WriteLine("Dismissed all active completion sessions because user typed an operator");
+                    }
                 }
             }
             return NextCmdTarget.Exec(ref pguidCmdGroup, nCmdID, nCmdexecopt, pvaIn, pvaOut);

@@ -1,15 +1,17 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using JScriptPowerTools.Shared;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.Text.Classification;
 
 namespace JScriptBraceMatchingExtension
 {
     [Export(typeof(IViewTaggerProvider))]
     [ContentType("jscript")]
+    [ContentType("HTML")]
     [TagType(typeof(TextMarkerTag))]
     internal class JScriptBraceMatchingTaggerProvider : IViewTaggerProvider
     {
@@ -22,7 +24,9 @@ namespace JScriptBraceMatchingExtension
             if (textView == null)
                 return null;
 
-            return new JScriptBraceMatchingTagger(textView, buffer, ClassifierAggregatorService.GetClassifier(buffer)) as ITagger<T>;
+            var classifier = VsServiceManager.GetScriptColorizer(buffer) ?? ClassifierAggregatorService.GetClassifier(buffer);
+
+            return new JScriptBraceMatchingTagger(textView, buffer, classifier) as ITagger<T>;
         }
     }
 }

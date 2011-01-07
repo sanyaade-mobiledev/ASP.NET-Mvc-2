@@ -1,7 +1,5 @@
 ﻿/// <reference path="jquery-1.4.2.js"/>
 
-
-
 (function() {
     // ( ) { }
     var a = " ( ";
@@ -67,6 +65,7 @@ function foo(p1, p2) {
 
     return "";
 }
+
 
 
 function sample(name) {

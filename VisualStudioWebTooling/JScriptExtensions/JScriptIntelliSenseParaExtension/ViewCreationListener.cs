@@ -12,6 +12,7 @@ namespace JScriptIntelliSenseParaExtension
     [Export(typeof(IVsTextViewCreationListener))]
     [Name("JScript IntelliSense <para> Extension - Completion Helper")]
     [ContentType("jscript")]
+    [ContentType("HTML")]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
     sealed class ViewCreationListener : IVsTextViewCreationListener
     {

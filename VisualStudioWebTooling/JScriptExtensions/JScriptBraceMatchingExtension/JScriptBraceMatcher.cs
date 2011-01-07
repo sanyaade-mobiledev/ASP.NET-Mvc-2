@@ -1,22 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Text;
 using JScriptPowerTools.Shared;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 
 namespace JScriptBraceMatchingExtension
 {
     internal class JScriptBraceMatcher
     {
-        internal static bool FindMatchingCloseChar(IClassifier classifier, SnapshotPoint startPoint, char open, char close, int maxLines, ref bool maxLinesReached, out SnapshotSpan pairSpan)
+        internal static bool FindMatchingBrace(ILanguageBlockManager lbm, IClassifier classifier, SnapshotPoint startPoint, bool findClosing, char open, char close, int maxLines, ref bool maxLinesReached, out SnapshotSpan pairSpan)
         {
+            // Get script block we're working in
+            // lbm will be null if this is not in an HTML file
+            var scriptBlock = lbm != null
+                ? JScriptEditorUtil.GetJavaScriptBlockSpans(lbm)
+                    .Single(b => b.Start <= startPoint.Position && b.End >= startPoint.Position)
+                : new BlockSpan(0, startPoint.Snapshot.TextBuffer.CurrentSnapshot.Length, true);
+
+            return findClosing
+                ? FindMatchingCloseChar(scriptBlock, classifier, startPoint, open, close, maxLines, ref maxLinesReached, out pairSpan)
+                : FindMatchingOpenChar(scriptBlock, classifier, startPoint, close, open, maxLines, ref maxLinesReached, out pairSpan);
+        }
+
+        // TODO: Can we refactor FindMatchingCloseChar and FindMatchingOpenChar into a single method?
+
+        static bool FindMatchingCloseChar(BlockSpan scriptBlock, IClassifier classifier, SnapshotPoint startPoint, char open, char close, int maxLines, ref bool maxLinesReached, out SnapshotSpan pairSpan)
+        {
+            var isHTML = startPoint.Snapshot.ContentType.TypeName.Equals("HTML", StringComparison.OrdinalIgnoreCase);
             pairSpan = new SnapshotSpan(startPoint.Snapshot, 1, 1);
             var line = startPoint.GetContainingLine();
             var lineText = line.GetText();
             var lineNumber = line.LineNumber;
             var offset = startPoint.Position - line.Start.Position + 1;
+            var endOfScriptBlockReached = false;
 
             var stopLineNumber = startPoint.Snapshot.LineCount - 1;
             if (maxLines > 0)
@@ -32,6 +51,14 @@ namespace JScriptBraceMatchingExtension
                 // walk the entire line
                 while (offset < line.Length)
                 {
+                    // Check if we've hit the end of the script block
+                    if (scriptBlock.End < line.Start + offset)
+                    {
+                        // We've hit the end of a script block
+                        endOfScriptBlockReached = true;
+                        break;
+                    }
+
                     char currentChar = lineText[offset];
                     var currentCharPoint = line.Start + offset;
 
@@ -78,13 +105,17 @@ namespace JScriptBraceMatchingExtension
                     offset++;
                 }
 
+                if (endOfScriptBlockReached)
+                    break;
+
                 // move on to the next line
                 if (++lineNumber > stopLineNumber)
                 {
 #if DEBUG
                     Util.Log("Reached max lines ({0}), stopped looking at line {1} after {2}ms", maxLines, stopLineNumber, TimeSpan.FromTicks(DateTime.Now.Ticks - startTicks).TotalMilliseconds);
 #endif
-                    maxLinesReached = true;
+                    // Set maxLinesReached flag only if we actually hit max lines limit, not just end of buffer
+                    maxLinesReached = stopLineNumber >= maxLines;
                     break;
                 }
 
@@ -99,12 +130,14 @@ namespace JScriptBraceMatchingExtension
             return false;
         }
 
-        internal static bool FindMatchingOpenChar(IClassifier classifier, SnapshotPoint startPoint, char open, char close, int maxLines, ref bool maxLinesReached, out SnapshotSpan pairSpan)
+        static bool FindMatchingOpenChar(BlockSpan scriptBlock, IClassifier classifier, SnapshotPoint startPoint, char open, char close, int maxLines, ref bool maxLinesReached, out SnapshotSpan pairSpan)
         {
+            var isHTML = startPoint.Snapshot.ContentType.TypeName.Equals("HTML", StringComparison.OrdinalIgnoreCase);
             pairSpan = new SnapshotSpan(startPoint, startPoint);
             ITextSnapshotLine line = startPoint.GetContainingLine();
             var lineNumber = line.LineNumber;
             var offset = startPoint - line.Start - 1; // move the offset to the character before this one
+            var startOfScriptBlockReached = false;
 
             // if the offset is negative, move to the previous line
             if (offset < 0)
@@ -116,18 +149,30 @@ namespace JScriptBraceMatchingExtension
             var lineText = line.GetText();
 
             var stopLineNumber = 0;
+            var nominalStopLineNumber = lineNumber - maxLines;
             if (maxLines > 0)
-                stopLineNumber = Math.Max(stopLineNumber, lineNumber - maxLines);
+                stopLineNumber = Math.Max(stopLineNumber, nominalStopLineNumber);
 #if DEBUG
             var startTicks = DateTime.Now.Ticks;
             Util.Log("Looking for matching opening brace '{0}'", open);
 #endif
             var closeCount = 0;
+
+            Debug.Assert(scriptBlock != null);
+
             while (true)
             {
                 // Walk the entire line
                 while (offset >= 0)
                 {
+                    // Check if we've hit the start of the script block
+                    if (scriptBlock.Start > line.Start + offset)
+                    {
+                        // We've hit the end of a script block
+                        startOfScriptBlockReached = true;
+                        break;
+                    }
+
                     char currentChar = lineText[offset];
                     var currentCharPoint = line.Start + offset;
 
@@ -174,10 +219,14 @@ namespace JScriptBraceMatchingExtension
                     offset--;
                 }
 
+                if (startOfScriptBlockReached)
+                    break;
+
                 // Move to the previous line
                 if (--lineNumber < stopLineNumber)
                 {
-                    maxLinesReached = true;
+                    // Set maxLinesReached flag only if we actually hit max lines limit, not just start of buffer
+                    maxLinesReached = stopLineNumber == nominalStopLineNumber;
 #if DEBUG
                     Util.Log("Reached max lines ({0}, stopped looking at line {1} after {2}ms", maxLines, stopLineNumber, TimeSpan.FromTicks(DateTime.Now.Ticks - startTicks).TotalMilliseconds);
 #endif

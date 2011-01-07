@@ -167,12 +167,8 @@ namespace JScriptWordHighlighterExtension
             if (CurrentWord.HasValue && currentWord == CurrentWord)
                 return;
 
-            // If the word is in a string, comment, keyword or regex literal, then don't search for matches.
-            if (JScriptEditorUtil.IsClassifiedAs(Classifier, currentWord.Start,
-                    JScriptClassifications.Comment,
-                    JScriptClassifications.String,
-                    JScriptClassifications.Keyword,
-                    JScriptClassifications.Operator))
+            // If the word is not an identifier, then don't search for matches.
+            if (!JScriptEditorUtil.IsClassifiedAs(Classifier, currentWord.Start, JScriptClassifications.Identifier))
                 return;
 
             var request = new FindMatchesRequest { WordSpan = currentWord, RequestPoint = currentRequest };
@@ -219,7 +215,7 @@ namespace JScriptWordHighlighterExtension
 
             // If another change hasn't happened, do a real update
             if (request.RequestPoint == RequestedPoint)
-                SynchronousUpdate(request.RequestPoint, new NormalizedSnapshotSpanCollection(wordSpans), request.WordSpan);
+                SynchronousUpdate(request.RequestPoint, wordSpans, request.WordSpan);
         }
 
         private static bool WordExtentIsValid(SnapshotPoint currentRequest, TextExtent word)
@@ -227,14 +223,16 @@ namespace JScriptWordHighlighterExtension
             return word.IsSignificant && currentRequest.Snapshot.GetText(word.Span).Any(c => char.IsLetter(c));
         }
 
-        private void SynchronousUpdate(SnapshotPoint currentRequest, NormalizedSnapshotSpanCollection newSpans, SnapshotSpan? newCurrentWord)
+        private void SynchronousUpdate(SnapshotPoint currentRequest, IEnumerable<SnapshotSpan> newSpans, SnapshotSpan? newCurrentWord)
         {
             ViewDispatcher.BeginInvoke(new Action(() =>
                 {
                     if (currentRequest != RequestedPoint)
                         return;
 
-                    WordSpans = newSpans;
+                    WordSpans = new NormalizedSnapshotSpanCollection(
+                        newSpans.Where(s => JScriptEditorUtil.IsClassifiedAsJavaScript(Classifier, s.Start)));
+                    
                     CurrentWord = newCurrentWord;
 
                     OnTagsChanged(new SnapshotSpan(View.TextBuffer.CurrentSnapshot, 0, View.TextBuffer.CurrentSnapshot.Length));

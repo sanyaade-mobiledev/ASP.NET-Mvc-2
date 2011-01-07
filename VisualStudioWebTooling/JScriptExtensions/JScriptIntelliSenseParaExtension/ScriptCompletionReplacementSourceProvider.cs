@@ -13,6 +13,7 @@ namespace JScriptIntelliSenseParaExtension
     [Name("JScript IntelliSense <para> Extension - Completion")]
     [Order(Before = "default")]
     [ContentType("jscript")]
+    [ContentType("HTML")]
     internal class ScriptCompletionReplacementSourceProvider : ICompletionSourceProvider
     {
         public ICompletionSource TryCreateCompletionSource(ITextBuffer textBuffer)

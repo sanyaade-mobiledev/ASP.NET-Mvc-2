@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JScriptPowerTools.Shared;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Text.Classification;
-using JScriptPowerTools.Shared;
 
 namespace JScriptBraceMatchingExtension
 {
@@ -23,8 +23,11 @@ namespace JScriptBraceMatchingExtension
         private ITextView _view;
         private ITextBuffer _sourceBuffer;
         private SnapshotPoint? _currentCharPoint;
-        private int _viewScreensToSearchOver = 20;
+        private int _viewScreensToSearchOver = 20; // This seems like a good number :)
         private readonly JScriptBraceMatcher _braceMatcher = new JScriptBraceMatcher();
+        private ILanguageBlockManager _lbm;
+
+        private bool IsHtmlFile { get { return _lbm != null; } }
 
         internal JScriptBraceMatchingTagger(ITextView view, ITextBuffer sourceBuffer, IClassifier classifier)
         {
@@ -35,6 +38,9 @@ namespace JScriptBraceMatchingExtension
 
             _view.TextBuffer.Changed += TextBuffer_Changed;
             _view.Caret.PositionChanged += Caret_PositionChanged;
+
+            if (sourceBuffer.ContentType.TypeName.Equals("HTML", StringComparison.OrdinalIgnoreCase))
+                _lbm = VsServiceManager.GetLanguageBlockManager(_sourceBuffer);
         }
 
         public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
@@ -72,6 +78,8 @@ namespace JScriptBraceMatchingExtension
             OnTagsChanged(new SnapshotSpan(_sourceBuffer.CurrentSnapshot, 0, _sourceBuffer.CurrentSnapshot.Length));
         }
 
+        private bool _maxLinesReached = false;
+
         public IEnumerable<ITagSpan<TextMarkerTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
 #if DEBUG
@@ -99,56 +107,65 @@ namespace JScriptBraceMatchingExtension
             var prevChar = prevCharPoint != 0 ? prevCharPoint.GetChar() : default(char?); // Can't get prevChar if point is 0
             
             var maxLines = _view.TextViewLines.Count * _viewScreensToSearchOver;
-            var maxLinesReached = false;
             char closeChar;
 
+            // If neither current or previous char is in a JS language block, return
+            if (IsHtmlFile && !JScriptEditorUtil.IsInJScriptLanguageBlock(_lbm, currentCharPoint)
+                           && !JScriptEditorUtil.IsInJScriptLanguageBlock(_lbm, prevCharPoint))
+                yield break;
+
+            // Check if char to right of cursor is an opening brace
             if (currentChar.HasValue && _braceList.TryGetValue(currentChar.Value, out closeChar)) // the value is the open brace
             {
-                // if the current char is a comment, string or operator then don't try matching
-                // Note: The editor incorrectly classifies braces in regex literals as operators.
-                //       We are using this fact to detect if the brace is in a regex literal and thus ignore it.
-                if (JScriptEditorUtil.IsClassifiedAs(_classifier, currentCharPoint,
-                        JScriptClassifications.Comment,
-                        JScriptClassifications.String,
-                        JScriptClassifications.Operator))
-                    yield break;
-
-                var currPairSpan = new SnapshotSpan();
-                if (JScriptBraceMatcher.FindMatchingCloseChar(_classifier, currentCharPoint, currentChar.Value, closeChar, maxLines, ref maxLinesReached, out currPairSpan) == true ||
-                    maxLinesReached)
+                foreach (var s in GetTagSpans(currentCharPoint, currentChar.Value, closeChar, maxLines))
                 {
-                    yield return new TagSpan<TextMarkerTag>(new SnapshotSpan(currentCharPoint, 1), new TextMarkerTag(_tagType));
-                    if (!maxLinesReached)
-                        yield return new TagSpan<TextMarkerTag>(currPairSpan, new TextMarkerTag(_tagType));
+                    yield return s;
                 }
             }
 
+            // Check if char to left of cursor is a closing brace
             var openChar = _braceList.Where(kvp => kvp.Value.Equals(prevChar))
                                      .Select(n => n.Key)
                                      .FirstOrDefault();
 
             if (openChar != default(char)) // the value is the close brace, which is the *previous* character 
             {
-                // if the prev char is a comment or string then don't try matching
-                // Note: The editor incorrectly classifies braces in regex literals as operators.
-                //       We are using this fact to detect if the brace is in a regex literal and thus ignore it.
-                if (JScriptEditorUtil.IsClassifiedAs(_classifier, prevCharPoint,
-                        JScriptClassifications.Comment,
-                        JScriptClassifications.String,
-                        JScriptClassifications.Operator))
-                    yield break;
-
-                var prevPairSpan = new SnapshotSpan();
-                maxLinesReached = false;
-
-                if (JScriptBraceMatcher.FindMatchingOpenChar(_classifier, prevCharPoint, openChar, prevChar.Value, maxLines, ref maxLinesReached, out prevPairSpan) == true ||
-                    maxLinesReached)
+                foreach (var s in GetTagSpans(prevCharPoint, prevChar.Value, openChar, maxLines))
                 {
-                    yield return new TagSpan<TextMarkerTag>(new SnapshotSpan(prevCharPoint, 1), new TextMarkerTag(_tagType));
-                    if (!maxLinesReached)
-                        yield return new TagSpan<TextMarkerTag>(prevPairSpan, new TextMarkerTag(_tagType));
+                    yield return s;
                 }
             }
+        }
+
+        private IEnumerable<TagSpan<TextMarkerTag>> GetTagSpans(SnapshotPoint bracePoint, char brace, char matchingBrace, int maxLines)
+        {
+            if (BraceShouldBeIgnored(bracePoint))
+                yield break;
+
+            var pairSpan = new SnapshotSpan();
+
+            var findingClose = _braceList.ContainsKey(brace);
+            _maxLinesReached = false;
+
+            if (JScriptBraceMatcher.FindMatchingBrace(_lbm, _classifier, bracePoint, findingClose, brace, matchingBrace, maxLines, ref _maxLinesReached, out pairSpan) == true ||
+                _maxLinesReached)
+            {
+                yield return new TagSpan<TextMarkerTag>(new SnapshotSpan(bracePoint, 1), new TextMarkerTag(_tagType));
+                if (!_maxLinesReached)
+                    yield return new TagSpan<TextMarkerTag>(pairSpan, new TextMarkerTag(_tagType));
+            }
+        }
+
+        private bool BraceShouldBeIgnored(SnapshotPoint bracePoint)
+        {
+            // if the prev char is a comment, string or operator then don't try matching
+            // Note: The editor incorrectly classifies braces in regex literals as operators.
+            //       We are using this fact to detect if the brace is in a regex literal and thus ignore it.
+            //       Genuine braces have no classification at all.
+            return JScriptEditorUtil.IsClassifiedAs(_classifier, bracePoint,
+                JScriptClassifications.Comment,
+                JScriptClassifications.String,
+                JScriptClassifications.Operator);
         }
     }
 }

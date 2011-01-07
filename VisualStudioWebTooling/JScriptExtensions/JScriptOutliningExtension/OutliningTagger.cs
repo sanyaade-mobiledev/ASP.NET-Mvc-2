@@ -16,6 +16,28 @@ namespace JScriptOutliningExtension
         List<ITrackingSpan> _sections;
         DispatcherTimer _timer;
 
+        /// <summary>
+        /// Used only in markup files to figure out the spans of the JavaScript blocks
+        /// </summary>
+        ILanguageBlockManager _lbm;
+
+        /// <summary>
+        /// Spans of all JavaScript blocks in a markup files (null in JavaScript files)
+        /// </summary>
+        List<BlockSpan> _javaScriptBlockSpans;
+
+        /// <summary>
+        /// Starts of spans of all JavaScript blocks in a markup files (null in JavaScript files)
+        /// </summary>
+        HashSet<int> _javaScriptBlockStarts = new HashSet<int>();
+
+        /// <summary>
+        /// Ends of spans of all JavaScript blocks in a markup files (null in JavaScript files)
+        /// </summary>
+        HashSet<int> _javaScriptBlockEnds = new HashSet<int>();
+
+        private bool IsHtmlFile { get { return _lbm != null; } }
+
         bool _fullReparse = true; // We always want full reparse the very first time!
 
         ITrackingSpan _editSpan = null;
@@ -27,6 +49,10 @@ namespace JScriptOutliningExtension
             _buffer = buffer;
             _classifier = classifier;
             _sections = new List<ITrackingSpan>();
+
+            if (buffer.ContentType.TypeName.Equals("HTML", StringComparison.OrdinalIgnoreCase))
+                _lbm = VsServiceManager.GetLanguageBlockManager(buffer);
+
             _timer = new DispatcherTimer(DispatcherPriority.ApplicationIdle);
             _timer.Interval = TimeSpan.FromMilliseconds(3000); // We'll force a reparse after 3 secs of no buffer changes
             _timer.Tick += (sender, args) =>
@@ -185,8 +211,51 @@ namespace JScriptOutliningExtension
             }
         }
 
+        private void UpdateJavaScriptBlockSpans()
+        {
+            if (IsHtmlFile)
+                _javaScriptBlockSpans = JScriptEditorUtil.GetJavaScriptBlockSpans(_lbm);
+            else
+            {
+                if (_javaScriptBlockSpans == null)
+                    _javaScriptBlockSpans = new List<BlockSpan>(1);
+                else
+                    _javaScriptBlockSpans.Clear();
+
+                _javaScriptBlockSpans.Add(new BlockSpan(0, _buffer.CurrentSnapshot.Length, false));
+            }
+
+            _javaScriptBlockStarts.Clear();
+            _javaScriptBlockEnds.Clear();
+
+            foreach (BlockSpan javaScriptBlockSpan in _javaScriptBlockSpans)
+            {
+                _javaScriptBlockStarts.Add(javaScriptBlockSpan.Start);
+                _javaScriptBlockEnds.Add(javaScriptBlockSpan.End);
+            }
+        }
+
+        private bool IsInJavaScriptBlock(int position)
+        {
+            foreach (BlockSpan javaScriptBlockSpan in _javaScriptBlockSpans)
+            {
+                if (javaScriptBlockSpan.Contains(position))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         void ReparseFile()
         {
+            UpdateJavaScriptBlockSpans();
+
+            // If we are in a markup file with no script blocks, return immediately.
+            if (_javaScriptBlockSpans.Count == 0)
+                return;
+
             int containingSpanIndex = -1;
 
             int reparseRangeStart = 0;
@@ -331,17 +400,38 @@ namespace JScriptOutliningExtension
 
         List<ITrackingSpan> ReparseRange(ITextSnapshot snapshot, int reparseRangeStart, int reparseRangeEnd, out bool unbalanced)
         {
-
             var currentSections = new List<ITrackingSpan>();
             var openCurlies = new Stack<int>();
+            bool isInJavaScript = IsInJavaScriptBlock(reparseRangeStart);
             unbalanced = false;
 
             for (int i = reparseRangeStart; i < reparseRangeEnd; i++)
             {
+                var point = new SnapshotSpan(snapshot, i, 1).Start;
+
+                // If current point is not in a JS language block, return
+                if (!isInJavaScript)
+                {
+                    if (_javaScriptBlockStarts.Contains(i))
+                    {
+                        // Our scan just barely entered a JavaScript block
+                        isInJavaScript = true;
+
+                        // We don't want opening curly from open JavaScript block to match with 
+                        // a closing curly from another block, so purge all unmatched (dangling)
+                        // opening curlies from the previous block.
+                        openCurlies.Clear();
+                    }
+                    else
+                        continue;
+                }
+
+                if (_javaScriptBlockEnds.Contains(i))
+                    isInJavaScript = false;
+
                 var ch = snapshot[i];
                 if (ch == '{' || ch == '}')
                 {
-                    var point = new SnapshotSpan(snapshot, i, 1).Start;
                     if (JScriptEditorUtil.IsClassifiedAs(_classifier, point,
                             JScriptClassifications.Comment,
                             JScriptClassifications.String,
