@@ -13,6 +13,26 @@
  *
  * Date: Sat Feb 13 22:33:48 2010 -0500
  */
+
+function testing2(p1, p2) {
+    /// <summary>
+    ///   Description
+    ///   <para>This is a new paragraph</para> 
+    ///   <para>   This paragraph is indented with spaces</para>
+    ///   <para>This has a child paragraph
+    ///       <para>   This is a nested paragraph</para>
+    ///   </para>
+    /// </summary>
+    /// <param name="p1" type="String">
+    ///   This is p1
+    ///   <para>This is more info. about p1</para>
+    /// </param>
+    /// <param name="p2" type="Number">This is p2</param>
+    /// <returns type="String" />
+
+    return "";
+}
+
 (function( window, undefined ) {
 
 // Define a local copy of jQuery

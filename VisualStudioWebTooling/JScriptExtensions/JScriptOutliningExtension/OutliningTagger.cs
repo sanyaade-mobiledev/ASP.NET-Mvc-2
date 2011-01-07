@@ -57,6 +57,7 @@ namespace JScriptOutliningExtension
             _timer.Interval = TimeSpan.FromMilliseconds(3000); // We'll force a reparse after 3 secs of no buffer changes
             _timer.Tick += (sender, args) =>
             {
+                Debug.WriteLine("OutliningTagger: _timer.Tick fired");
                 _timer.Stop();
                 ReparseFile();
             };
@@ -67,6 +68,14 @@ namespace JScriptOutliningExtension
 
         public void Dispose()
         {
+            Debug.WriteLine("OutliningTagger.Dispose()");
+
+            if (_timer.IsEnabled)
+            {
+                _timer.Stop(); // Need to stop the timer here to ensure a Reparse isn't attempted after dispose as that crashes VS :)
+                Debug.WriteLine("OutliningTagger.Dispose(): _timer explicitly stopped!!!");
+            }
+
             _buffer.Changed -= BufferChanged;
         }
 
