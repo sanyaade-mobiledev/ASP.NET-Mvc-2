@@ -117,8 +117,8 @@
     <Content Include="Scripts\scratch2.js" />
     <Content Include="Scripts\underscore-min.js" />
     <Content Include="Scripts\underscore.js" />
-    <None Include="Views\Build\Index.cshtml" />
-    <None Include="Views\Build\jQueryDocTypes.cshtml" />
+    <Content Include="Views\Build\Index.cshtml" />
+    <Content Include="Views\Build\jQueryDocTypes.cshtml" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
