@@ -14,8 +14,8 @@ namespace VsDocBuilder.Controllers
 {
     public class BuildController : Controller
     {
-        readonly static string _defaultVersion = "1.4.4";
-        readonly static string[] _versions = new[] { "1.4.2", "1.4.3", "1.4.4" };
+        readonly static string _defaultVersion = "1.5";
+        readonly static string[] _versions = new[] { "1.4.2", "1.4.3", "1.4.4", "1.5" };
 
         public ActionResult Index(string ver, bool para = false)
         {

@@ -156,7 +156,7 @@ $(function () {
             }
         }
 
-        if (entry.returns) {
+        if (entry.returns && entry.returns !== "jqXHR" && entry.returns !== "jXHR") {
             comment = comment + "/// <returns type=\"{returns}\" />\r\n".supplant(entry);
         }
 
@@ -181,7 +181,7 @@ $(function () {
                 return isFinite(obj) ? obj.toString() : null;
 
             } else if (typeof obj === "object") {
-                if (typeof obj.getDay === "function") {
+                if (obj !== null && typeof obj.getDay === "function") {
                     return "new Date({y}, {m}, {d})".supplant({
                         y: obj.getFullYear(),
                         m: obj.getMonth(),
