@@ -78,6 +78,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ScriptCompletionSet.cs" />
     <Compile Include="ScriptCompletionWatcher.cs" />
     <Compile Include="DocCommentHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

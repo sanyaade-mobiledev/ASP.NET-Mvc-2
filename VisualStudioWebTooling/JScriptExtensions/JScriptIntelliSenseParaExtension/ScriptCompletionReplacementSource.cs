@@ -38,7 +38,7 @@ namespace JScriptIntelliSenseParaExtension
             // TODO: Reflect over the ShimCompletionSet to see where the Description value comes from
             //       as setting the property does not actually change the value.
             var newCompletionSets = completionSets
-                .Select(cs => cs == null ? cs : new CompletionSet(
+                .Select(cs => cs == null ? cs : new ScriptCompletionSet(
                     cs.Moniker,
                     cs.DisplayName,
                     cs.ApplicableTo,
