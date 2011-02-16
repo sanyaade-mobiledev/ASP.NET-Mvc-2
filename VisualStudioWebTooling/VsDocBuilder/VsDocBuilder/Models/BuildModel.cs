@@ -8,7 +8,7 @@ namespace VsDocBuilder.Models
     public class BuildModel
     {
         public IEnumerable<SelectListItem> Versions { get; set; }
+        public IEnumerable<SelectListItem> NewLineMethods { get; set; }
         public string Version { get; set; }
-        public bool GenerateParaTags { get; set; }
     }
 }

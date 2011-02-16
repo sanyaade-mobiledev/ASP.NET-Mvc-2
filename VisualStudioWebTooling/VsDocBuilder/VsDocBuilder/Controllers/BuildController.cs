@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Xml;
-using System.Xml.Linq;
-using System.Web.Caching;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Web;
+using System.Web.Caching;
+using System.Web.Mvc;
+using System.Xml.Linq;
 using VsDocBuilder.Models;
 
 namespace VsDocBuilder.Controllers
@@ -17,7 +16,7 @@ namespace VsDocBuilder.Controllers
         readonly static string _defaultVersion = "1.5";
         readonly static string[] _versions = new[] { "1.4.2", "1.4.3", "1.4.4", "1.5" };
 
-        public ActionResult Index(string ver, bool para = false)
+        public ActionResult Index(string ver, string newLineMethod = "xml")
         {
             var model = new BuildModel();
             var versions = new List<SelectListItem>();
@@ -26,7 +25,11 @@ namespace VsDocBuilder.Controllers
                 versions.Add(new SelectListItem { Text = v, Value = v, Selected = (v == model.Version) });
             }
             model.Versions = versions;
-            model.GenerateParaTags = para;
+            model.NewLineMethods = new List<SelectListItem>
+            {
+                new SelectListItem { Text = "XML entities", Value = "xml", Selected = newLineMethod == "xml" },
+                new SelectListItem { Text = "<para> tags", Value = "para", Selected = newLineMethod == "para" }
+            };
             return View(model);
         }
 

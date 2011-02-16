@@ -13,7 +13,7 @@ String.prototype.supplant = function (o) {
 $(function () {
     var members = [],
         membersP = [],
-        $usePara = $("#usePara"),
+        $newLineMethod = $("#newLineMethod"),
         $name = $("#name"),
         $aliases = $("#aliases"),
         $type = $("#type"),
@@ -99,6 +99,13 @@ $(function () {
         return result;
     }
 
+    function injectXmlNewLines(text) {
+        /// <param name="text" type="String">The text to inject XML entities into</param>
+        var result = $.trim(text)
+            .replace(/(\r\n)|\n/g, "\r\n&#10;"); // Replace all new lines with </para>\r\n<para>
+        return result;
+    }
+
     function injectNewLinePrefixSlashes(text, paddingLength) {
         text = $.trim(text);
         if (typeof (paddingLength) !== "number") paddingLength = 4;
@@ -107,11 +114,15 @@ $(function () {
         return text.replace(/(\r\n)|\n/g, "\r\n/// " + padding);
     }
 
-    function makeDocComment(entry, ref, aliases, generatePara) {
+    function makeDocComment(entry, ref, aliases, newLineMethod) {
         // { name:"", returns:"", summary:"", parameters: [{ name:"", type:"", summary:""}] }
         if (!entry || !entry.summary) return "";
 
-        if (generatePara) entry.summary = injectParaTags(entry.summary);
+        if (newLineMethod === "para") {
+            entry.summary = injectParaTags(entry.summary);
+        } else if (newLineMethod === "xml") {
+            entry.summary = injectXmlNewLines(entry.summary);
+        }
 
         entry.summary = injectNewLinePrefixSlashes($.trim(entry.summary));
 
@@ -147,7 +158,7 @@ $(function () {
                         .supplant({
                             name: $.trim(this.name),
                             type: $.trim(this.type),
-                            summary: injectNewLinePrefixSlashes(generatePara ? injectParaTags($.trim(this.summary)) : $.trim(this.summary))
+                            summary: injectNewLinePrefixSlashes(newLineMethod === "para" ? injectParaTags($.trim(this.summary)) : injectXmlNewLines($.trim(this.summary)))
                         });
 
                     if (this.type === "Element")
@@ -231,7 +242,7 @@ $(function () {
             var docEntriesFoundOnOppositeToExpected = [];
             var docEntriesWithNoMatch = [];
 
-            var generatePara = $usePara.get(0).checked;
+            var newLineMethod = $newLineMethod.val();
 
             $.each(doc, function () {
                 var name = this.name;
@@ -263,7 +274,7 @@ $(function () {
 
                 var data = $option.data("m");
                 if (data) {
-                    data.doc = makeDocComment(this, data.ref, data.aliases, generatePara);
+                    data.doc = makeDocComment(this, data.ref, data.aliases, newLineMethod);
                     $option.data("m", data);
                     if (data.doc) {
                         $option.addClass("has-doc");

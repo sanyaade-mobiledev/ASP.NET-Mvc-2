@@ -8,12 +8,14 @@
 </head>
 <body>
     <div id="pageContainer">
-        <h1>jQuery vsdoc File Generator <span>for Visual Studio 2010</span></h1>
+        <h1>jQuery vsdoc File Generator <span>for Visual Studio 2010</span> TESTING</h1>
         <div id="chooseVersion">
             @using (Html.BeginForm("Index", "Build", FormMethod.Get)) {
                 <label for="version">Choose a jQuery version:</label>
                 @Html.DropDownList("ver", Model.Versions, new { id = "version" })
-                <span class="checkbox" id="useParaCheckbox">@Html.CheckBox("para", Model.GenerateParaTags, new { id = "usePara" })<label for="usePara">Generate &lt;para&gt;</label></span>
+                <label for="newLineMethod">Choose method for new line generation:</label>
+                @Html.DropDownList("newLineMethod", Model.NewLineMethods, new { id = "newLineMethod" })
+                @*<span class="checkbox" id="useParaCheckbox">@Html.CheckBox("para", Model.GenerateParaTags, new { id = "usePara" })<label for="usePara">Generate &lt;para&gt;</label></span>*@
                 <input type="submit" value="Go!" />
             }
             <p id="status"></p>
