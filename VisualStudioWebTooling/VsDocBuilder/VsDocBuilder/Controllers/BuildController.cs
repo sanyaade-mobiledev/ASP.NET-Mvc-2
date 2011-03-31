@@ -13,8 +13,8 @@ namespace VsDocBuilder.Controllers
 {
     public class BuildController : Controller
     {
-        readonly static string _defaultVersion = "1.5.1";
-        readonly static string[] _versions = new[] { "1.4.2", "1.4.3", "1.4.4", "1.5", "1.5.1" };
+        readonly static string _defaultVersion = "1.5.2";
+        readonly static string[] _versions = new[] { "1.4.2", "1.4.3", "1.4.4", "1.5", "1.5.1", "1.5.2" };
 
         public ActionResult Index(string ver, string newLineMethod = "xml")
         {
@@ -159,6 +159,31 @@ namespace VsDocBuilder.Controllers
                     signatures.Max(e => e.Elements("argument").Count()))
                 .FirstOrDefault();
 
+            // TODO: Add support for <options> on "Map" types here
+            // <signature>
+            //  <added>1.5</added>
+            //  <argument name="url" type="String">
+            //   <desc>A string containing the URL to which the request is sent.</desc>
+            //  </argument>
+            //  <argument name="settings" type="Map">
+            //   <desc></desc>
+            //  </argument>
+            // </signature>
+            // <signature>
+            //  <added>1.0</added>
+            //  <argument name="settings" type="Map">
+            //   <desc></desc>
+            //   <option default="depends on DataType" name="accepts" type="Map">
+            //    <desc>blah</desc>
+            //   </option>
+            //  </argument>
+            // </signature>
+            
+            // For each parameter, look through all signatures for parameters with same
+            // name and type of "Map" and that have <option> children, and build summary
+            // from that.
+            
+            
             return signatureToUse.Elements("argument")
                 .Select(a => new {
                                      name = a.Attribute("name").Value,
