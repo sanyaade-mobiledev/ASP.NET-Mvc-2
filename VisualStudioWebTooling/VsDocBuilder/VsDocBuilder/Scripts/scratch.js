@@ -1,15 +1,15 @@
-﻿/// <reference path="jquery-1.5.2.js" />
+﻿/// <reference path="jquery-1.6.js" />
 
 var el = $("el").animate();
 var test = el.css("b", "test");
 test = el.animate({});
+
 
 $("").click(function (e) {
     /// <param name="e" type="jQuery.Event">Description</param>
     
     
 });
-
 
 
 
