@@ -107,6 +107,9 @@
     <Content Include="Scripts\jquery-1.5.2.min.js" />
     <Content Include="Scripts\jquery-1.5.js" />
     <Content Include="Scripts\jquery-1.5.min.js" />
+    <Content Include="Scripts\jquery-1.6.1-vsdoc.js" />
+    <Content Include="Scripts\jquery-1.6.1.js" />
+    <Content Include="Scripts\jquery-1.6.1.min.js" />
     <Content Include="Scripts\jquery-1.6.js" />
     <Content Include="Scripts\jquery-1.6.min.js" />
     <Content Include="Scripts\jquery-test-vsdoc.js" />

@@ -1,4 +1,4 @@
-﻿/// <reference path="jquery-1.6.js" />
+﻿/// <reference path="jquery-1.6.1.js" />
 
 var el = $("el").animate();
 var test = el.css("b", "test");
